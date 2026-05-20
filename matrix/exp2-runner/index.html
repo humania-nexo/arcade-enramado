@@ -487,17 +487,26 @@
         // ----------------------------------------------------------------
         // 2. ESTADO Y ALIAS
         // ----------------------------------------------------------------
-        let matrixState = { alias: 'AGENTE', score: 0, completed: [] };
+        let matrixState = { alias: '', score: 0, completed: [] };
         try {
             const saved = localStorage.getItem('matrix_state');
-            if (saved) matrixState = JSON.parse(saved);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                // Sólo fusionar si hay datos válidos, nunca sobreescribir con defaults
+                if (parsed) matrixState = parsed;
+            }
         } catch(e) {}
 
-        function saveState() { localStorage.setItem('matrix_state', JSON.stringify(matrixState)); }
+        // Nunca guardar el alias 'AGENTE' (es sólo un display de fallback)
+        function saveState() {
+            const toSave = Object.assign({}, matrixState);
+            localStorage.setItem('matrix_state', JSON.stringify(toSave));
+        }
 
-        const alias = matrixState.alias || 'AGENTE';
+        const alias = (matrixState.alias && matrixState.alias !== 'AGENTE')
+            ? matrixState.alias : 'AGENTE';
         document.getElementById('intro-alias').textContent = alias;
-        document.getElementById('hud-alias').textContent   = `AGENTE ${alias}`;
+        document.getElementById('hud-alias').textContent   = `ALIAS: ${alias}`;
         document.getElementById('go-alias').textContent    = alias;
 
         // ----------------------------------------------------------------
@@ -822,84 +831,180 @@
             });
         }
 
+        // ================================================================
+        // DRAW PLAYER: Neo en vista lateral (perfil, mirando a la derecha)
+        // Ropa oscura (chaqueta negra), piel natural
+        // ================================================================
         function drawPlayer() {
             const x = player.x, y = player.y;
-            const s = 4, f = player.animFrame;
+            const s = 4; // escala base: 1 unidad = 4px
+            const f = player.animFrame;
 
-            // Cabeza
-            gCtx.fillStyle = '#00cc33';
-            gCtx.fillRect(x + s, y, s * 3, s * 3);
-            // Brillo cabeza
-            gCtx.fillStyle = '#00ee44';
-            gCtx.fillRect(x + s, y, s, s);
+            // --- CABEZA (perfil derecha, piel natural) ---
+            // El centro de masa del sprite está en x+0..x+20
+            // La cabeza va en la parte delantera (derecha) del sprite
+            gCtx.fillStyle = '#c8a882'; // piel tónica natural
+            gCtx.fillRect(x + s * 2, y,         s * 3, s * 3); // cráneo/mejilla
 
-            // Cuerpo
-            gCtx.fillStyle = '#009922';
-            gCtx.fillRect(x, y + s * 3, s * 5, s * 3);
+            // Nariz (punta derecha, muy sutil)
+            gCtx.fillStyle = '#b8987a';
+            gCtx.fillRect(x + s * 4, y + s,     s,     s);     // nariz
 
-            // Cintura
-            gCtx.fillStyle = '#007718';
-            gCtx.fillRect(x + s, y + s * 6, s * 3, s);
+            // Cabello (oscuro, parte superior e izquierda)
+            gCtx.fillStyle = '#1a1a1a';
+            gCtx.fillRect(x + s * 2, y,         s * 3, s);     // parte superior del cabello
+            gCtx.fillRect(x + s * 2, y + s,     s,     s * 2); // cabello espalda
 
-            // Piernas animadas
-            gCtx.fillStyle = '#006614';
+            // Ojo (un pequeño cuadrado oscuro)
+            gCtx.fillStyle = '#2a1a0a';
+            gCtx.fillRect(x + s * 4, y + s,     s,     s);     // ojo (solapado con nariz — se ve como detalle)
+
+            // --- CUELLO ---
+            gCtx.fillStyle = '#b8987a';
+            gCtx.fillRect(x + s * 3, y + s * 3, s,     s);     // cuello
+
+            // --- CUERPO: chaqueta oscura, inclinada levemente hacia adelante ---
+            gCtx.fillStyle = '#111118'; // chaqueta negra
+            gCtx.fillRect(x + s,     y + s * 3, s * 3, s * 4); // torso principal
+            gCtx.fillRect(x + s * 3, y + s * 3, s,     s * 3); // pecho delantero (más hacia derecha)
+
+            // Solapa de la chaqueta
+            gCtx.fillStyle = '#1a1a28';
+            gCtx.fillRect(x + s * 3, y + s * 3, s,     s * 2);
+
+            // --- BRAZO DELANTERO (derecha — frente del cuerpo) ---
+            gCtx.fillStyle = '#111118';
             if (f === 0) {
-                gCtx.fillRect(x,         y + s * 7, s * 2, s * 3); // izq adelante
-                gCtx.fillRect(x + s * 3, y + s * 7, s * 2, s * 2); // der atrás
+                // Brazo adelante (balanceado con la pierna trasera)
+                gCtx.fillRect(x + s * 4, y + s * 4, s,     s * 2); // upper arm
+                gCtx.fillRect(x + s * 4, y + s * 6, s,     s);     // antebrazo
             } else {
-                gCtx.fillRect(x,         y + s * 7, s * 2, s * 2);
-                gCtx.fillRect(x + s * 3, y + s * 7, s * 2, s * 3);
+                // Brazo atrás
+                gCtx.fillRect(x + s * 4, y + s * 5, s,     s * 2);
             }
 
-            // Brazos
-            gCtx.fillStyle = '#009922';
+            // --- BRAZO TRASERO (izquierda — espalda del cuerpo) ---
+            gCtx.fillStyle = '#0d0d14';
             if (f === 0) {
-                gCtx.fillRect(x - s,     y + s * 3, s, s * 2);
-                gCtx.fillRect(x + s * 5, y + s * 4, s, s * 2);
+                gCtx.fillRect(x + s,     y + s * 4, s,     s * 2);
             } else {
-                gCtx.fillRect(x - s,     y + s * 4, s, s * 2);
-                gCtx.fillRect(x + s * 5, y + s * 3, s, s * 2);
+                gCtx.fillRect(x + s,     y + s * 3, s,     s * 2);
+                gCtx.fillRect(x + s,     y + s * 5, s,     s);
+            }
+
+            // --- PIERNAS (pantalon oscuro) ---
+            gCtx.fillStyle = '#0d0d1a'; // pantalón negro
+
+            if (f === 0) {
+                // Pierna delantera: extendida hacia adelante
+                gCtx.fillRect(x + s * 2, y + s * 7, s * 2, s * 2); // muslo
+                gCtx.fillRect(x + s * 3, y + s * 9, s,     s);     // espinilla / pie
+                // Pierna trasera: atrás y un poco doblada
+                gCtx.fillRect(x + s,     y + s * 7, s * 2, s);     // muslo trasero
+                gCtx.fillRect(x + s,     y + s * 8, s,     s);     // espinilla trasera
+            } else {
+                // Pierna delantera: recogida
+                gCtx.fillRect(x + s * 2, y + s * 7, s * 2, s);     // muslo adelante
+                gCtx.fillRect(x + s * 3, y + s * 8, s,     s * 2); // espinilla cargada
+                // Pierna trasera: extendida atrás
+                gCtx.fillRect(x + s,     y + s * 7, s * 2, s * 2); // muslo trasero
+                gCtx.fillRect(x,         y + s * 9, s,     s);     // pie trasero
+            }
+
+            // --- ZAPATOS ---
+            gCtx.fillStyle = '#222';
+            if (f === 0) {
+                gCtx.fillRect(x + s * 3, y + s * 9, s * 2, s); // zapato delantero
+            } else {
+                gCtx.fillRect(x - 1,     y + s * 9, s + 2,  s); // zapato trasero
             }
         }
 
+        // ================================================================
+        // DRAW AGENT: Agente del sistema en vista lateral (perfil, mirando izquierda)
+        // Sin sombrero. Traje oscuro, piel clara, gafas negras.
+        // ================================================================
         function drawAgent(obs) {
             const x = obs.x, y = obs.y, s = 4, f = obs.animFrame;
 
-            // Ala del sombrero
-            gCtx.fillStyle = '#111';
-            gCtx.fillRect(x - 2, y + s, s * 6, s);
-            // Copa del sombrero
-            gCtx.fillStyle = '#0d0d0d';
-            gCtx.fillRect(x + s * 0.5, y - s, s * 4, s * 2);
+            // --- CABEZA (perfil izquierda — cara mirando hacia Neo) ---
+            gCtx.fillStyle = '#d4c4b0'; // piel clara
+            gCtx.fillRect(x + s,     y + s * 1, s * 3, s * 3); // cráneo
 
-            // Cabeza
-            gCtx.fillStyle = '#2a2a2a';
-            gCtx.fillRect(x + s * 0.5, y + s * 2, s * 4, s * 3);
-            // Gafas (barra oscura)
-            gCtx.fillStyle = '#080808';
-            gCtx.fillRect(x + s * 0.5, y + s * 3, s * 4, s);
+            // Nariz (punta izquierda)
+            gCtx.fillStyle = '#c4b4a0';
+            gCtx.fillRect(x + s,     y + s * 2, s,     s);     // nariz
 
-            // Traje
+            // Cabello liso, oscuro, bien peinado (parte superior e izquierda)
             gCtx.fillStyle = '#1a1a1a';
-            gCtx.fillRect(x, y + s * 5, s * 5, s * 5);
-            // Corbata
-            gCtx.fillStyle = '#0a0a0a';
-            gCtx.fillRect(x + s * 2, y + s * 5, s, s * 4);
+            gCtx.fillRect(x + s,     y,         s * 3, s + 2); // cabello encima
+            gCtx.fillRect(x + s * 3, y + s,     s,     s);     // sien derecha del agente
 
-            // Piernas animadas
-            gCtx.fillStyle = '#111';
+            // Gafas oscuras (barra a través de los ojos)
+            gCtx.fillStyle = '#050508';
+            gCtx.fillRect(x + s,     y + s * 2, s * 3, s);     // gafas (toda la anchura de la cara)
+
+            // Auricular (orejera típica de agente)
+            gCtx.fillStyle = '#a09080';
+            gCtx.fillRect(x + s * 3, y + s * 3, s / 2, s);    // auricular
+
+            // --- CUELLO ---
+            gCtx.fillStyle = '#c8b8a4';
+            gCtx.fillRect(x + s * 2, y + s * 4, s,     s);
+
+            // --- CUERPO: traje oscuro gris-negro ---
+            gCtx.fillStyle = '#1c1c24'; // traje
+            gCtx.fillRect(x + s,     y + s * 4, s * 3, s * 4); // torso
+
+            // Camisa blanca y corbata (franja vertical central)
+            gCtx.fillStyle = '#ddd';
+            gCtx.fillRect(x + s * 2, y + s * 4, s,     s * 2); // camisa
+            gCtx.fillStyle = '#555';
+            gCtx.fillRect(x + s * 2, y + s * 5, s,     s * 3); // corbata
+
+            // --- BRAZO DELANTERO (izquierda — la cara del agente mira a la izq) ---
+            gCtx.fillStyle = '#1c1c24';
             if (f === 0) {
-                gCtx.fillRect(x + s * 0.5, y + s * 10, s * 2, s * 2.5);
-                gCtx.fillRect(x + s * 2.5, y + s * 10, s * 2, s * 1.5);
+                gCtx.fillRect(x,         y + s * 5, s,     s * 2); // brazo extendido adelante
+                gCtx.fillRect(x - s,     y + s * 6, s,     s);     // mano
             } else {
-                gCtx.fillRect(x + s * 0.5, y + s * 10, s * 2, s * 1.5);
-                gCtx.fillRect(x + s * 2.5, y + s * 10, s * 2, s * 2.5);
+                gCtx.fillRect(x,         y + s * 5, s,     s);     // brazo recogido
             }
 
-            // Brazos
-            gCtx.fillStyle = '#1a1a1a';
-            gCtx.fillRect(x - 3,       y + s * 5, 5, s * 3);
-            gCtx.fillRect(x + s * 5,   y + s * 5, 5, s * 3);
+            // --- BRAZO TRASERO ---
+            gCtx.fillStyle = '#141418';
+            if (f === 0) {
+                gCtx.fillRect(x + s * 3, y + s * 5, s,     s);
+            } else {
+                gCtx.fillRect(x + s * 3, y + s * 5, s,     s * 2);
+            }
+
+            // --- PIERNAS (pantalón oscuro del traje) ---
+            gCtx.fillStyle = '#141420';
+
+            if (f === 0) {
+                // Pierna delantera extendida (izquierda)
+                gCtx.fillRect(x + s,     y + s * 8, s * 2, s * 2); // muslo
+                gCtx.fillRect(x,         y + s * 10, s * 2, s);    // pie delantero
+                // Pierna trasera (derecha, atrás)
+                gCtx.fillRect(x + s * 2, y + s * 8,  s * 2, s);    // muslo trasero
+                gCtx.fillRect(x + s * 2, y + s * 9,  s,     s);    // espinilla
+            } else {
+                // Pierna delantera recogida
+                gCtx.fillRect(x + s,     y + s * 8, s,     s);
+                gCtx.fillRect(x + s,     y + s * 9, s * 2, s);
+                // Pierna trasera extendida
+                gCtx.fillRect(x + s * 2, y + s * 8, s * 2, s * 2);
+                gCtx.fillRect(x + s * 3, y + s * 10, s,    s);
+            }
+
+            // --- ZAPATOS negros ---
+            gCtx.fillStyle = '#111';
+            if (f === 0) {
+                gCtx.fillRect(x - 1,     y + s * 10, s * 2 + 2, s); // zapato delantero
+            } else {
+                gCtx.fillRect(x + s * 3, y + s * 10, s * 2,     s); // zapato trasero
+            }
         }
 
         function drawPhoneBooth() {

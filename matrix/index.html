@@ -433,6 +433,10 @@
                     <span>CICLOS LIBERADOS</span>
                     <span id="score-display">0</span>
                 </div>
+                <button class="matrix-btn" id="btn-change-alias"
+                    style="border-color:rgba(0,255,65,0.15);color:rgba(0,255,65,0.25);font-size:9px;letter-spacing:2px;margin-top:14px">
+                    [ CAMBIAR IDENTIDAD ]
+                </button>
             </div>
 
         </div>
@@ -575,7 +579,7 @@
         }
 
         // Si ya tiene alias, ir directo a la selección de juegos
-        if (matrixState.alias) {
+        if (matrixState.alias && matrixState.alias !== 'AGENTE') {
             buildGameSelection();
             showScreen('screen-games');
         }
@@ -659,6 +663,14 @@
             showScreen('screen-games');
         });
 
+        // Cambiar alias — vuelve al input limpio
+        document.getElementById('btn-change-alias').addEventListener('click', () => {
+            aliasInput.value = '';
+            aliasError.style.display = 'none';
+            showScreen('screen-alias');
+            setTimeout(() => aliasInput.focus(), 100);
+        });
+
         // ----------------------------------------------------------------
         // 7. PANTALLA 3: Selección de experiencias
         // ----------------------------------------------------------------
@@ -717,9 +729,10 @@
                 // Clases según estado del juego
                 let stateClass = isCompleted ? 'completed' : isUnlocked ? 'unlocked' : 'locked';
                 item.className = `game-item ${stateClass}`;
+                // Completado Y desbloqueado = siempre navegable (rejugable)
                 item.href = isLocked ? '#' : game.url;
 
-                // Bloquear clic si está bloqueado
+                // Bloquear clic solo si está bloqueado
                 if (isLocked) {
                     item.addEventListener('click', e => e.preventDefault());
                 }
