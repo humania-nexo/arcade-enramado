@@ -624,7 +624,11 @@
             GAMES.forEach(game => {
                 const completed  = Array.isArray(matrixState.completed) ? matrixState.completed : [];
                 const isCompleted = completed.includes(game.id);
-                const isUnlocked  = !game.unlockAfter || completed.includes(game.unlockAfter);
+                
+                // Solo se pueden desbloquear y jugar los juegos implementados (exp1 y exp2)
+                const isImplemented = game.id === 'exp1' || game.id === 'exp2';
+                const isUnlocked  = isImplemented && (!game.unlockAfter || completed.includes(game.unlockAfter));
+                
                 // Si ya está completado, no se puede volver a jugar (no rejugable)
                 const isClickable = isUnlocked && !isCompleted;
                 const isLocked    = !isClickable;
@@ -641,7 +645,14 @@
                     item.addEventListener('click', e => e.preventDefault());
                 }
 
-                const statusText = isCompleted ? '[ COMPLETADO ]' : isUnlocked ? '[ DISPONIBLE ]' : '[ BLOQUEADO ]';
+                let statusText = '[ BLOQUEADO ]';
+                if (isCompleted) {
+                    statusText = '[ COMPLETADO ]';
+                } else if (isUnlocked) {
+                    statusText = '[ DISPONIBLE ]';
+                } else if (!isImplemented) {
+                    statusText = '[ PRÓXIMAMENTE ]';
+                }
 
                 item.innerHTML = `
                     <span class="game-num">[${game.num}]</span>

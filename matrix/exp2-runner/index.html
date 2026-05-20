@@ -1013,32 +1013,32 @@
         function drawPhoneBooth() {
             const { x, y, w, h } = phoneBooth;
 
-            // Marco exterior verde cabina
-            gCtx.fillStyle = '#005000';
+            // Marco exterior rojo cabina (estilo clásico)
+            gCtx.fillStyle = '#a81b1b';
             gCtx.fillRect(x, y, w, h);
 
-            // Paneles de vidrio (dos)
-            gCtx.fillStyle = '#001a00';
+            // Paneles de vidrio (dos, con fondo negro/rojo oscuro)
+            gCtx.fillStyle = '#150303';
             gCtx.fillRect(x + 4,    y + 12, 24, h - 16);
             gCtx.fillRect(x + 32,   y + 12, 24, h - 16);
 
             // Techo
-            gCtx.fillStyle = '#007700';
+            gCtx.fillStyle = '#d82222';
             gCtx.fillRect(x - 3, y - 7, w + 6, 8);
 
-            // Teléfono interior (receptor)
-            gCtx.fillStyle = '#003a00';
+            // Teléfono interior (receptor negro/gris oscuro)
+            gCtx.fillStyle = '#1a1a1a';
             gCtx.fillRect(x + 9, y + h * 0.35, 12, 22);
 
-            // Glow parpadeante (el teléfono suena)
+            // Glow parpadeante rojo (el teléfono suena)
             const pulse = Math.floor(Date.now() / 300) % 2 === 0;
             if (pulse) {
-                gCtx.fillStyle = 'rgba(0,255,65,0.18)';
+                gCtx.fillStyle = 'rgba(255,65,65,0.22)';
                 gCtx.fillRect(x - 6, y - 6, w + 12, h + 12);
-                gCtx.fillStyle = 'rgba(0,255,65,0.06)';
+                gCtx.fillStyle = 'rgba(255,65,65,0.08)';
                 gCtx.fillRect(x - 16, y - 16, w + 32, h + 32);
                 // RING encima
-                gCtx.fillStyle = '#00ff41';
+                gCtx.fillStyle = '#ff4141';
                 gCtx.font = `bold 8px 'Courier New'`;
                 gCtx.textAlign = 'center';
                 gCtx.fillText('RING', x + w / 2, y - 12);

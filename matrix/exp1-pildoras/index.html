@@ -403,9 +403,25 @@
             </div>
 
             <!-- ======================================================
+                 PANTALLA DE ENLACE (BOOT)
+            ====================================================== -->
+            <div class="screen active" id="screen-boot">
+                <p class="narrative">
+                    <span class="prompt">> </span>INICIALIZANDO CONEXIÓN SEGURA...<br>
+                    <span class="prompt">> </span>ENRUTANDO TRAZAS IP A TRAVÉS DE PROXIES...<br>
+                    <span class="prompt">> </span>MORFEO ESTÁ SOLICITANDO TRANSMISIÓN DE AUDIO.<br>
+                </p>
+                <div style="text-align:center;margin:32px 0 20px">
+                    <button class="matrix-btn" id="btn-establish-link" style="max-width:320px;margin:0 auto">
+                        [ ACEPTAR TRANSMISIÓN Y ENTRAR ]
+                    </button>
+                </div>
+            </div>
+
+            <!-- ======================================================
                  PANTALLA 1: Elección de píldoras
             ====================================================== -->
-            <div class="screen active" id="screen-choice">
+            <div class="screen" id="screen-choice">
                 <p class="narrative">
                     <span class="prompt">> </span>AGENTE <span class="highlight" id="alias-1">---</span> DETECTADO.<br>
                     <span class="prompt">> </span>MORFEO ESTÁ EN LÍNEA.<br>
@@ -1708,12 +1724,16 @@
             };
 
             function boot() {
-                if (ac) return true;
                 try {
-                    ac = new (window.AudioContext || window.webkitAudioContext)();
-                    mGain = ac.createGain();
-                    mGain.gain.value = muted ? 0 : 0.09;
-                    mGain.connect(ac.destination);
+                    if (!ac) {
+                        ac = new (window.AudioContext || window.webkitAudioContext)();
+                        mGain = ac.createGain();
+                        mGain.gain.value = muted ? 0 : 0.09;
+                        mGain.connect(ac.destination);
+                    }
+                    if (ac && ac.state === 'suspended') {
+                        ac.resume();
+                    }
                     return true;
                 } catch(e) { return false; }
             }
@@ -1825,7 +1845,13 @@
                 return muted;
             }
 
-            return { loopPattern, stop, toggleMute, SUSPENSE, SUSPENSE_BPM };
+            function resumeContext() {
+                if (ac && ac.state === 'suspended') {
+                    ac.resume();
+                }
+            }
+
+            return { loopPattern, stop, toggleMute, resumeContext, SUSPENSE, SUSPENSE_BPM };
         })();
 
         // Botón mute discreto en la terminal
@@ -1850,19 +1876,30 @@
         // Iniciar música en la primera interacción de píldora
         let suspenseStarted = false;
         function ensureSuspense() {
+            try {
+                SuspenseTuner.resumeContext();
+            } catch(e){}
             if (!suspenseStarted) {
                 suspenseStarted = true;
                 SuspenseTuner.loopPattern(SuspenseTuner.SUSPENSE, SuspenseTuner.SUSPENSE_BPM);
             }
         }
 
+        // Botón para inicializar la conexión y empezar la música
+        document.getElementById('btn-establish-link').addEventListener('click', () => {
+            ensureSuspense();
+            showScreen('screen-choice');
+        });
+
         // Inyectar inicio de música en los botones de elección
         const _chooseBlueBtns  = document.querySelectorAll('[id^="choose-"]');
         _chooseBlueBtns.forEach(btn => {
             btn.addEventListener('click', ensureSuspense, { once: false });
         });
-        // También en la pantalla de intro (primer click en la página)
-        document.addEventListener('click', ensureSuspense, { once: true });
+        // También en la pantalla de intro (cualquier clic de interacción de seguridad)
+        ['click', 'touchstart', 'keydown'].forEach(evt => {
+            document.addEventListener(evt, ensureSuspense, { once: true });
+        });
 
         // Detener al navegar a exp2
         document.getElementById('btn-morpheus-continue').addEventListener('click', () => {
