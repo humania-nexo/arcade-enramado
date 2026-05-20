@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MATRIX // EL ESCAPE</title>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #000;
+            overflow: hidden;
+            font-family: 'Courier New', Courier, monospace;
+            color: #00ff41;
+            height: 100vh;
+            height: 100dvh;
+        }
+
+        #rain-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px,
+                rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
+            pointer-events: none;
+            z-index: 500;
+        }
+
+        #app {
+            position: fixed;
+            inset: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+        }
+
+        .terminal-card {
+            background: rgba(0,5,0,0.94);
+            border: 1px solid #00ff41;
+            box-shadow: 0 0 30px rgba(0,255,65,0.15), inset 0 0 40px rgba(0,255,65,0.03);
+            padding: clamp(14px, 3.5vw, 32px);
+            width: 100%;
+            max-width: 600px;
+            max-height: 94vh;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+
+        .terminal-card::-webkit-scrollbar { display: none; }
+
+        .term-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0,255,65,0.2);
+            padding-bottom: 8px;
+            margin-bottom: 14px;
+            font-size: 10px;
+            color: rgba(0,255,65,0.45);
+            letter-spacing: 2px;
+        }
+
+        .status-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: #ff4444;
+            box-shadow: 0 0 6px #ff4444;
+            display: inline-block;
+            margin-right: 6px;
+            animation: dot-pulse 0.8s infinite;
+        }
+
+        @keyframes dot-pulse { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        /* ============================================================
+           NARRATIVA COMÚN
+        ============================================================ */
+        .narrative {
+            font-size: clamp(11px, 2.2vw, 13px);
+            line-height: 1.9;
+            letter-spacing: 1px;
+            color: rgba(0,255,65,0.8);
+            margin-bottom: 14px;
+        }
+
+        .narrative .prompt { color: rgba(0,255,65,0.3); }
+        .narrative .highlight { color: #00ff41; }
+        .narrative .morph { color: rgba(100,200,255,0.88); }
+
+        .matrix-btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background: transparent;
+            border: 1px solid #00ff41;
+            color: #00ff41;
+            font-family: 'Courier New', monospace;
+            font-size: clamp(11px, 2.3vw, 13px);
+            letter-spacing: 3px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+            margin-top: 10px;
+        }
+
+        .matrix-btn:hover {
+            background: rgba(0,255,65,0.08);
+            box-shadow: 0 0 15px rgba(0,255,65,0.25);
+        }
+
+        .matrix-btn:active { transform: scale(0.98); }
+
+        .matrix-btn.secondary {
+            border-color: rgba(0,255,65,0.2);
+            color: rgba(0,255,65,0.35);
+            font-size: 10px;
+            margin-top: 6px;
+        }
+
+        /* ============================================================
+           PANTALLA INTRO
+        ============================================================ */
+        .intro-hint {
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: rgba(0,255,65,0.35);
+            line-height: 2;
+        }
+
+        /* ============================================================
+           PANTALLA DE JUEGO
+        ============================================================ */
+        #game-canvas {
+            display: block;
+            width: 100%;
+            max-width: 520px;
+            height: auto;
+            margin: 0 auto;
+            image-rendering: pixelated;
+            border: 1px solid rgba(0,255,65,0.25);
+            cursor: pointer;
+            touch-action: none;
+        }
+
+        .game-hud {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 2px 2px;
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: rgba(0,255,65,0.45);
+        }
+
+        #hud-distance { color: #00ff41; }
+
+        #narrative-msg {
+            min-height: 24px;
+            text-align: center;
+            font-size: clamp(10px, 2vw, 12px);
+            letter-spacing: 1px;
+            padding: 4px 0 2px;
+            transition: opacity 0.5s;
+            color: #88ddff;
+        }
+
+        .game-hint {
+            text-align: center;
+            font-size: 9px;
+            letter-spacing: 2px;
+            color: rgba(0,255,65,0.18);
+            margin-top: 3px;
+        }
+
+        /* ============================================================
+           PANTALLA GAME OVER
+        ============================================================ */
+        .gameover-big {
+            font-size: clamp(11px, 2.5vw, 14px);
+            letter-spacing: 4px;
+            color: #ff4444;
+            text-align: center;
+            margin-bottom: 6px;
+            text-shadow: 0 0 12px rgba(255,68,68,0.4);
+        }
+
+        /* ============================================================
+           PANTALLA DE VICTORIA — Homenaje a las Wachowski
+        ============================================================ */
+        .tribute-sep {
+            border: none;
+            border-top: 1px solid rgba(0,255,65,0.12);
+            margin: 16px 0;
+        }
+
+        .tribute-body {
+            font-size: clamp(11px, 2.2vw, 13px);
+            letter-spacing: 1px;
+            line-height: 2.1;
+            color: rgba(0,255,65,0.55);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .tribute-body em {
+            color: rgba(100,200,255,0.85);
+            font-style: italic;
+        }
+
+        .tribute-for {
+            font-size: 9px;
+            letter-spacing: 3px;
+            color: rgba(0,255,65,0.28);
+            text-align: center;
+            margin-bottom: 14px;
+        }
+
+        .tribute-names-block {
+            text-align: center;
+            margin: 16px 0;
+        }
+
+        .tribute-name {
+            display: block;
+            font-size: clamp(20px, 5vw, 30px);
+            letter-spacing: 6px;
+            color: #00ff41;
+            margin: 10px 0;
+            text-shadow:
+                0 0 18px rgba(0,255,65,0.55),
+                0 0 40px rgba(0,255,65,0.2);
+            animation: name-pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes name-pulse {
+            0%,100% { text-shadow: 0 0 18px rgba(0,255,65,0.55), 0 0 40px rgba(0,255,65,0.2); }
+            50%      { text-shadow: 0 0 28px rgba(0,255,65,0.8), 0 0 60px rgba(0,255,65,0.35); }
+        }
+
+        .tribute-role {
+            font-size: 9px;
+            letter-spacing: 3px;
+            color: rgba(0,255,65,0.3);
+            text-align: center;
+            margin-top: 8px;
+            line-height: 2.2;
+        }
+
+        .tribute-quote {
+            text-align: center;
+            font-size: clamp(12px, 2.5vw, 14px);
+            letter-spacing: 2px;
+            color: rgba(100,200,255,0.72);
+            line-height: 2;
+            margin: 6px 0;
+        }
+
+        .tribute-quote-attr {
+            font-size: 10px;
+            color: rgba(100,200,255,0.38);
+            letter-spacing: 1px;
+        }
+
+        .seeds-block {
+            border: 1px solid rgba(255,215,60,0.18);
+            padding: 14px;
+            margin: 14px 0;
+            background: rgba(12,8,0,0.7);
+            text-align: center;
+            font-size: clamp(10px, 2vw, 12px);
+            letter-spacing: 1px;
+            line-height: 1.9;
+            color: rgba(255,205,50,0.65);
+        }
+
+        .seeds-block .accent {
+            color: rgba(255,215,60,1);
+            font-weight: bold;
+        }
+
+        .matrix-btn.watch {
+            border-color: rgba(100,200,255,0.4);
+            color: rgba(100,200,255,0.7);
+            font-size: 11px;
+            letter-spacing: 2px;
+        }
+
+        .matrix-btn.watch:hover {
+            background: rgba(100,200,255,0.05);
+            box-shadow: 0 0 14px rgba(100,200,255,0.15);
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="rain-canvas"></canvas>
+
+    <div id="app">
+        <div class="terminal-card">
+
+            <div class="term-header">
+                <span>MATRIX // EXP_02: EL ESCAPE</span>
+                <div>
+                    <div class="status-dot"></div>
+                    <span style="font-size:10px;letter-spacing:2px;color:#ff6644">CRÍTICO</span>
+                </div>
+            </div>
+
+            <!-- ======================================================
+                 PANTALLA 1: Intro narrativa
+            ====================================================== -->
+            <div class="screen active" id="screen-intro">
+                <p class="narrative">
+                    <span class="prompt">> </span>PROTOCOLO: EVASIÓN DE EMERGENCIA.<br>
+                    <span class="prompt">> </span>ESTADO: DETECTADO POR EL SISTEMA.<br>
+                    <span class="prompt">> </span>ALIAS: <span class="highlight" id="intro-alias">---</span>
+                </p>
+                <p class="narrative">
+                    <span class="morph">
+                        "Corre hacia el teléfono.<br>
+                        No te detengas. No mires atrás.<br>
+                        Nosotros te guiamos desde aquí."
+                    </span>
+                </p>
+                <p class="intro-hint">
+                    <span class="prompt">> </span>SALTA SOBRE LOS AGENTES DEL SISTEMA.<br>
+                    <span class="prompt">> </span>LLEGA AL TELÉFONO PARA ESCAPAR.
+                </p>
+                <button class="matrix-btn" id="btn-start">[ INICIAR EL ESCAPE ]</button>
+            </div>
+
+            <!-- ======================================================
+                 PANTALLA 2: El juego
+            ====================================================== -->
+            <div class="screen" id="screen-game">
+                <canvas id="game-canvas" width="520" height="220"></canvas>
+                <div class="game-hud">
+                    <span id="hud-alias">AGENTE ---</span>
+                    <span>METROS: <span id="hud-distance">0</span></span>
+                </div>
+                <div id="narrative-msg"></div>
+                <p class="game-hint">[ ESPACIO / CLICK / TAP = SALTAR ]</p>
+            </div>
+
+            <!-- ======================================================
+                 PANTALLA 3: Game Over
+            ====================================================== -->
+            <div class="screen" id="screen-gameover">
+                <p class="gameover-big">AGENTE <span id="go-alias">---</span></p>
+                <p class="gameover-big" style="font-size:clamp(9px,1.8vw,11px);color:rgba(255,68,68,0.65);text-shadow:none;margin-bottom:20px">
+                    HAS SIDO REINTEGRADO AL SISTEMA.
+                </p>
+                <p class="narrative" style="text-align:center">
+                    <span class="prompt">> </span>DISTANCIA: <span id="go-distance" style="color:#ffff55">0</span>m<br>
+                    <span class="prompt">> </span>LOS AGENTES SON PERSISTENTES.<br>
+                    <span class="prompt">> </span>TÚ TAMBIÉN DEBES SERLO.
+                </p>
+                <button class="matrix-btn" id="btn-retry">[ INTENTAR DE NUEVO ]</button>
+                <button class="matrix-btn secondary" id="btn-hub-go">[ ← VOLVER AL HUB ]</button>
+            </div>
+
+            <!-- ======================================================
+                 PANTALLA 4: Victoria + Homenaje a las Wachowski
+            ====================================================== -->
+            <div class="screen" id="screen-victory">
+
+                <p class="narrative" style="text-align:center">
+                    <span class="prompt">> </span>ESCAPE COMPLETADO, <span class="highlight" id="vic-alias">---</span>.<br>
+                    <span class="prompt">> </span>CICLOS LIBERADOS: <span id="vic-score" style="color:#00ff41">0</span>
+                </p>
+
+                <hr class="tribute-sep">
+
+                <p class="tribute-body">
+                    En 1999, dos personas le preguntaron<br>
+                    al mundo algo que nadie se había<br>
+                    atrevido a preguntar antes:<br><br>
+                    <em>¿Y si todo lo que crees real no lo es?</em>
+                </p>
+
+                <p class="tribute-body">
+                    No solo cambiaron el cine.<br>
+                    Cambiaron la manera en que<br>
+                    pensamos sobre nosotros mismos,<br>
+                    sobre el poder, sobre la identidad,<br>
+                    sobre lo que puede ser.
+                </p>
+
+                <p class="tribute-body" style="color:rgba(0,255,65,0.35);font-size:10px;letter-spacing:2px">
+                    ESTE JUEGO EXISTE PORQUE ELLAS SOÑARON PRIMERO.
+                </p>
+
+                <hr class="tribute-sep">
+
+                <p class="tribute-for">CON AMOR Y RESPETO, ESTE HOMENAJE ES PARA:</p>
+
+                <div class="tribute-names-block">
+                    <span class="tribute-name">LANA WACHOWSKI</span>
+                    <span class="tribute-name">LILLY WACHOWSKI</span>
+                    <p class="tribute-role">
+                        DIRECTORAS · ESCRITORAS · VISIONARIAS<br>
+                        CREADORAS DE THE MATRIX (1999 · 2003 · 2021)
+                    </p>
+                </div>
+
+                <hr class="tribute-sep">
+
+                <p class="tribute-quote">
+                    "No te digo que el camino es fácil.<br>
+                    Solo te digo que existe."
+                </p>
+                <p class="tribute-quote-attr">— Morfeo. The Matrix, 1999.</p>
+
+                <hr class="tribute-sep">
+
+                <div class="seeds-block">
+                    &gt; ESTA SEMILLA TRANSMEDIA HA CONCLUIDO.<br>
+                    &gt; LA HISTORIA CONTINÚA EN <span class="accent">PROIECTIO</span>.<br>
+                    &gt; ENCUENTRA MÁS SEMILLAS PARA SEGUIR.
+                </div>
+
+                <button class="matrix-btn watch" id="btn-watch">
+                    [ YA LA VIVISTE — AHORA VE A VERLA DE VERDAD ]
+                </button>
+                <button class="matrix-btn secondary" id="btn-hub-vic">[ ← VOLVER AL HUB ]</button>
+
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // ================================================================
+        // EXP 2: EL ESCAPE — Runner de Matrix
+        // Arcade Enramado — Homenaje a Lana y Lilly Wachowski
+        // ================================================================
+
+        // ----------------------------------------------------------------
+        // 1. LLUVIA DE FONDO (nivel página)
+        // ----------------------------------------------------------------
+        const rainCanvas = document.getElementById('rain-canvas');
+        const rainCtx    = rainCanvas.getContext('2d');
+        const RAIN_CHARS = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const FONT_SZ    = 14;
+        let rainCols = [];
+
+        function resizeRain() {
+            rainCanvas.width  = window.innerWidth;
+            rainCanvas.height = window.innerHeight;
+            rainCols = Array.from({ length: Math.floor(rainCanvas.width / FONT_SZ) }, () => ({
+                y: Math.random() * -rainCanvas.height,
+                speed: 0.5 + Math.random() * 1.4,
+            }));
+        }
+        window.addEventListener('resize', resizeRain);
+        resizeRain();
+
+        function drawPageRain() {
+            rainCtx.fillStyle = 'rgba(0,0,0,0.055)';
+            rainCtx.fillRect(0, 0, rainCanvas.width, rainCanvas.height);
+            rainCtx.font = `${FONT_SZ}px 'Courier New', monospace`;
+            rainCols.forEach((col, i) => {
+                const x = i * FONT_SZ;
+                rainCtx.fillStyle = '#ccffcc';
+                rainCtx.fillText(RAIN_CHARS[Math.floor(Math.random() * RAIN_CHARS.length)], x, col.y);
+                if (col.y > FONT_SZ) {
+                    rainCtx.fillStyle = '#00ff41';
+                    rainCtx.fillText(RAIN_CHARS[Math.floor(Math.random() * RAIN_CHARS.length)], x, col.y - FONT_SZ);
+                }
+                col.y += col.speed * 1.6 * FONT_SZ * 0.14;
+                if (col.y > rainCanvas.height + FONT_SZ && Math.random() > 0.97) col.y = 0;
+            });
+            requestAnimationFrame(drawPageRain);
+        }
+        drawPageRain();
+
+        // ----------------------------------------------------------------
+        // 2. ESTADO Y ALIAS
+        // ----------------------------------------------------------------
+        let matrixState = { alias: 'AGENTE', score: 0, completed: [] };
+        try {
+            const saved = localStorage.getItem('matrix_state');
+            if (saved) matrixState = JSON.parse(saved);
+        } catch(e) {}
+
+        function saveState() { localStorage.setItem('matrix_state', JSON.stringify(matrixState)); }
+
+        const alias = matrixState.alias || 'AGENTE';
+        document.getElementById('intro-alias').textContent = alias;
+        document.getElementById('hud-alias').textContent   = `AGENTE ${alias}`;
+        document.getElementById('go-alias').textContent    = alias;
+
+        // ----------------------------------------------------------------
+        // 3. NAVEGACIÓN
+        // ----------------------------------------------------------------
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        // ----------------------------------------------------------------
+        // 4. CONFIGURACIÓN DEL JUEGO
+        // ----------------------------------------------------------------
+        const gameCanvas = document.getElementById('game-canvas');
+        const gCtx       = gameCanvas.getContext('2d');
+        const GW = gameCanvas.width;  // 520
+        const GH = gameCanvas.height; // 220
+
+        // Dimensiones del mundo
+        const GROUND_Y  = 162;  // Y donde posan los pies del jugador
+        const PLAYER_W  = 20;
+        const PLAYER_H  = 40;
+        const AGENT_W   = 22;
+        const AGENT_H   = 46;
+        const WIN_DIST  = 7200; // metros para llegar al teléfono
+
+        // Física
+        const GRAVITY  = 0.52;
+        const JUMP_VY  = -10.5;
+
+        // Estado de la partida
+        let gameRunning = false;
+        let gameOver    = false;
+        let gameWon     = false;
+        let distance    = 0;
+        let gameSpeed   = 4;
+        let frameCount  = 0;
+        let rafId       = null;
+
+        // ----------------------------------------------------------------
+        // 5. OBJETOS DEL MUNDO
+        // ----------------------------------------------------------------
+
+        // Jugador
+        const player = {
+            x: 80,
+            y: GROUND_Y - PLAYER_H,
+            vy: 0,
+            onGround: true,
+            animFrame: 0,
+            animTimer: 0,
+        };
+
+        // Obstáculos (agentes)
+        let obstacles        = [];
+        let obstacleTimer    = 0;
+        let obstacleInterval = 115; // frames entre spawns
+
+        // Cabina telefónica
+        let phoneBooth = null;
+
+        // Edificios de fondo (parallax)
+        let buildings = [];
+
+        // Mensajes narrativos timed por distancia
+        const NARRATIVES = [
+            { dist:  450, text: 'TRINITY: "Corre. No te detengas."',              color: '#88ddff' },
+            { dist: 1500, text: 'TRINITY: "Los agentes no pueden atraparte."',     color: '#88ddff' },
+            { dist: 2900, text: 'MORFEO: "Confía en tu mente."',                   color: '#88ddff' },
+            { dist: 4300, text: `MORFEO: "${alias}... casi estás."`,               color: '#88ddff' },
+            { dist: 5600, text: '⚠ SISTEMA: ORDEN DE CAPTURA ACTIVA.',            color: '#ff5544' },
+            { dist: 6400, text: '> TELÉFONO DETECTADO — LLEGANDO...',              color: '#00ff41' },
+        ];
+        let narrativeQueue   = [];
+        let narrativeTimer   = 0;
+
+        // Lluvia dentro del canvas del juego
+        let gameRainDrops = Array.from({ length: 20 }, () => ({
+            x:       Math.random() * GW,
+            y:       Math.random() * GROUND_Y,
+            speed:   1.5 + Math.random() * 2,
+            len:     8 + Math.random() * 18,
+            opacity: 0.05 + Math.random() * 0.08,
+        }));
+
+        // ----------------------------------------------------------------
+        // 6. GENERACIÓN PROCEDURAL DE EDIFICIOS
+        // ----------------------------------------------------------------
+        function makeBuilding(x) {
+            const colors = ['#001400','#001700','#001f00','#002300','#001100'];
+            const h = 38 + Math.floor(Math.random() * 105);
+            const w = 28 + Math.floor(Math.random() * 85);
+            const cols = 2 + Math.floor(Math.random() * 3);
+            const windows = [];
+            const rows = Math.floor(h / 20);
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    windows.push({ r, c, cols, lit: Math.random() > 0.45 });
+                }
+            }
+            return {
+                x, w, h,
+                color:  colors[Math.floor(Math.random() * colors.length)],
+                winClr: Math.random() > 0.5 ? '#002600' : '#003800',
+                windows,
+            };
+        }
+
+        // ----------------------------------------------------------------
+        // 7. INICIALIZAR PARTIDA
+        // ----------------------------------------------------------------
+        function initGame() {
+            gameRunning = false;
+            gameOver    = false;
+            gameWon     = false;
+            distance    = 0;
+            gameSpeed   = 4;
+            frameCount  = 0;
+
+            Object.assign(player, {
+                y: GROUND_Y - PLAYER_H,
+                vy: 0, onGround: true, animFrame: 0, animTimer: 0,
+            });
+
+            obstacles        = [];
+            obstacleTimer    = 0;
+            obstacleInterval = 115;
+            phoneBooth       = null;
+
+            // Edificios iniciales distribuidos por el ancho de la pantalla
+            buildings = [];
+            let bx = -30;
+            while (bx < GW + 150) {
+                const b = makeBuilding(bx);
+                buildings.push(b);
+                bx += b.w + 8 + Math.random() * 25;
+            }
+
+            narrativeQueue = [...NARRATIVES];
+            narrativeTimer = 0;
+            document.getElementById('narrative-msg').style.opacity = '1';
+            document.getElementById('narrative-msg').textContent   = '';
+            document.getElementById('hud-distance').textContent    = '0';
+        }
+
+        // ----------------------------------------------------------------
+        // 8. LÓGICA DEL JUEGO
+        // ----------------------------------------------------------------
+        function update() {
+            if (!gameRunning || gameOver || gameWon) return;
+
+            frameCount++;
+            // Acelerar gradualmente
+            gameSpeed = Math.min(4 + frameCount * 0.0012, 9);
+            // Dificultar la frecuencia de agentes
+            if (frameCount % 750 === 0 && obstacleInterval > 60) {
+                obstacleInterval -= 5;
+            }
+
+            // Distancia
+            distance += gameSpeed / 4;
+            document.getElementById('hud-distance').textContent = Math.floor(distance);
+
+            // ---- Física del jugador ----
+            player.vy += GRAVITY;
+            player.y  += player.vy;
+            if (player.y >= GROUND_Y - PLAYER_H) {
+                player.y  = GROUND_Y - PLAYER_H;
+                player.vy = 0;
+                player.onGround = true;
+            } else {
+                player.onGround = false;
+            }
+            // Animación de carrera
+            if (player.onGround) {
+                player.animTimer++;
+                if (player.animTimer >= 10) {
+                    player.animTimer = 0;
+                    player.animFrame = 1 - player.animFrame;
+                }
+            }
+
+            // ---- Edificios de fondo (scroll lento) ----
+            const bgSpd = gameSpeed * 0.32;
+            buildings.forEach(b => { b.x -= bgSpd; });
+            buildings = buildings.filter(b => b.x + b.w > -10);
+            while (buildings.length < 14) {
+                const last = buildings[buildings.length - 1];
+                const nx = last ? last.x + last.w + 8 + Math.random() * 28 : GW;
+                buildings.push(makeBuilding(nx));
+            }
+
+            // ---- Lluvia interior del canvas ----
+            gameRainDrops.forEach(d => {
+                d.y += d.speed;
+                if (d.y > GROUND_Y) { d.y = -d.len; d.x = Math.random() * GW; }
+            });
+
+            // ---- Spawn de agentes ----
+            obstacleTimer++;
+            if (obstacleTimer >= obstacleInterval && distance < WIN_DIST - 650) {
+                obstacleTimer = 0;
+                obstacles.push({
+                    x: GW + 22,
+                    y: GROUND_Y - AGENT_H,
+                    w: AGENT_W,
+                    h: AGENT_H,
+                    animFrame: 0,
+                    animTimer: 0,
+                });
+            }
+            obstacles.forEach(obs => {
+                obs.x -= gameSpeed;
+                obs.animTimer++;
+                if (obs.animTimer >= 12) {
+                    obs.animTimer = 0;
+                    obs.animFrame = 1 - obs.animFrame;
+                }
+            });
+            obstacles = obstacles.filter(obs => obs.x + obs.w > -10);
+
+            // ---- Cabina telefónica ----
+            if (distance >= WIN_DIST - 750 && !phoneBooth) {
+                phoneBooth = { x: GW + 80, y: GROUND_Y - 92, w: 62, h: 92 };
+            }
+            if (phoneBooth) {
+                phoneBooth.x -= gameSpeed;
+                // ¿El jugador llegó al teléfono?
+                if (player.x + PLAYER_W > phoneBooth.x + 10 &&
+                    player.x < phoneBooth.x + phoneBooth.w - 10) {
+                    triggerVictory();
+                    return;
+                }
+            }
+
+            // ---- Colisiones con agentes ----
+            if (checkCollisions()) { triggerGameOver(); return; }
+
+            // ---- Mensajes narrativos ----
+            if (narrativeQueue.length > 0 && distance >= narrativeQueue[0].dist) {
+                const msg = narrativeQueue.shift();
+                const el  = document.getElementById('narrative-msg');
+                el.textContent   = msg.text;
+                el.style.color   = msg.color;
+                el.style.opacity = '1';
+                narrativeTimer = 190; // ~3 segundos a 60fps
+            }
+            if (narrativeTimer > 0) {
+                narrativeTimer--;
+                if (narrativeTimer === 0) {
+                    document.getElementById('narrative-msg').style.opacity = '0';
+                }
+            }
+        }
+
+        function checkCollisions() {
+            // Caja de colisión con un poco de perdón (hitbox reducida)
+            const px = player.x + 4, py = player.y + 6;
+            const pw = PLAYER_W - 8,  ph = PLAYER_H - 10;
+            for (const obs of obstacles) {
+                const ox = obs.x + 5, ow = obs.w - 10;
+                if (px < ox + ow && px + pw > ox &&
+                    py < obs.y + obs.h - 4 && py + ph > obs.y + 4) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // ----------------------------------------------------------------
+        // 9. RENDER
+        // ----------------------------------------------------------------
+        function draw() {
+            // Fondo del canvas
+            gCtx.fillStyle = '#030308';
+            gCtx.fillRect(0, 0, GW, GH);
+
+            // Cielo
+            gCtx.fillStyle = '#020206';
+            gCtx.fillRect(0, 0, GW, GROUND_Y);
+
+            // Edificios (fondo)
+            buildings.forEach(drawBuilding);
+
+            // Lluvia sutil en el canvas
+            gameRainDrops.forEach(d => {
+                gCtx.fillStyle = `rgba(0,200,50,${d.opacity})`;
+                gCtx.fillRect(d.x, d.y, 1, d.len);
+            });
+
+            // Suelo
+            gCtx.fillStyle = '#001400';
+            gCtx.fillRect(0, GROUND_Y, GW, GH - GROUND_Y);
+            gCtx.fillStyle = '#003800';
+            gCtx.fillRect(0, GROUND_Y, GW, 2);
+            // Textura del suelo
+            gCtx.fillStyle = 'rgba(0,60,0,0.25)';
+            for (let i = 1; i < 4; i++) gCtx.fillRect(0, GROUND_Y + i * 15, GW, 1);
+
+            // Agentes
+            obstacles.forEach(drawAgent);
+
+            // Jugador
+            drawPlayer();
+
+            // Cabina telefónica
+            if (phoneBooth) drawPhoneBooth();
+        }
+
+        function drawBuilding(b) {
+            const by = GROUND_Y - b.h;
+            gCtx.fillStyle = b.color;
+            gCtx.fillRect(b.x, by, b.w, b.h);
+            b.windows.forEach(w => {
+                if (!w.lit) return;
+                const wx = b.x + 4 + w.c * Math.floor((b.w - 8) / w.cols);
+                const wy = by + 5 + w.r * 20;
+                if (wy < by + b.h - 6) {
+                    gCtx.fillStyle = b.winClr;
+                    gCtx.fillRect(wx, wy, 6, 9);
+                }
+            });
+        }
+
+        function drawPlayer() {
+            const x = player.x, y = player.y;
+            const s = 4, f = player.animFrame;
+
+            // Cabeza
+            gCtx.fillStyle = '#00cc33';
+            gCtx.fillRect(x + s, y, s * 3, s * 3);
+            // Brillo cabeza
+            gCtx.fillStyle = '#00ee44';
+            gCtx.fillRect(x + s, y, s, s);
+
+            // Cuerpo
+            gCtx.fillStyle = '#009922';
+            gCtx.fillRect(x, y + s * 3, s * 5, s * 3);
+
+            // Cintura
+            gCtx.fillStyle = '#007718';
+            gCtx.fillRect(x + s, y + s * 6, s * 3, s);
+
+            // Piernas animadas
+            gCtx.fillStyle = '#006614';
+            if (f === 0) {
+                gCtx.fillRect(x,         y + s * 7, s * 2, s * 3); // izq adelante
+                gCtx.fillRect(x + s * 3, y + s * 7, s * 2, s * 2); // der atrás
+            } else {
+                gCtx.fillRect(x,         y + s * 7, s * 2, s * 2);
+                gCtx.fillRect(x + s * 3, y + s * 7, s * 2, s * 3);
+            }
+
+            // Brazos
+            gCtx.fillStyle = '#009922';
+            if (f === 0) {
+                gCtx.fillRect(x - s,     y + s * 3, s, s * 2);
+                gCtx.fillRect(x + s * 5, y + s * 4, s, s * 2);
+            } else {
+                gCtx.fillRect(x - s,     y + s * 4, s, s * 2);
+                gCtx.fillRect(x + s * 5, y + s * 3, s, s * 2);
+            }
+        }
+
+        function drawAgent(obs) {
+            const x = obs.x, y = obs.y, s = 4, f = obs.animFrame;
+
+            // Ala del sombrero
+            gCtx.fillStyle = '#111';
+            gCtx.fillRect(x - 2, y + s, s * 6, s);
+            // Copa del sombrero
+            gCtx.fillStyle = '#0d0d0d';
+            gCtx.fillRect(x + s * 0.5, y - s, s * 4, s * 2);
+
+            // Cabeza
+            gCtx.fillStyle = '#2a2a2a';
+            gCtx.fillRect(x + s * 0.5, y + s * 2, s * 4, s * 3);
+            // Gafas (barra oscura)
+            gCtx.fillStyle = '#080808';
+            gCtx.fillRect(x + s * 0.5, y + s * 3, s * 4, s);
+
+            // Traje
+            gCtx.fillStyle = '#1a1a1a';
+            gCtx.fillRect(x, y + s * 5, s * 5, s * 5);
+            // Corbata
+            gCtx.fillStyle = '#0a0a0a';
+            gCtx.fillRect(x + s * 2, y + s * 5, s, s * 4);
+
+            // Piernas animadas
+            gCtx.fillStyle = '#111';
+            if (f === 0) {
+                gCtx.fillRect(x + s * 0.5, y + s * 10, s * 2, s * 2.5);
+                gCtx.fillRect(x + s * 2.5, y + s * 10, s * 2, s * 1.5);
+            } else {
+                gCtx.fillRect(x + s * 0.5, y + s * 10, s * 2, s * 1.5);
+                gCtx.fillRect(x + s * 2.5, y + s * 10, s * 2, s * 2.5);
+            }
+
+            // Brazos
+            gCtx.fillStyle = '#1a1a1a';
+            gCtx.fillRect(x - 3,       y + s * 5, 5, s * 3);
+            gCtx.fillRect(x + s * 5,   y + s * 5, 5, s * 3);
+        }
+
+        function drawPhoneBooth() {
+            const { x, y, w, h } = phoneBooth;
+
+            // Marco exterior verde cabina
+            gCtx.fillStyle = '#005000';
+            gCtx.fillRect(x, y, w, h);
+
+            // Paneles de vidrio (dos)
+            gCtx.fillStyle = '#001a00';
+            gCtx.fillRect(x + 4,    y + 12, 24, h - 16);
+            gCtx.fillRect(x + 32,   y + 12, 24, h - 16);
+
+            // Techo
+            gCtx.fillStyle = '#007700';
+            gCtx.fillRect(x - 3, y - 7, w + 6, 8);
+
+            // Teléfono interior (receptor)
+            gCtx.fillStyle = '#003a00';
+            gCtx.fillRect(x + 9, y + h * 0.35, 12, 22);
+
+            // Glow parpadeante (el teléfono suena)
+            const pulse = Math.floor(Date.now() / 300) % 2 === 0;
+            if (pulse) {
+                gCtx.fillStyle = 'rgba(0,255,65,0.18)';
+                gCtx.fillRect(x - 6, y - 6, w + 12, h + 12);
+                gCtx.fillStyle = 'rgba(0,255,65,0.06)';
+                gCtx.fillRect(x - 16, y - 16, w + 32, h + 32);
+                // RING encima
+                gCtx.fillStyle = '#00ff41';
+                gCtx.font = `bold 8px 'Courier New'`;
+                gCtx.textAlign = 'center';
+                gCtx.fillText('RING', x + w / 2, y - 12);
+            }
+        }
+
+        // ----------------------------------------------------------------
+        // 10. LOOP PRINCIPAL
+        // ----------------------------------------------------------------
+        function gameLoop() {
+            update();
+            draw();
+            if (gameRunning && !gameOver && !gameWon) {
+                rafId = requestAnimationFrame(gameLoop);
+            }
+        }
+
+        function startGame() {
+            if (rafId) cancelAnimationFrame(rafId);
+            initGame();
+            gameRunning = true;
+            showScreen('screen-game');
+            rafId = requestAnimationFrame(gameLoop);
+        }
+
+        // ----------------------------------------------------------------
+        // 11. ESTADOS FINALES
+        // ----------------------------------------------------------------
+        function triggerGameOver() {
+            gameOver    = true;
+            gameRunning = false;
+            cancelAnimationFrame(rafId);
+            draw(); // Último frame
+
+            setTimeout(() => {
+                document.getElementById('go-distance').textContent = Math.floor(distance);
+                showScreen('screen-gameover');
+            }, 700);
+        }
+
+        function triggerVictory() {
+            gameWon     = true;
+            gameRunning = false;
+            cancelAnimationFrame(rafId);
+
+            // Guardar progreso
+            const bonus = Math.floor(distance);
+            if (!matrixState.completed.includes('exp2')) {
+                matrixState.completed.push('exp2');
+                matrixState.score += bonus;
+                saveState();
+            }
+
+            setTimeout(() => {
+                document.getElementById('vic-alias').textContent = alias;
+                document.getElementById('vic-score').textContent = matrixState.score.toLocaleString();
+                showScreen('screen-victory');
+            }, 500);
+        }
+
+        // ----------------------------------------------------------------
+        // 12. CONTROLES DE SALTO
+        // ----------------------------------------------------------------
+        function handleJump() {
+            if (!gameRunning || gameOver || gameWon) return;
+            if (player.onGround) {
+                player.vy       = JUMP_VY;
+                player.onGround = false;
+            }
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.code === 'Space' || e.code === 'ArrowUp') {
+                e.preventDefault();
+                handleJump();
+            }
+        });
+        gameCanvas.addEventListener('click',      handleJump);
+        gameCanvas.addEventListener('touchstart', e => { e.preventDefault(); handleJump(); }, { passive: false });
+
+        // ----------------------------------------------------------------
+        // 13. BOTONES
+        // ----------------------------------------------------------------
+        document.getElementById('btn-start').addEventListener('click', startGame);
+        document.getElementById('btn-retry').addEventListener('click', startGame);
+
+        document.getElementById('btn-hub-go').addEventListener('click', () => {
+            window.location.href = '../index.html';
+        });
+        document.getElementById('btn-hub-vic').addEventListener('click', () => {
+            window.location.href = '../index.html';
+        });
+
+        // Botón para ver la película (abre en nueva pestaña)
+        document.getElementById('btn-watch').addEventListener('click', () => {
+            window.open('https://www.warnerbros.com/movies/matrix', '_blank');
+        });
+
+    </script>
+</body>
+</html>

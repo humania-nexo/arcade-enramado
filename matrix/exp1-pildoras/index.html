@@ -1243,16 +1243,15 @@
         // 8. ELECCIÓN DEL CONEJO BLANCO (tras el quinto documento)
         // ----------------------------------------------------------------
 
-        // Opción: seguir al conejo → pantalla de outro/créditos
+        // Opción: seguir al conejo → ir al escape (exp2)
         document.getElementById('btn-follow-rabbit').addEventListener('click', () => {
-            rainSpeed = 0.8;
+            rainSpeed = 1.5;
             if (!matrixState.completed.includes('exp1')) {
                 matrixState.score += 100;
                 matrixState.completed.push('exp1');
                 saveState();
             }
-            renderOutro();
-            showScreen('screen-outro');
+            window.location.href = '../exp2-runner/index.html';
         });
 
         // Opción: quedarse → loop infinito (sellar documentos para siempre)
@@ -1484,15 +1483,14 @@
             ctx.fillRect(0, p * 7.2, W, p * 4);
         }
 
-        // Botón de continuar desde el briefing de Morféo
+        // Botón de continuar desde el briefing de Morféo → ir al escape
         document.getElementById('btn-morpheus-continue').addEventListener('click', () => {
             if (!matrixState.completed.includes('exp1')) {
                 matrixState.score += 150;
                 matrixState.completed.push('exp1');
                 saveState();
             }
-            renderOutro();
-            showScreen('screen-outro');
+            window.location.href = '../exp2-runner/index.html';
         });
 
         // ----------------------------------------------------------------
