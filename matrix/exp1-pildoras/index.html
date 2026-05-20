@@ -300,6 +300,93 @@
             font-size: 10px;
             margin-top: 6px;
         }
+
+        /* ============================================================
+           PANTALLA DE MORFEO — Nave Nebuchadnezzar
+        ============================================================ */
+        #neb-canvas {
+            display: block;
+            width: 100%;
+            max-width: 520px;
+            height: auto;
+            margin: 0 auto 12px;
+            image-rendering: pixelated;
+            border: 1px solid rgba(80,50,20,0.4);
+            box-shadow: 0 0 20px rgba(0,20,8,0.5);
+        }
+
+        .morpheus-text {
+            font-family: 'Courier New', monospace;
+            font-size: clamp(10px, 2vw, 12px);
+            line-height: 1.9;
+            letter-spacing: 1px;
+            color: rgba(100,200,255,0.85);
+            white-space: pre;
+            min-height: 100px;
+            margin-bottom: 14px;
+            overflow: hidden;
+        }
+
+        /* ============================================================
+           PANTALLA DE OUTRO — Créditos y semillas
+        ============================================================ */
+        .seeds-banner {
+            border: 1px solid rgba(255,215,60,0.2);
+            padding: 14px;
+            margin-bottom: 14px;
+            background: rgba(15,10,0,0.6);
+        }
+
+        .seeds-banner p {
+            font-size: clamp(10px, 2vw, 12px);
+            letter-spacing: 1px;
+            line-height: 1.9;
+            color: rgba(255,210,60,0.7);
+        }
+
+        .seeds-banner .accent { color: rgba(255,215,60,1); font-weight: bold; }
+
+        .credit-box {
+            border: 1px solid rgba(0,255,65,0.18);
+            padding: 20px;
+            margin: 14px 0;
+            background: rgba(0,5,0,0.7);
+            text-align: center;
+        }
+
+        .credit-label {
+            font-size: 9px;
+            letter-spacing: 3px;
+            color: rgba(0,255,65,0.3);
+            margin-bottom: 16px;
+        }
+
+        .credit-names {
+            font-size: clamp(16px, 3.5vw, 22px);
+            letter-spacing: 5px;
+            color: #00ff41;
+            margin: 8px 0;
+            text-shadow: 0 0 14px rgba(0,255,65,0.45);
+            line-height: 1.4;
+        }
+
+        .credit-footer {
+            font-size: 9px;
+            letter-spacing: 1px;
+            color: rgba(0,255,65,0.3);
+            margin-top: 16px;
+            line-height: 2;
+        }
+
+        .matrix-btn.locked {
+            opacity: 0.22;
+            cursor: not-allowed;
+            border-color: rgba(0,255,65,0.12);
+            color: rgba(0,255,65,0.22);
+            font-size: 10px;
+            letter-spacing: 2px;
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
@@ -389,8 +476,56 @@
                     <span class="prompt">> </span>ESTADO: <span style="color:#ffff44;letter-spacing:2px">EVADIENDO CAPTURA</span><br>
                     <span class="prompt">> </span>CICLOS LIBERADOS: <span style="color:#00ff41">+150</span>
                 </p>
-                <button class="matrix-btn" id="btn-go-escape">[ INICIAR EL ESCAPE ]</button>
+                <button class="matrix-btn" id="btn-go-escape">[ SEGUIR CON MORFÉO ]</button>
                 <button class="matrix-btn secondary" id="btn-back-hub">[ ← VOLVER AL HUB ]</button>
+            </div>
+
+            <!-- ======================================================
+                 PANTALLA 4: Morféo — Nave Nebuchadnezzar
+            ====================================================== -->
+            <div class="screen" id="screen-morpheus">
+                <canvas id="neb-canvas" width="520" height="260"></canvas>
+                <pre id="morpheus-dialogue" class="morpheus-text"></pre>
+                <button class="matrix-btn" id="btn-morpheus-continue" style="display:none">
+                    [ ENTENDIDO. VAMOS. ]
+                </button>
+            </div>
+
+            <!-- ======================================================
+                 PANTALLA 5: Outro — Créditos + buscar más semillas
+            ====================================================== -->
+            <div class="screen" id="screen-outro">
+                <p class="narrative">
+                    <span class="prompt">&gt; </span>ESTADO: SEMILLA COMPLETADA.<br>
+                    <span class="prompt">&gt; </span>CICLOS LIBERADOS: <span id="outro-score" style="color:#00ff41">0</span><br>
+                    <span class="prompt">&gt; </span>ALIAS: <span id="outro-alias" style="color:#00ff41">---</span>
+                </p>
+
+                <div class="seeds-banner">
+                    <p>
+                        &gt; ESTA SEMILLA TRANSMEDIA HA CONCLUIDO.<br>
+                        &gt; LA HISTORIA CONTINÚA EN <span class="accent">PROIECTIO</span>.<br>
+                        &gt; ENCUENTRA MÁS SEMILLAS PARA SEGUIR ADELANTE.
+                    </p>
+                </div>
+
+                <div class="credit-box">
+                    <p class="credit-label">ESTA EXPERIENCIA ES UN HOMENAJE A:</p>
+                    <p class="credit-names">LANA WACHOWSKI</p>
+                    <p class="credit-names">LILLY WACHOWSKI</p>
+                    <p class="credit-footer">
+                        Creadoras de THE MATRIX (1999)<br>
+                        Proyecto fan-made &middot; Sin fines de lucro<br>
+                        El arte es de ellas. No nuestro.
+                    </p>
+                </div>
+
+                <button class="matrix-btn locked" disabled>
+                    [ EL ESCAPE — REQUIERE PRÓXIMA SEMILLA ]
+                </button>
+                <button class="matrix-btn secondary" id="btn-outro-hub">
+                    [ ← VOLVER AL HUB ]
+                </button>
             </div>
 
         </div>
@@ -1108,15 +1243,16 @@
         // 8. ELECCIÓN DEL CONEJO BLANCO (tras el quinto documento)
         // ----------------------------------------------------------------
 
-        // Opción: seguir al conejo → ir al escape (exp2)
+        // Opción: seguir al conejo → pantalla de outro/créditos
         document.getElementById('btn-follow-rabbit').addEventListener('click', () => {
-            rainSpeed = 1.5;
+            rainSpeed = 0.8;
             if (!matrixState.completed.includes('exp1')) {
-                matrixState.score += 100; // Bonus por tomar la decisión azul/roja
+                matrixState.score += 100;
                 matrixState.completed.push('exp1');
                 saveState();
             }
-            window.location.href = '../exp2-runner/index.html';
+            renderOutro();
+            showScreen('screen-outro');
         });
 
         // Opción: quedarse → loop infinito (sellar documentos para siempre)
@@ -1134,13 +1270,243 @@
         // 9. RUTA ROJA — Botones de navegación
         // ----------------------------------------------------------------
 
-        // Ir directamente al escape (exp2) desde la ruta roja
+        // Ruta roja → briefing de Morféo en la Nebuchadnezzar
         document.getElementById('btn-go-escape').addEventListener('click', () => {
-            window.location.href = '../exp2-runner/index.html';
+            initMorpheusScreen();
+            showScreen('screen-morpheus');
         });
 
         // Volver al hub principal
         document.getElementById('btn-back-hub').addEventListener('click', () => {
+            window.location.href = '../index.html';
+        });
+
+        // ----------------------------------------------------------------
+        // PANTALLA MORFÉO — Nave Nebuchadnezzar
+        // ----------------------------------------------------------------
+
+        // Texto del diálogo de Morféo (tipeo carácter a carácter)
+        const NEB_LINES = [
+            '> UBICACION: NEBUCHADNEZZAR',
+            '> PROFUNDIDAD: -47m. CANAL CIFRADO.',
+            '',
+            '  MORFEO: "Llevas toda la vida',
+            '           sabiendo que algo',
+            '           no encajaba."',
+            '',
+            '  MORFEO: "Que el mundo no era',
+            '           como te decían."',
+            '',
+            '  MORFEO: "Tenías razón."',
+            '',
+            `  MORFEO: "Los Agentes te buscan`,
+            `           ahora mismo, ${alias}."`,
+            '',
+            '  MORFEO: "Corre."',
+        ];
+        const NEB_FULL = NEB_LINES.join('\n');
+        const NEB_SPEED_MS = 44; // ms por carácter
+
+        let nebAnim = { typedChars: 0, startTime: 0, animId: null };
+
+        /**
+         * Inicializa la pantalla de Morféo:
+         * dibuja el canvas de la Nebuchadnezzar y arranca el tipeo.
+         */
+        function initMorpheusScreen() {
+            renderNebCanvas();
+            nebAnim.typedChars = 0;
+            nebAnim.startTime  = performance.now();
+            document.getElementById('morpheus-dialogue').textContent = '';
+            document.getElementById('btn-morpheus-continue').style.display = 'none';
+            requestAnimationFrame(runNebTyping);
+        }
+
+        function runNebTyping(timestamp) {
+            const elapsed = timestamp - nebAnim.startTime;
+            const target  = Math.floor(elapsed / NEB_SPEED_MS);
+            nebAnim.typedChars = Math.min(target, NEB_FULL.length);
+            document.getElementById('morpheus-dialogue').textContent =
+                NEB_FULL.substring(0, nebAnim.typedChars);
+
+            if (nebAnim.typedChars < NEB_FULL.length) {
+                nebAnim.animId = requestAnimationFrame(runNebTyping);
+            } else {
+                // Tipeo completo — mostrar botón tras una pausa
+                setTimeout(() => {
+                    document.getElementById('btn-morpheus-continue').style.display = 'block';
+                }, 800);
+            }
+        }
+
+        /**
+         * Renderiza la escena de la Nebuchadnezzar en pixel art.
+         * Paleta industrial: casi-negros, azules, ámbar, verde en pantallas.
+         * Completamente diferente a la oficina — éste es el mundo real.
+         */
+        function renderNebCanvas() {
+            const canvas = document.getElementById('neb-canvas');
+            const ctx    = canvas.getContext('2d');
+            const W = canvas.width;
+            const H = canvas.height;
+            const p = H / 100;
+
+            ctx.clearRect(0, 0, W, H);
+
+            // ---- FONDO — casi negro, ligeramente azulado ----
+            ctx.fillStyle = '#060610';
+            ctx.fillRect(0, 0, W, H);
+
+            // Glow sutil de las pantallas en el techo
+            ctx.fillStyle = 'rgba(0,50,25,0.22)';
+            ctx.fillRect(0, 0, W, H * 0.4);
+
+            // ---- PARED TRASERA — paneles metálicos ----
+            ctx.fillStyle = '#0e0e18';
+            ctx.fillRect(W * 0.1, p * 8, W * 0.8, p * 58);
+            // Divisores de panel
+            ctx.fillStyle = '#080810';
+            for (let i = 0; i < 4; i++) {
+                ctx.fillRect(W * 0.1, p * (8 + i * 14.5), W * 0.8, p * 0.5);
+            }
+
+            // ---- PANTALLAS DE MONITOREO — con código verde animado ----
+            const screens = [
+                { x: 0.12, y: 10, w: 0.14, h: 10 },
+                { x: 0.29, y:  8, w: 0.2,  h: 13 },
+                { x: 0.53, y: 10, w: 0.14, h: 10 },
+                { x: 0.71, y:  9, w: 0.16, h: 11 },
+            ];
+
+            screens.forEach(s => {
+                // Marco de la pantalla
+                ctx.fillStyle = '#1a1a26';
+                ctx.fillRect(W * s.x - 2, p * s.y - 2, W * s.w + 4, p * s.h + 4);
+                // Superficie oscura
+                ctx.fillStyle = '#001600';
+                ctx.fillRect(W * s.x, p * s.y, W * s.w, p * s.h);
+                // Código Matrix en pantalla (bloques de cólor aleatorio)
+                const cols = Math.floor(W * s.w / 7);
+                const rows = 6;
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        if (Math.random() > 0.42) {
+                            const b = 80 + Math.floor(Math.random() * 130);
+                            ctx.fillStyle = `rgba(0,${b},25,0.85)`;
+                            ctx.fillRect(
+                                W * s.x + c * 7,
+                                p * s.y + r * Math.floor(p * s.h / rows),
+                                3, Math.max(2, Math.floor(p * s.h / (rows + 2)))
+                            );
+                        }
+                    }
+                }
+                // Glow alrededor de la pantalla
+                ctx.fillStyle = 'rgba(0,200,60,0.02)';
+                ctx.fillRect(W * s.x - 5, p * s.y - 5, W * s.w + 10, p * s.h + 10);
+            });
+
+            // ---- TUBOS Y COLUMNAS VERTICALES (laterales) ----
+            const pipeBase = '#0c0c14';
+            const pipeHi   = '#181820';
+            [0.0, 0.03, 0.07].forEach(ox => {
+                ctx.fillStyle = pipeBase;
+                ctx.fillRect(W * ox, p * 3, W * 0.025, p * 65);
+                ctx.fillStyle = pipeHi;
+                ctx.fillRect(W * ox + 2, p * 3, W * 0.007, p * 65);
+            });
+            [0.97, 0.93, 0.89].forEach(ox => {
+                ctx.fillStyle = pipeBase;
+                ctx.fillRect(W * ox, p * 3, W * 0.025, p * 65);
+                ctx.fillStyle = pipeHi;
+                ctx.fillRect(W * ox + 2, p * 3, W * 0.007, p * 65);
+            });
+
+            // ---- CABLES HORIZONTALES ----
+            const cableColors = ['#140e0a','#1c1208','#10100c'];
+            [33, 39, 44, 51, 56].forEach((yp, i) => {
+                ctx.fillStyle = cableColors[i % cableColors.length];
+                const t = 2 + (i % 2);
+                // Simular combamiento con 3 segmentos
+                ctx.fillRect(0,        p * yp,     W * 0.34, t);
+                ctx.fillRect(W * 0.32, p * yp + 2, W * 0.36, t + 1);
+                ctx.fillRect(W * 0.66, p * yp,     W * 0.34, t);
+            });
+
+            // ---- SUELO — rejilla metálica ----
+            ctx.fillStyle = '#0a0a14';
+            ctx.fillRect(0, p * 66, W, p * 34);
+            ctx.fillStyle = '#060610';
+            for (let i = 0; i < 6; i++) {
+                ctx.fillRect(0, p * 66 + i * (p * 34 / 6), W, p * 0.4);
+            }
+            ctx.fillStyle = '#141428';
+            ctx.fillRect(0, p * 66, W, p * 1.5); // Borde del suelo
+            // Reflejo de las pantallas en el suelo
+            ctx.fillStyle = 'rgba(0,50,25,0.1)';
+            ctx.fillRect(W * 0.25, p * 67, W * 0.5, p * 8);
+
+            // ---- SILUETA DE MORFÉO ----
+            // Figura oscura frente a las pantallas, abrigo largo
+            const fx = W * 0.38;
+            const fy = p * 27;
+
+            // Abrigo largo (parte inferior, acampanada)
+            ctx.fillStyle = '#110a05';
+            ctx.fillRect(fx - W * 0.025, fy + p * 30, W * 0.2, p * 7);
+            // Cuerpo del abrigo
+            ctx.fillStyle = '#130c06';
+            ctx.fillRect(fx, fy + p * 9, W * 0.14, p * 22);
+            // Parte superior
+            ctx.fillRect(fx + W * 0.01, fy + p * 6, W * 0.12, p * 5);
+            // Brazos
+            ctx.fillStyle = '#0f0905';
+            ctx.fillRect(fx - W * 0.025, fy + p * 10, W * 0.035, p * 16);
+            ctx.fillRect(fx + W * 0.13,  fy + p * 10, W * 0.032, p * 14);
+            // Cuello
+            ctx.fillStyle = '#1a0f08';
+            ctx.fillRect(fx + W * 0.055, fy + p * 5.5, W * 0.03, p * 3);
+            // Cabeza
+            ctx.fillStyle = '#1a0f08';
+            ctx.fillRect(fx + W * 0.03, fy, W * 0.09, p * 6.5);
+            // Gafas icónicas (reflejo verde tenue)
+            ctx.fillStyle = 'rgba(0,160,80,0.45)';
+            ctx.fillRect(fx + W * 0.038, fy + p * 2.3, W * 0.027, p * 1.8);
+            ctx.fillRect(fx + W * 0.074, fy + p * 2.3, W * 0.027, p * 1.8);
+            // Puente de las gafas
+            ctx.fillStyle = '#0a0a12';
+            ctx.fillRect(fx + W * 0.064, fy + p * 2.9, W * 0.011, p * 0.8);
+
+            // ---- LUCES ÁMBAR INDUSTRIALES (techo) ----
+            ctx.fillStyle = 'rgba(180,85,0,0.18)';
+            ctx.fillRect(0, p * 5, W, p * 2.2);
+            ctx.fillStyle = 'rgba(160,70,0,0.09)';
+            ctx.fillRect(0, p * 7.2, W, p * 4);
+        }
+
+        // Botón de continuar desde el briefing de Morféo
+        document.getElementById('btn-morpheus-continue').addEventListener('click', () => {
+            if (!matrixState.completed.includes('exp1')) {
+                matrixState.score += 150;
+                matrixState.completed.push('exp1');
+                saveState();
+            }
+            renderOutro();
+            showScreen('screen-outro');
+        });
+
+        // ----------------------------------------------------------------
+        // PANTALLA OUTRO — Créditos y mensaje de semillas
+        // ----------------------------------------------------------------
+
+        function renderOutro() {
+            document.getElementById('outro-score').textContent =
+                matrixState.score.toLocaleString();
+            document.getElementById('outro-alias').textContent =
+                matrixState.alias || 'AGENTE';
+        }
+
+        document.getElementById('btn-outro-hub').addEventListener('click', () => {
             window.location.href = '../index.html';
         });
 
