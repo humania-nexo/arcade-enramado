@@ -690,12 +690,22 @@
         // 5. ELECCIÓN DE PÍLDORA
         // ----------------------------------------------------------------
 
+        let officeClockInterval = null; // Referencia al reloj de la oficina
+
         document.getElementById('choose-blue').addEventListener('click', () => {
             rainSpeed = 0.2; // Aún más lenta — atmósfera pesada de oficina
             sealCount = 0;
             monitorBlack = false;
             renderOfficeScene();
             showScreen('screen-blue');
+
+            // Iniciar reloj en tiempo real (cada segundo se actualiza el canvas)
+            clearInterval(officeClockInterval);
+            officeClockInterval = setInterval(() => {
+                // Solo re-renderizar si el monitor está en fase normal
+                // (en glitch/typing el rAF lo maneja; no interferir)
+                if (monitorAnim.phase === 'normal') renderOfficeScene();
+            }, 1000);
         });
 
         document.getElementById('choose-red').addEventListener('click', () => {
@@ -787,11 +797,26 @@
             ctx.fillRect(W * 0.76, p * 12, W * 0.18, p * 22);
             ctx.fillStyle = '#cc3333'; // Cabecera roja del calendario
             ctx.fillRect(W * 0.76, p * 12, W * 0.18, p * 5);
+
+            // Fecha REAL del lector
+            const _now = new Date();
+            const _day = _now.getDate();
+            const _months = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+            const _month  = _months[_now.getMonth()];
+            const _days   = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
+            const _dayName = _days[_now.getDay()];
+
             // Número del día (grande) en la cabecera
             ctx.fillStyle = '#fff';
             ctx.font = `bold ${p * 4}px 'Courier New'`;
             ctx.textAlign = 'center';
-            ctx.fillText('14', W * 0.85, p * 16.5);
+            ctx.fillText(String(_day), W * 0.85, p * 16.5);
+
+            // Nombre del día y mes (pequeño) debajo del número
+            ctx.font = `bold ${p * 1.6}px 'Courier New'`;
+            ctx.fillStyle = 'rgba(255,255,255,0.8)';
+            ctx.fillText(`${_dayName} ${_month}`, W * 0.85, p * 18);
+
             // Grid del calendario
             ctx.fillStyle = '#cccccc';
             for (let row = 0; row < 4; row++) {
@@ -800,12 +825,33 @@
             for (let col = 1; col < 3; col++) {
                 ctx.fillRect(W * (0.76 + col * 0.06), p * 17, W * 0.005, p * 17);
             }
-            // Algunos días tachados (desolador)
+            // Encabezado de días de la semana
             ctx.fillStyle = '#999';
-            ctx.font = `${p * 2}px 'Courier New'`;
+            ctx.font = `${p * 1.8}px 'Courier New'`;
             ['L','M','X','J','V','S','D'].forEach((d, i) => {
                 ctx.fillText(d, W * (0.77 + i * 0.024), p * 20);
             });
+
+            // ---- RELOJ DIGITAL EN LA PARED (sobre el calendario) ----
+            const _h = String(_now.getHours()).padStart(2,'0');
+            const _m = String(_now.getMinutes()).padStart(2,'0');
+            const _s = String(_now.getSeconds()).padStart(2,'0');
+            const _colon = (_now.getMilliseconds() < 500) ? ':' : ' '; // parpadeo
+
+            // Carcasa del reloj
+            ctx.fillStyle = '#222';
+            ctx.fillRect(W * 0.755, p * 7.5, W * 0.195, p * 4);
+            ctx.fillStyle = '#111';
+            ctx.fillRect(W * 0.76, p * 7.8, W * 0.185, p * 3.2);
+
+            // Dígitos LED verde
+            ctx.fillStyle = '#00ff41';
+            ctx.font = `bold ${p * 2.6}px 'Courier New'`;
+            ctx.textAlign = 'center';
+            ctx.shadowColor = '#00ff41';
+            ctx.shadowBlur = 6;
+            ctx.fillText(`${_h}${_colon}${_m}${_colon}${_s}`, W * 0.852, p * 10.4);
+            ctx.shadowBlur = 0;
 
             // ---- PLANTA MARCHITA (esquina izquierda) ----
             // Maceta
@@ -1507,6 +1553,182 @@
         document.getElementById('btn-outro-hub').addEventListener('click', () => {
             window.location.href = '../index.html';
         });
+
+        // ================================================================
+        // CHIPTUNER SUSPENSE — Música atmosférica para exp1
+        // La menor, 76 BPM, 8 compases. Ambiente misterioso tipo exploración
+        // Pokémon: arpegios lentos, melodía dispersa, bajo de triángulo cálido.
+        // ================================================================
+        const SuspenseTuner = (() => {
+            let ac = null, mGain = null, muted = false;
+            let loopHandle = null, stopFlag = false;
+
+            const N = {
+                A1:55.00, E2:82.41, F2:87.31, G2:98.00,
+                A2:110.00, C3:130.81, D3:146.83, E3:164.81, F3:174.61, G3:196.00,
+                A3:220.00, B3:246.94, C4:261.63, D4:293.66, E4:329.63, F4:349.23,
+                G4:392.00, A4:440.00, Bb4:466.16, B4:493.88,
+                C5:523.25, D5:587.33, E5:659.25, F5:698.46, G5:783.99,
+            };
+
+            function boot() {
+                if (ac) return true;
+                try {
+                    ac = new (window.AudioContext || window.webkitAudioContext)();
+                    mGain = ac.createGain();
+                    mGain.gain.value = muted ? 0 : 0.09;
+                    mGain.connect(ac.destination);
+                    return true;
+                } catch(e) { return false; }
+            }
+
+            function playNote(freq, t, dur, wave, vol) {
+                if (!ac || stopFlag) return;
+                const o = ac.createOscillator();
+                const g = ac.createGain();
+                o.type = wave;
+                o.frequency.value = freq;
+                g.gain.setValueAtTime(0, t);
+                g.gain.linearRampToValueAtTime(vol, t + 0.015);
+                g.gain.setValueAtTime(vol, t + dur * 0.75);
+                g.gain.linearRampToValueAtTime(0, t + dur);
+                o.connect(g); g.connect(mGain);
+                o.start(t); o.stop(t + dur + 0.02);
+            }
+
+            function schedule(notes, bps, start) {
+                let maxEnd = 0;
+                notes.forEach(([freq, beat, dur, wave, vol]) => {
+                    playNote(freq, start + beat / bps, dur / bps, wave || 'square', vol || 0.2);
+                    if (beat + dur > maxEnd) maxEnd = beat + dur;
+                });
+                return maxEnd / bps;
+            }
+
+            // ============================================================
+            // TEMA SUSPENSE — La menor, 76 BPM, 8 compases (32 tiempos)
+            // ============================================================
+            const SUSPENSE_BPM = 76;
+            const SUSPENSE = [
+                // ---- BAJO PROFUNDO (triángulo, octava baja) ----
+                [N.A1, 0,  7.8, 'triangle', 0.55],
+                [N.E2, 8,  7.8, 'triangle', 0.50],
+                [N.F2, 16, 7.8, 'triangle', 0.52],
+                [N.G2, 24, 7.8, 'triangle', 0.50],
+
+                // ---- ARPEGIO INTERIOR (cuadrada, muy suave, cada medio tiempo) ----
+                // Compases 1-2: La menor (Am)
+                ...[0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7,7.5].map((b,i) => {
+                    const chordAm = [N.A3, N.C4, N.E4, N.G4];
+                    return [chordAm[i % 4], b, 0.42, 'square', 0.10];
+                }),
+                // Compases 3-4: Mi (Em)
+                ...[8,8.5,9,9.5,10,10.5,11,11.5,12,12.5,13,13.5,14,14.5,15,15.5].map((b,i) => {
+                    const chordEm = [N.E3, N.G3, N.B3, N.D4];
+                    return [chordEm[i % 4], b, 0.42, 'square', 0.09];
+                }),
+                // Compases 5-6: Fa mayor (F)
+                ...[16,16.5,17,17.5,18,18.5,19,19.5,20,20.5,21,21.5,22,22.5,23,23.5].map((b,i) => {
+                    const chordF = [N.F3, N.A3, N.C4, N.E4];
+                    return [chordF[i % 4], b, 0.42, 'square', 0.09];
+                }),
+                // Compases 7-8: Sol mayor (G) → resuelve a Am
+                ...[24,24.5,25,25.5,26,26.5,27,27.5,28,28.5,29,29.5,30,30.5,31,31.5].map((b,i) => {
+                    const chordG = [N.G3, N.B3, N.D4, N.F4];
+                    return [chordG[i % 4], b, 0.42, 'square', 0.10];
+                }),
+
+                // ---- MELODÍA DISPERSA (cuadrada, atmosférica) ----
+                [N.E5,  1,    0.38, 'square', 0.22],
+                [N.D5,  3,    0.38, 'square', 0.20],
+                [N.C5,  5,    0.55, 'square', 0.21],
+                [N.B4,  7,    0.38, 'square', 0.19],
+                [N.A4,  9,    0.38, 'square', 0.21],
+                [N.G4,  11,   0.55, 'square', 0.20],
+                [N.F4,  13,   0.38, 'square', 0.20],
+                [N.E4,  14.5, 0.75, 'square', 0.19],
+                [N.G4,  17,   0.38, 'square', 0.21],
+                [N.A4,  19,   0.38, 'square', 0.20],
+                [N.C5,  21,   0.55, 'square', 0.22],
+                [N.B4,  23,   0.38, 'square', 0.19],
+                [N.D5,  25,   0.38, 'square', 0.21],
+                [N.C5,  27,   0.38, 'square', 0.20],
+                [N.B4,  28.5, 0.38, 'square', 0.19],
+                [N.A4,  30,   1.50, 'square', 0.22],
+            ];
+
+            function loopPattern(notes, bpm) {
+                if (!boot()) return;
+                stopFlag = false;
+                const bps = bpm / 60;
+                let start = ac.currentTime + 0.08;
+
+                function tick() {
+                    if (stopFlag) return;
+                    const dur = schedule(notes, bps, start);
+                    const next = start + dur;
+                    const msWait = (next - ac.currentTime) * 1000 - 300;
+                    start = next;
+                    loopHandle = setTimeout(tick, Math.max(msWait, 80));
+                }
+                tick();
+            }
+
+            function stop() {
+                stopFlag = true;
+                clearTimeout(loopHandle);
+                if (mGain) {
+                    try { mGain.gain.linearRampToValueAtTime(0, ac.currentTime + 0.6); } catch(e){}
+                    setTimeout(() => { if (mGain && !muted) mGain.gain.value = 0.09; }, 700);
+                }
+            }
+
+            function toggleMute() {
+                muted = !muted;
+                if (mGain) mGain.gain.value = muted ? 0 : 0.09;
+                return muted;
+            }
+
+            return { loopPattern, stop, toggleMute, SUSPENSE, SUSPENSE_BPM };
+        })();
+
+        // Botón mute discreto en la terminal
+        (function addMuteBtn() {
+            const hdr = document.querySelector('.term-header');
+            if (!hdr) return;
+            const btn = document.createElement('button');
+            btn.id = 'btn-mute-exp1';
+            btn.innerHTML = '&#128266;';
+            btn.title = 'Silenciar / activar música';
+            btn.style.cssText = 'background:none;border:none;cursor:pointer;color:rgba(0,255,65,0.35);font-size:12px;padding:0 4px;letter-spacing:0;line-height:1';
+            hdr.appendChild(btn);
+            btn.addEventListener('click', () => {
+                const m = SuspenseTuner.toggleMute();
+                btn.innerHTML = m ? '&#128263;' : '&#128266;';
+            });
+        })();
+
+        // Iniciar música en la primera interacción de píldora
+        let suspenseStarted = false;
+        function ensureSuspense() {
+            if (!suspenseStarted) {
+                suspenseStarted = true;
+                SuspenseTuner.loopPattern(SuspenseTuner.SUSPENSE, SuspenseTuner.SUSPENSE_BPM);
+            }
+        }
+
+        // Inyectar inicio de música en los botones de elección
+        const _chooseBlueBtns  = document.querySelectorAll('[id^="choose-"]');
+        _chooseBlueBtns.forEach(btn => {
+            btn.addEventListener('click', ensureSuspense, { once: false });
+        });
+        // También en la pantalla de intro (primer click en la página)
+        document.addEventListener('click', ensureSuspense, { once: true });
+
+        // Detener al navegar a exp2
+        document.getElementById('btn-morpheus-continue').addEventListener('click', () => {
+            SuspenseTuner.stop();
+        }, { capture: true });
 
     </script>
 </body>

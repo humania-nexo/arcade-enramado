@@ -536,17 +536,26 @@
         let matrixState = {
             alias: '',
             score: 0,
-            completed: [] // Ej: ['exp1', 'exp2']
+            completed: []
         };
 
         function loadState() {
             try {
                 const saved = localStorage.getItem('matrix_state');
-                if (saved) matrixState = JSON.parse(saved);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (parsed && typeof parsed === 'object') {
+                        matrixState = parsed;
+                    }
+                }
             } catch (e) {
                 // Estado corrupto — reiniciar
                 matrixState = { alias: '', score: 0, completed: [] };
             }
+            // Normalizar campos — protege contra estados parciales o de versiones anteriores
+            if (typeof matrixState.alias !== 'string') matrixState.alias = '';
+            if (typeof matrixState.score !== 'number' || isNaN(matrixState.score)) matrixState.score = 0;
+            if (!Array.isArray(matrixState.completed)) matrixState.completed = [];
         }
 
         function saveState() {
@@ -578,10 +587,10 @@
             window.history.replaceState({}, '', window.location.pathname);
         }
 
-        // Si ya tiene alias, ir directo a la selección de juegos
-        if (matrixState.alias && matrixState.alias !== 'AGENTE') {
-            buildGameSelection();
-            showScreen('screen-games');
+        // Si ya tiene alias válido (no vacío, no el placeholder), ir directo a los juegos
+        const hasValidAlias = matrixState.alias && matrixState.alias.trim().length > 0 && matrixState.alias !== 'AGENTE';
+        if (hasValidAlias) {
+            safeShowGames();
         }
 
         // ----------------------------------------------------------------
@@ -592,30 +601,54 @@
         const aliasError = document.getElementById('alias-error');
         const btnIdentify = document.getElementById('btn-identify');
 
+        // ---- Handler robusto de identificación ----
+        function safeShowGames() {
+            try {
+                buildGameSelection();
+                showScreen('screen-games');
+            } catch(e) {
+                console.error('[Matrix Hub] Error al mostrar juegos:', e);
+                // Recuperación: mostrar pantalla de alias limpia
+                matrixState.completed = [];
+                matrixState.score = 0;
+                saveState();
+                aliasInput.value = '';
+                aliasError.style.display = 'none';
+                showScreen('screen-alias');
+            }
+        }
+
         // Soporte para tecla Enter
         aliasInput.addEventListener('keydown', e => {
             if (e.key === 'Enter') btnIdentify.click();
         });
 
         btnIdentify.addEventListener('click', () => {
-            const raw = aliasInput.value.trim().toUpperCase();
+            try {
+                const raw = aliasInput.value.trim().toUpperCase();
 
-            if (!raw) {
-                aliasError.style.display = 'block';
-                aliasInput.focus();
-                return;
-            }
+                if (!raw) {
+                    aliasError.style.display = 'block';
+                    aliasInput.focus();
+                    return;
+                }
 
-            aliasError.style.display = 'none';
-            matrixState.alias = raw;
-            saveState();
+                aliasError.style.display = 'none';
+                matrixState.alias = raw;
+                matrixState.score  = matrixState.score  || 0;
+                matrixState.completed = Array.isArray(matrixState.completed) ? matrixState.completed : [];
+                saveState();
 
-            // Easter egg: alias NEO activa secuencia especial
-            if (raw === 'NEO') {
-                showNeoEasterEgg();
-            } else {
-                buildGameSelection();
-                showScreen('screen-games');
+                // Easter egg: alias NEO activa secuencia especial
+                if (raw === 'NEO') {
+                    showNeoEasterEgg();
+                } else {
+                    safeShowGames();
+                }
+            } catch(e) {
+                console.error('[Matrix Hub] Error en identify:', e);
+                // Intentar de todas formas
+                safeShowGames();
             }
         });
 
@@ -659,8 +692,7 @@
 
         document.getElementById('btn-neo-continue').addEventListener('click', () => {
             rainSpeedMultiplier = 1; // Restaurar velocidad normal
-            buildGameSelection();
-            showScreen('screen-games');
+            safeShowGames();
         });
 
         // Cambiar alias — vuelve al input limpio
@@ -712,17 +744,18 @@
         ];
 
         function buildGameSelection() {
-            // Mostrar alias y puntuación
-            document.getElementById('display-alias').textContent = matrixState.alias;
-            document.getElementById('score-display').textContent = matrixState.score.toLocaleString();
+            // Mostrar alias y puntuación — con acceso seguro
+            document.getElementById('display-alias').textContent = matrixState.alias || '???';
+            document.getElementById('score-display').textContent = (matrixState.score || 0).toLocaleString();
 
             const list = document.getElementById('game-list');
             list.innerHTML = '';
 
             GAMES.forEach(game => {
-                const isCompleted = matrixState.completed.includes(game.id);
-                const isUnlocked = !game.unlockAfter || matrixState.completed.includes(game.unlockAfter);
-                const isLocked = !isUnlocked;
+                const completed  = Array.isArray(matrixState.completed) ? matrixState.completed : [];
+                const isCompleted = completed.includes(game.id);
+                const isUnlocked  = !game.unlockAfter || completed.includes(game.unlockAfter);
+                const isLocked    = !isUnlocked;
 
                 const item = document.createElement('a');
 

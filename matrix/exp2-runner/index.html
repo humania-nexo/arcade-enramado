@@ -347,6 +347,9 @@
                 <div class="game-hud">
                     <span id="hud-alias">AGENTE ---</span>
                     <span>METROS: <span id="hud-distance">0</span></span>
+                    <button id="btn-mute" title="Silenciar / Activar música"
+                        style="background:none;border:none;cursor:pointer;color:rgba(0,255,65,0.45);font-size:13px;padding:0 2px;letter-spacing:0;font-family:monospace"
+                        aria-label="Toggle sound">&#128266;</button>
                 </div>
                 <div id="narrative-msg"></div>
                 <p class="game-hint">[ ESPACIO / CLICK / TAP = SALTAR ]</p>
@@ -1042,6 +1045,216 @@
             }
         }
 
+        // ================================================================
+        // CHIPTUNER — Motor de audio procedural (Web Audio API, sin archivos)
+        // Inspirado en el sonido de las batallas de Pokémon: 8-bit, melodías
+        // sobre acordes menores, bajo de triángulo, melodía de onda cuadrada.
+        // ================================================================
+        const Chiptuner = (() => {
+            let ac    = null;
+            let mGain = null;
+            let muted = false;
+            let loopHandle = null;
+            let stopFlag   = false;
+
+            // Frecuencias de notas musicales (Hz)
+            const N = {
+                C2:65.41, G2:98.00, Ab2:103.83, Bb2:116.54,
+                C3:130.81, D3:146.83, Eb3:155.56, E3:164.81,
+                F3:174.61, G3:196.00, Ab3:207.65, Bb3:233.08,
+                C4:261.63, D4:293.66, Eb4:311.13, E4:329.63,
+                F4:349.23, G4:392.00, Ab4:415.30, Bb4:466.16,
+                C5:523.25, D5:587.33, Eb5:622.25, G5:783.99,
+            };
+
+            // Inicializar AudioContext (requiere gesto del usuario)
+            function boot() {
+                if (ac) return true;
+                try {
+                    ac = new (window.AudioContext || window.webkitAudioContext)();
+                    mGain = ac.createGain();
+                    mGain.gain.value = muted ? 0 : 0.10;
+                    mGain.connect(ac.destination);
+                    return true;
+                } catch(e) { return false; }
+            }
+
+            // Toca una nota única con envolvente ADSR simplificada
+            function playNote(freq, t, dur, wave, vol) {
+                if (!ac || stopFlag) return;
+                const o = ac.createOscillator();
+                const g = ac.createGain();
+                o.type = wave;
+                o.frequency.value = freq;
+                g.gain.setValueAtTime(0, t);
+                g.gain.linearRampToValueAtTime(vol, t + 0.006);
+                g.gain.setValueAtTime(vol, t + dur * 0.75);
+                g.gain.linearRampToValueAtTime(0, t + dur);
+                o.connect(g);
+                g.connect(mGain);
+                o.start(t);
+                o.stop(t + dur + 0.01);
+            }
+
+            // Programa un patrón de notas a partir de `startTime`
+            // notes = [[freq, beat, dur_beats, wave, vol], ...]
+            // Retorna la duración total del patrón en segundos
+            function schedule(notes, bps, startTime) {
+                let maxEnd = 0;
+                notes.forEach(([freq, beat, dur, wave, vol]) => {
+                    const t = startTime + beat / bps;
+                    const d = dur  / bps;
+                    playNote(freq, t, d, wave || 'square', vol || 0.3);
+                    if (beat + dur > maxEnd) maxEnd = beat + dur;
+                });
+                return maxEnd / bps;
+            }
+
+            // =============================================================
+            // TEMA INTENSO — Persecución Matrix
+            // Do menor, 165 BPM, 4 compases (16 tiempos)
+            // =============================================================
+            const INTENSE_BPM = 165;
+            const INTENSE = [
+                //  [freq,      beat, dur,  wave,       vol]
+                // ---- MELODÍA (onda cuadrada, game-boy) ----
+                [N.C4,  0,    0.45, 'square', 0.32],
+                [N.Eb4, 0.5,  0.45, 'square', 0.29],
+                [N.G4,  1,    0.45, 'square', 0.31],
+                [N.G4,  1.5,  0.45, 'square', 0.27],
+                [N.Bb4, 2,    0.45, 'square', 0.30],
+                [N.Ab4, 2.5,  0.45, 'square', 0.27],
+                [N.G4,  3,    0.45, 'square', 0.29],
+                [N.F4,  3.5,  0.45, 'square', 0.27],
+
+                [N.Eb4, 4,    0.45, 'square', 0.30],
+                [N.D4,  4.5,  0.45, 'square', 0.27],
+                [N.Eb4, 5,    0.45, 'square', 0.29],
+                [N.C4,  5.5,  0.45, 'square', 0.27],
+                [N.G4,  6,    0.45, 'square', 0.29],
+                [N.Bb4, 6.5,  0.45, 'square', 0.27],
+                [N.Ab4, 7,    0.45, 'square', 0.29],
+                [N.G4,  7.5,  0.45, 'square', 0.27],
+
+                [N.Eb4, 8,    0.45, 'square', 0.31],
+                [N.G4,  8.5,  0.45, 'square', 0.29],
+                [N.Bb4, 9,    0.45, 'square', 0.31],
+                [N.C5,  9.5,  0.45, 'square', 0.31],
+                [N.Eb5, 10,   0.90, 'square', 0.34],
+                [N.C5,  11,   0.45, 'square', 0.29],
+                [N.Bb4, 11.5, 0.45, 'square', 0.27],
+
+                [N.Ab4, 12,   0.45, 'square', 0.29],
+                [N.G4,  12.5, 0.45, 'square', 0.27],
+                [N.F4,  13,   0.45, 'square', 0.28],
+                [N.Eb4, 13.5, 0.45, 'square', 0.27],
+                [N.D4,  14,   0.45, 'square', 0.27],
+                [N.Eb4, 14.5, 0.45, 'square', 0.26],
+                [N.C4,  15,   0.90, 'square', 0.31],
+
+                // ---- CONTRA-MELODÍA ALTA (onda cuadrada, más suave) ----
+                [N.G5,  0.25, 0.28, 'square', 0.16],
+                [N.Eb5, 2.25, 0.28, 'square', 0.15],
+                [N.C5,  4.25, 0.28, 'square', 0.15],
+                [N.G5,  6.25, 0.28, 'square', 0.14],
+                [N.Bb4, 8.25, 0.28, 'square', 0.15],
+                [N.Eb5, 10.25,0.28, 'square', 0.14],
+                [N.G5,  12.25,0.28, 'square', 0.15],
+                [N.C5,  14.25,0.28, 'square', 0.14],
+
+                // ---- BAJO (triángulo, cálido) ----
+                [N.C3,  0,  0.72, 'triangle', 0.48],
+                [N.C3,  1,  0.72, 'triangle', 0.44],
+                [N.Eb3, 2,  0.72, 'triangle', 0.46],
+                [N.G3,  3,  0.72, 'triangle', 0.44],
+                [N.Ab3, 4,  0.72, 'triangle', 0.47],
+                [N.Ab3, 5,  0.72, 'triangle', 0.43],
+                [N.G3,  6,  0.72, 'triangle', 0.46],
+                [N.G3,  7,  0.72, 'triangle', 0.43],
+                [N.Bb3, 8,  0.72, 'triangle', 0.48],
+                [N.Bb3, 9,  0.72, 'triangle', 0.44],
+                [N.Eb3, 10, 0.72, 'triangle', 0.46],
+                [N.Eb3, 11, 0.72, 'triangle', 0.43],
+                [N.C3,  12, 0.72, 'triangle', 0.48],
+                [N.F3,  13, 0.72, 'triangle', 0.44],
+                [N.G3,  14, 0.72, 'triangle', 0.46],
+                [N.C3,  15, 0.72, 'triangle', 0.48],
+
+                // ---- KICK (sierra muy corta, en tiempos fuertes) ----
+                [N.C2,  0,  0.05, 'sawtooth', 0.40],
+                [N.C2,  4,  0.05, 'sawtooth', 0.38],
+                [N.C2,  8,  0.05, 'sawtooth', 0.40],
+                [N.C2,  12, 0.05, 'sawtooth', 0.38],
+            ];
+
+            // Loop: programa el patrón y re-programa antes de que termine
+            function loopPattern(notes, bpm) {
+                if (!boot()) return;
+                stopFlag = false;
+                const bps = bpm / 60;
+                let start = ac.currentTime + 0.08;
+
+                function tick() {
+                    if (stopFlag) return;
+                    const dur = schedule(notes, bps, start);
+                    const next = start + dur;
+                    const msWait = (next - ac.currentTime) * 1000 - 250;
+                    start = next;
+                    loopHandle = setTimeout(tick, Math.max(msWait, 50));
+                }
+                tick();
+            }
+
+            // Jingle de game-over: escala descendente rápida
+            function playGameOver() {
+                if (!boot()) return;
+                stopFlag = true;
+                clearTimeout(loopHandle);
+                const t = ac.currentTime + 0.1;
+                const freqs = [N.C5, N.Bb4, N.Ab4, N.G4, N.F4, N.Eb4, N.D4, N.C4];
+                freqs.forEach((f, i) => playNote(f, t + i * 0.12, 0.10, 'square', 0.35));
+            }
+
+            // Fanfarria de victoria: arp ascendente + acorde final
+            function playVictory() {
+                if (!boot()) return;
+                stopFlag = true;
+                clearTimeout(loopHandle);
+                const t = ac.currentTime + 0.1;
+                // Arpegio ascendente C mayor
+                const arp = [N.C4, N.E3*2, N.G4, N.C5, N.G5, N.C5, N.G4, N.C5];
+                arp.forEach((f, i) => playNote(f, t + i * 0.10, 0.09, 'square', 0.32));
+                // Acorde final sostenido
+                [N.C4, N.Eb4, N.G4, N.C5].forEach(f =>
+                    playNote(f, t + 0.90, 1.4, 'square', 0.28)
+                );
+            }
+
+            function stop() {
+                stopFlag = true;
+                clearTimeout(loopHandle);
+                if (mGain) {
+                    try { mGain.gain.linearRampToValueAtTime(0, ac.currentTime + 0.4); } catch(e){}
+                    setTimeout(() => { if (mGain && !muted) mGain.gain.value = 0.10; }, 500);
+                }
+            }
+
+            function toggleMute() {
+                muted = !muted;
+                if (mGain) mGain.gain.value = muted ? 0 : 0.10;
+                return muted;
+            }
+
+            return { loopPattern, stop, playGameOver, playVictory, toggleMute,
+                     INTENSE, INTENSE_BPM };
+        })();
+
+        // Botón de silencio
+        document.getElementById('btn-mute').addEventListener('click', () => {
+            const isMuted = Chiptuner.toggleMute();
+            document.getElementById('btn-mute').innerHTML = isMuted ? '&#128263;' : '&#128266;';
+        });
+
         // ----------------------------------------------------------------
         // 10. LOOP PRINCIPAL
         // ----------------------------------------------------------------
@@ -1055,10 +1268,13 @@
 
         function startGame() {
             if (rafId) cancelAnimationFrame(rafId);
+            Chiptuner.stop();
             initGame();
             gameRunning = true;
             showScreen('screen-game');
             rafId = requestAnimationFrame(gameLoop);
+            // Iniciar música intensa al empezar (requiere interacción previa del usuario — cumplida al hacer click)
+            Chiptuner.loopPattern(Chiptuner.INTENSE, Chiptuner.INTENSE_BPM);
         }
 
         // ----------------------------------------------------------------
@@ -1068,6 +1284,7 @@
             gameOver    = true;
             gameRunning = false;
             cancelAnimationFrame(rafId);
+            Chiptuner.playGameOver(); // Jingle de captura
             draw(); // Último frame
 
             setTimeout(() => {
@@ -1080,6 +1297,7 @@
             gameWon     = true;
             gameRunning = false;
             cancelAnimationFrame(rafId);
+            Chiptuner.playVictory(); // Fanfarria de escape
 
             // Guardar progreso
             const bonus = Math.floor(distance);
