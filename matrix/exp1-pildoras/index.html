@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MATRIX // LA ENCRUCIJADA</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
         /* ============================================================
            RESET Y BASE
         ============================================================ */
@@ -699,6 +700,12 @@
             renderOfficeScene();
             showScreen('screen-blue');
 
+            // Detener música de suspenso e iniciar zumbido analógico de la oficina
+            try {
+                SuspenseTuner.stop();
+                OfficeHumTuner.start();
+            } catch(e){}
+
             // Iniciar reloj en tiempo real (cada segundo se actualiza el canvas)
             clearInterval(officeClockInterval);
             officeClockInterval = setInterval(() => {
@@ -832,25 +839,25 @@
                 ctx.fillText(d, W * (0.77 + i * 0.024), p * 20);
             });
 
-            // ---- RELOJ DIGITAL EN LA PARED (sobre el calendario) ----
+            // ---- RELOJ DIGITAL EN LA PARED (izquierda del monitor) ----
             const _h = String(_now.getHours()).padStart(2,'0');
             const _m = String(_now.getMinutes()).padStart(2,'0');
             const _s = String(_now.getSeconds()).padStart(2,'0');
             const _colon = (_now.getMilliseconds() < 500) ? ':' : ' '; // parpadeo
 
             // Carcasa del reloj
-            ctx.fillStyle = '#222';
-            ctx.fillRect(W * 0.755, p * 7.5, W * 0.195, p * 4);
-            ctx.fillStyle = '#111';
-            ctx.fillRect(W * 0.76, p * 7.8, W * 0.185, p * 3.2);
+            ctx.fillStyle = '#1a1a1a';
+            ctx.fillRect(W * 0.045, p * 14, W * 0.20, p * 7.5);
+            ctx.fillStyle = '#020d04';
+            ctx.fillRect(W * 0.05, p * 14.5, W * 0.19, p * 6.5);
 
-            // Dígitos LED verde
+            // Dígitos LED verde (estilo visor de siete segmentos)
             ctx.fillStyle = '#00ff41';
-            ctx.font = `bold ${p * 2.6}px 'Courier New'`;
+            ctx.font = `bold ${p * 4.0}px 'Orbitron', monospace`;
             ctx.textAlign = 'center';
             ctx.shadowColor = '#00ff41';
-            ctx.shadowBlur = 6;
-            ctx.fillText(`${_h}${_colon}${_m}${_colon}${_s}`, W * 0.852, p * 10.4);
+            ctx.shadowBlur = 8;
+            ctx.fillText(`${_h}${_colon}${_m}${_colon}${_s}`, W * 0.145, p * 19.4);
             ctx.shadowBlur = 0;
 
             // ---- PLANTA MARCHITA (esquina izquierda) ----
@@ -1297,6 +1304,7 @@
                 matrixState.completed.push('exp1');
                 saveState();
             }
+            try { OfficeHumTuner.stop(); } catch(e){}
             window.location.href = '../exp2-runner/index.html';
         });
 
@@ -1323,6 +1331,7 @@
 
         // Volver al hub principal
         document.getElementById('btn-back-hub').addEventListener('click', () => {
+            try { OfficeHumTuner.stop(); } catch(e){}
             window.location.href = '../index.html';
         });
 
@@ -1551,8 +1560,135 @@
         }
 
         document.getElementById('btn-outro-hub').addEventListener('click', () => {
+            try { OfficeHumTuner.stop(); } catch(e){}
             window.location.href = '../index.html';
         });
+
+        // ================================================================
+        // OFFICE HUM TUNER — Ruido/pitido de oficina incómodo
+        // Hum de corriente alterna de 60Hz, pitido/whine de bobina CRT de 11.5kHz 
+        // y zumbido de luz fluorescente de 120Hz modulado.
+        // ================================================================
+        const OfficeHumTuner = (() => {
+            let ac = null, mGain = null, muted = false;
+            let oscLow = null, oscHigh = null, oscBuzz = null;
+            let lfoHigh = null, lfoHighGain = null;
+            let lfoBuzz = null, lfoBuzzGain = null;
+            let filterBuzz = null;
+            let isRunning = false;
+
+            function boot() {
+                if (ac) return true;
+                try {
+                    ac = new (window.AudioContext || window.webkitAudioContext)();
+                    mGain = ac.createGain();
+                    mGain.gain.value = muted ? 0 : 0.06; // Suave pero incómodo
+                    mGain.connect(ac.destination);
+                    return true;
+                } catch(e) { return false; }
+            }
+
+            function start() {
+                if (isRunning) return;
+                if (!boot()) return;
+                isRunning = true;
+
+                try {
+                    // 1. Zumbido de corriente alterna de 60Hz (onda de triángulo, bajo profundo)
+                    oscLow = ac.createOscillator();
+                    oscLow.type = 'triangle';
+                    oscLow.frequency.value = 60;
+                    
+                    const gainLow = ac.createGain();
+                    gainLow.gain.value = 0.55;
+                    
+                    oscLow.connect(gainLow);
+                    gainLow.connect(mGain);
+                    oscLow.start();
+
+                    // 2. Coil whine / Silbido CRT agudo de 11500Hz (onda senoidal con vibración de tensión)
+                    oscHigh = ac.createOscillator();
+                    oscHigh.type = 'sine';
+                    oscHigh.frequency.value = 11500;
+
+                    const gainHigh = ac.createGain();
+                    gainHigh.gain.value = 0.04;
+
+                    // LFO para hacer fluctuar la tensión eléctrica de la bobina (vibración de 9Hz)
+                    lfoHigh = ac.createOscillator();
+                    lfoHigh.type = 'sine';
+                    lfoHigh.frequency.value = 9;
+                    
+                    lfoHighGain = ac.createGain();
+                    lfoHighGain.gain.value = 40; // Modula la frecuencia +/- 40Hz
+                    
+                    lfoHigh.connect(lfoHighGain);
+                    lfoHighGain.connect(oscHigh.frequency);
+
+                    oscHigh.connect(gainHigh);
+                    gainHigh.connect(mGain);
+                    
+                    lfoHigh.start();
+                    oscHigh.start();
+
+                    // 3. Zumbido de tubo fluorescente de 120Hz (onda de sierra con filtro pasabajos y parpadeo lento)
+                    oscBuzz = ac.createOscillator();
+                    oscBuzz.type = 'sawtooth';
+                    oscBuzz.frequency.value = 120;
+
+                    filterBuzz = ac.createBiquadFilter();
+                    filterBuzz.type = 'lowpass';
+                    filterBuzz.frequency.value = 220; // Silencia los armónicos chillones
+
+                    const gainBuzz = ac.createGain();
+                    gainBuzz.gain.value = 0.12;
+
+                    // LFO de parpadeo lento (flicker) para simular la inestabilidad de la lámpara
+                    lfoBuzz = ac.createOscillator();
+                    lfoBuzz.type = 'sine';
+                    lfoBuzz.frequency.value = 0.45; // Ciclo de 2.2 segundos
+
+                    lfoBuzzGain = ac.createGain();
+                    lfoBuzzGain.gain.value = 0.05; // Oscila la amplitud del zumbido
+
+                    lfoBuzz.connect(lfoBuzzGain);
+                    lfoBuzzGain.connect(gainBuzz.gain);
+
+                    oscBuzz.connect(filterBuzz);
+                    filterBuzz.connect(gainBuzz);
+                    gainBuzz.connect(mGain);
+
+                    lfoBuzz.start();
+                    oscBuzz.start();
+                } catch(e) {
+                    console.error('Error starting OfficeHumTuner:', e);
+                }
+            }
+
+            function stop() {
+                if (!isRunning) return;
+                isRunning = false;
+                try {
+                    if (oscLow) { oscLow.stop(); oscLow.disconnect(); }
+                    if (oscHigh) { oscHigh.stop(); oscHigh.disconnect(); }
+                    if (oscBuzz) { oscBuzz.stop(); oscBuzz.disconnect(); }
+                    if (lfoHigh) { lfoHigh.stop(); lfoHigh.disconnect(); }
+                    if (lfoHighGain) { lfoHighGain.disconnect(); }
+                    if (lfoBuzz) { lfoBuzz.stop(); lfoBuzz.disconnect(); }
+                    if (lfoBuzzGain) { lfoBuzzGain.disconnect(); }
+                    if (filterBuzz) { filterBuzz.disconnect(); }
+                } catch(e) {}
+            }
+
+            function setMute(isMuted) {
+                muted = isMuted;
+                if (mGain) {
+                    mGain.gain.value = muted ? 0 : 0.06;
+                }
+            }
+
+            return { start, stop, setMute };
+        })();
 
         // ================================================================
         // CHIPTUNER SUSPENSE — Música atmosférica para exp1
@@ -1704,6 +1840,9 @@
             hdr.appendChild(btn);
             btn.addEventListener('click', () => {
                 const m = SuspenseTuner.toggleMute();
+                try {
+                    OfficeHumTuner.setMute(m);
+                } catch(e){}
                 btn.innerHTML = m ? '&#128263;' : '&#128266;';
             });
         })();
@@ -1727,7 +1866,9 @@
 
         // Detener al navegar a exp2
         document.getElementById('btn-morpheus-continue').addEventListener('click', () => {
-            SuspenseTuner.stop();
+            try {
+                SuspenseTuner.stop();
+            } catch(e){}
         }, { capture: true });
 
     </script>

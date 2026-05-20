@@ -307,6 +307,7 @@
 
         .game-item.completed {
             border-color: rgba(0, 255, 65, 0.5);
+            cursor: not-allowed;
         }
 
         .game-num {
@@ -529,182 +530,7 @@
         drawRain();
 
         // ----------------------------------------------------------------
-        // 2. ESTADO GLOBAL Y PERSISTENCIA (localStorage)
-        // ----------------------------------------------------------------
-
-        // Estado de Matrix — capa de universo
-        let matrixState = {
-            alias: '',
-            score: 0,
-            completed: []
-        };
-
-        function loadState() {
-            try {
-                const saved = localStorage.getItem('matrix_state');
-                if (saved) {
-                    const parsed = JSON.parse(saved);
-                    if (parsed && typeof parsed === 'object') {
-                        matrixState = parsed;
-                    }
-                }
-            } catch (e) {
-                // Estado corrupto — reiniciar
-                matrixState = { alias: '', score: 0, completed: [] };
-            }
-            // Normalizar campos — protege contra estados parciales o de versiones anteriores
-            if (typeof matrixState.alias !== 'string') matrixState.alias = '';
-            if (typeof matrixState.score !== 'number' || isNaN(matrixState.score)) matrixState.score = 0;
-            if (!Array.isArray(matrixState.completed)) matrixState.completed = [];
-        }
-
-        function saveState() {
-            localStorage.setItem('matrix_state', JSON.stringify(matrixState));
-        }
-
-        // ----------------------------------------------------------------
-        // 3. NAVEGACIÓN ENTRE PANTALLAS
-        // ----------------------------------------------------------------
-
-        function showScreen(id) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-        }
-
-        // ----------------------------------------------------------------
-        // 4. LÓGICA DE INICIO — Determinar pantalla inicial
-        // ----------------------------------------------------------------
-
-        loadState();
-
-        // Verificar si viene de completar una experiencia
-        const urlParams = new URLSearchParams(window.location.search);
-        const justCompleted = urlParams.get('completed');
-        if (justCompleted && !matrixState.completed.includes(justCompleted)) {
-            matrixState.completed.push(justCompleted);
-            saveState();
-            // Limpiar la URL sin recargar
-            window.history.replaceState({}, '', window.location.pathname);
-        }
-
-        // Si ya tiene alias válido (no vacío, no el placeholder), ir directo a los juegos
-        const hasValidAlias = matrixState.alias && matrixState.alias.trim().length > 0 && matrixState.alias !== 'AGENTE';
-        if (hasValidAlias) {
-            safeShowGames();
-        }
-
-        // ----------------------------------------------------------------
-        // 5. PANTALLA 1: Captura de alias
-        // ----------------------------------------------------------------
-
-        const aliasInput = document.getElementById('alias-input');
-        const aliasError = document.getElementById('alias-error');
-        const btnIdentify = document.getElementById('btn-identify');
-
-        // ---- Handler robusto de identificación ----
-        function safeShowGames() {
-            try {
-                buildGameSelection();
-                showScreen('screen-games');
-            } catch(e) {
-                console.error('[Matrix Hub] Error al mostrar juegos:', e);
-                // Recuperación: mostrar pantalla de alias limpia
-                matrixState.completed = [];
-                matrixState.score = 0;
-                saveState();
-                aliasInput.value = '';
-                aliasError.style.display = 'none';
-                showScreen('screen-alias');
-            }
-        }
-
-        // Soporte para tecla Enter
-        aliasInput.addEventListener('keydown', e => {
-            if (e.key === 'Enter') btnIdentify.click();
-        });
-
-        btnIdentify.addEventListener('click', () => {
-            try {
-                const raw = aliasInput.value.trim().toUpperCase();
-
-                if (!raw) {
-                    aliasError.style.display = 'block';
-                    aliasInput.focus();
-                    return;
-                }
-
-                aliasError.style.display = 'none';
-                matrixState.alias = raw;
-                matrixState.score  = matrixState.score  || 0;
-                matrixState.completed = Array.isArray(matrixState.completed) ? matrixState.completed : [];
-                saveState();
-
-                // Easter egg: alias NEO activa secuencia especial
-                if (raw === 'NEO') {
-                    showNeoEasterEgg();
-                } else {
-                    safeShowGames();
-                }
-            } catch(e) {
-                console.error('[Matrix Hub] Error en identify:', e);
-                // Intentar de todas formas
-                safeShowGames();
-            }
-        });
-
-        // ----------------------------------------------------------------
-        // 6. EASTER EGG: ALIAS "NEO"
-        // ----------------------------------------------------------------
-
-        function showNeoEasterEgg() {
-            showScreen('screen-neo');
-
-            // Acelerar lluvia dramáticamente
-            rainSpeedMultiplier = 4;
-
-            const lines = [
-                { text: '> ALIAS DETECTADO: NEO', delay: 0, cls: '' },
-                { text: '> VERIFICANDO IDENTIDAD...', delay: 700, cls: '' },
-                { text: '> ACCESO DENEGADO.', delay: 1500, cls: 'red' },
-                { text: '> ACCESO DENEGADO.', delay: 2100, cls: 'red' },
-                { text: '> RE-EVALUANDO PARÁMETROS...', delay: 3000, cls: '' },
-                { text: '> ...', delay: 3900, cls: '' },
-                { text: '> BIENVENIDO DE VUELTA, NEO.', delay: 4800, cls: 'highlight' },
-                { text: '> TE ESTÁBAMOS ESPERANDO.', delay: 5600, cls: 'highlight' },
-            ];
-
-            const container = document.getElementById('neo-lines');
-            container.innerHTML = '';
-
-            lines.forEach(({ text, delay, cls }) => {
-                const div = document.createElement('div');
-                div.className = `neo-line ${cls}`.trim();
-                div.textContent = text;
-                container.appendChild(div);
-                setTimeout(() => div.classList.add('reveal'), delay);
-            });
-
-            // Mostrar botón de continuar tras la secuencia
-            setTimeout(() => {
-                document.getElementById('btn-neo-continue').style.display = 'block';
-            }, 6400);
-        }
-
-        document.getElementById('btn-neo-continue').addEventListener('click', () => {
-            rainSpeedMultiplier = 1; // Restaurar velocidad normal
-            safeShowGames();
-        });
-
-        // Cambiar alias — vuelve al input limpio
-        document.getElementById('btn-change-alias').addEventListener('click', () => {
-            aliasInput.value = '';
-            aliasError.style.display = 'none';
-            showScreen('screen-alias');
-            setTimeout(() => aliasInput.focus(), 100);
-        });
-
-        // ----------------------------------------------------------------
-        // 7. PANTALLA 3: Selección de experiencias
+        // 2. CONSTANTES, ESTADO GLOBAL Y SELECTORES
         // ----------------------------------------------------------------
 
         // Definición de las 4 experiencias de Matrix
@@ -743,6 +569,50 @@
             }
         ];
 
+        // Estado de Matrix — capa de universo
+        let matrixState = {
+            alias: '',
+            score: 0,
+            completed: []
+        };
+
+        // Selectores DOM
+        const aliasInput = document.getElementById('alias-input');
+        const aliasError = document.getElementById('alias-error');
+        const btnIdentify = document.getElementById('btn-identify');
+
+        // ----------------------------------------------------------------
+        // 3. FUNCIONES DE ESTADO Y VISTA
+        // ----------------------------------------------------------------
+
+        function loadState() {
+            try {
+                const saved = localStorage.getItem('matrix_state');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (parsed && typeof parsed === 'object') {
+                        matrixState = parsed;
+                    }
+                }
+            } catch (e) {
+                // Estado corrupto — reiniciar
+                matrixState = { alias: '', score: 0, completed: [] };
+            }
+            // Normalizar campos — protege contra estados parciales o de versiones anteriores
+            if (typeof matrixState.alias !== 'string') matrixState.alias = '';
+            if (typeof matrixState.score !== 'number' || isNaN(matrixState.score)) matrixState.score = 0;
+            if (!Array.isArray(matrixState.completed)) matrixState.completed = [];
+        }
+
+        function saveState() {
+            localStorage.setItem('matrix_state', JSON.stringify(matrixState));
+        }
+
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
         function buildGameSelection() {
             // Mostrar alias y puntuación — con acceso seguro
             document.getElementById('display-alias').textContent = matrixState.alias || '???';
@@ -755,17 +625,18 @@
                 const completed  = Array.isArray(matrixState.completed) ? matrixState.completed : [];
                 const isCompleted = completed.includes(game.id);
                 const isUnlocked  = !game.unlockAfter || completed.includes(game.unlockAfter);
-                const isLocked    = !isUnlocked;
+                // Si ya está completado, no se puede volver a jugar (no rejugable)
+                const isClickable = isUnlocked && !isCompleted;
+                const isLocked    = !isClickable;
 
                 const item = document.createElement('a');
 
                 // Clases según estado del juego
                 let stateClass = isCompleted ? 'completed' : isUnlocked ? 'unlocked' : 'locked';
                 item.className = `game-item ${stateClass}`;
-                // Completado Y desbloqueado = siempre navegable (rejugable)
-                item.href = isLocked ? '#' : game.url;
+                item.href = isClickable ? game.url : '#';
 
-                // Bloquear clic solo si está bloqueado
+                // Bloquear clic si está bloqueado o completado
                 if (isLocked) {
                     item.addEventListener('click', e => e.preventDefault());
                 }
@@ -784,6 +655,125 @@
                 list.appendChild(item);
             });
         }
+
+        function safeShowGames() {
+            try {
+                buildGameSelection();
+                showScreen('screen-games');
+            } catch(e) {
+                console.error('[Matrix Hub] Error al mostrar juegos:', e);
+                // Recuperación: mostrar pantalla de alias limpia
+                matrixState.completed = [];
+                matrixState.score = 0;
+                saveState();
+                aliasInput.value = '';
+                aliasError.style.display = 'none';
+                showScreen('screen-alias');
+            }
+        }
+
+        function showNeoEasterEgg() {
+            showScreen('screen-neo');
+
+            // Acelerar lluvia dramáticamente
+            rainSpeedMultiplier = 4;
+
+            const lines = [
+                { text: '> ALIAS DETECTADO: NEO', delay: 0, cls: '' },
+                { text: '> VERIFICANDO IDENTIDAD...', delay: 700, cls: '' },
+                { text: '> ACCESO DENEGADO.', delay: 1500, cls: 'red' },
+                { text: '> ACCESO DENEGADO.', delay: 2100, cls: 'red' },
+                { text: '> RE-EVALUANDO PARÁMETROS...', delay: 3000, cls: '' },
+                { text: '> ...', delay: 3900, cls: '' },
+                { text: '> BIENVENIDO DE VUELTA, NEO.', delay: 4800, cls: 'highlight' },
+                { text: '> TE ESTÁBAMOS ESPERANDO.', delay: 5600, cls: 'highlight' },
+            ];
+
+            const container = document.getElementById('neo-lines');
+            container.innerHTML = '';
+
+            lines.forEach(({ text, delay, cls }) => {
+                const div = document.createElement('div');
+                div.className = `neo-line ${cls}`.trim();
+                div.textContent = text;
+                container.appendChild(div);
+                setTimeout(() => div.classList.add('reveal'), delay);
+            });
+
+            // Mostrar botón de continuar tras la secuencia
+            setTimeout(() => {
+                document.getElementById('btn-neo-continue').style.display = 'block';
+            }, 6400);
+        }
+
+        // ----------------------------------------------------------------
+        // 4. LÓGICA DE INICIO E INTERACCIÓN (Ejecución)
+        // ----------------------------------------------------------------
+
+        loadState();
+
+        // Verificar si viene de completar una experiencia
+        const urlParams = new URLSearchParams(window.location.search);
+        const justCompleted = urlParams.get('completed');
+        if (justCompleted && !matrixState.completed.includes(justCompleted)) {
+            matrixState.completed.push(justCompleted);
+            saveState();
+            // Limpiar la URL sin recargar
+            window.history.replaceState({}, '', window.location.pathname);
+        }
+
+        // Si ya tiene alias válido (no vacío, no el placeholder), ir directo a los juegos
+        const hasValidAlias = matrixState.alias && matrixState.alias.trim().length > 0 && matrixState.alias !== 'AGENTE';
+        if (hasValidAlias) {
+            safeShowGames();
+        }
+
+        // Soporte para tecla Enter
+        aliasInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter') btnIdentify.click();
+        });
+
+        btnIdentify.addEventListener('click', () => {
+            try {
+                const raw = aliasInput.value.trim().toUpperCase();
+
+                if (!raw) {
+                    aliasError.style.display = 'block';
+                    aliasInput.focus();
+                    return;
+                }
+
+                aliasError.style.display = 'none';
+                matrixState.alias = raw;
+                matrixState.score  = matrixState.score  || 0;
+                matrixState.completed = Array.isArray(matrixState.completed) ? matrixState.completed : [];
+                saveState();
+
+                // Easter egg: alias NEO activa secuencia especial
+                if (raw === 'NEO') {
+                    showNeoEasterEgg();
+                } else {
+                    safeShowGames();
+                }
+            } catch(e) {
+                console.error('[Matrix Hub] Error en identify:', e);
+                // Intentar de todas formas
+                safeShowGames();
+            }
+        });
+
+        document.getElementById('btn-neo-continue').addEventListener('click', () => {
+            rainSpeedMultiplier = 1; // Restaurar velocidad normal
+            safeShowGames();
+        });
+
+        // Cambiar alias — vuelve al input limpio
+        document.getElementById('btn-change-alias').addEventListener('click', () => {
+            aliasInput.value = '';
+            aliasError.style.display = 'none';
+            showScreen('screen-alias');
+            setTimeout(() => aliasInput.focus(), 100);
+        });
     </script>
 </body>
 </html>
