@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MATRIX // LA ENCRUCIJADA</title>
+    <style>
+        /* ============================================================
+           ESTILOS GLOBALES
+        ============================================================ */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #000;
+            overflow: hidden;
+            font-family: 'Courier New', Courier, monospace;
+            color: #00ff41;
+            height: 100vh;
+            height: 100dvh;
+        }
+
+        #rain-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+        }
+
+        /* Líneas de escaneo CRT */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0,0,0,0.04) 2px,
+                rgba(0,0,0,0.04) 4px
+            );
+            pointer-events: none;
+            z-index: 200;
+        }
+
+        /* ============================================================
+           CONTENEDOR PRINCIPAL
+        ============================================================ */
+        #app {
+            position: fixed;
+            inset: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .terminal-card {
+            background: rgba(0,5,0,0.93);
+            border: 1px solid #00ff41;
+            box-shadow:
+                0 0 30px rgba(0,255,65,0.15),
+                inset 0 0 40px rgba(0,255,65,0.03);
+            padding: clamp(20px, 5vw, 44px);
+            width: 100%;
+            max-width: 580px;
+            max-height: 90vh;
+            overflow-y: auto;
+            scrollbar-width: none;
+            animation: card-flicker 12s infinite;
+        }
+
+        .terminal-card::-webkit-scrollbar { display: none; }
+
+        @keyframes card-flicker {
+            0%, 94%, 96%, 98%, 100% { opacity: 1; }
+            95% { opacity: 0.9; }
+            97% { opacity: 0.95; }
+        }
+
+        /* Cabecera */
+        .term-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0,255,65,0.25);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 10px;
+            color: rgba(0,255,65,0.5);
+            letter-spacing: 2px;
+        }
+
+        .status-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: #00ff41;
+            box-shadow: 0 0 8px #00ff41;
+            animation: dot-pulse 1.5s infinite;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        @keyframes dot-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
+        }
+
+        /* ============================================================
+           PANTALLAS
+        ============================================================ */
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        /* ============================================================
+           TEXTO NARRATIVO
+        ============================================================ */
+        .narrative {
+            font-size: clamp(11px, 2.5vw, 14px);
+            line-height: 1.9;
+            letter-spacing: 1px;
+            color: rgba(0,255,65,0.8);
+            margin-bottom: 24px;
+        }
+
+        .narrative .prompt { color: rgba(0,255,65,0.3); }
+        .narrative .highlight { color: #00ff41; font-weight: bold; }
+        .narrative .morph { color: rgba(100,200,255,0.9); }
+
+        /* ============================================================
+           CANVAS DE PÍXELES (PÍLDORAS Y MANOS)
+        ============================================================ */
+        .pills-container {
+            display: flex;
+            justify-content: center;
+            gap: clamp(20px, 8vw, 60px);
+            margin: 20px 0 28px;
+            flex-wrap: wrap;
+        }
+
+        .pill-choice {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+        }
+
+        .pill-canvas {
+            display: block;
+            image-rendering: pixelated;
+            transition: filter 0.2s, transform 0.2s;
+        }
+
+        .pill-choice:hover .pill-canvas {
+            filter: brightness(1.3);
+            transform: translateY(-4px);
+        }
+
+        .pill-label {
+            font-size: clamp(11px, 2.5vw, 13px);
+            letter-spacing: 3px;
+            text-align: center;
+        }
+
+        .pill-label.red { color: #ff4444; }
+        .pill-label.blue { color: #4499ff; }
+
+        .pill-btn {
+            font-family: 'Courier New', monospace;
+            font-size: clamp(10px, 2vw, 12px);
+            letter-spacing: 2px;
+            padding: 10px 20px;
+            border: 1px solid;
+            background: transparent;
+            cursor: pointer;
+            transition: background 0.2s, box-shadow 0.2s;
+            text-transform: uppercase;
+        }
+
+        .pill-btn.red {
+            border-color: #cc2222;
+            color: #ff4444;
+        }
+
+        .pill-btn.red:hover {
+            background: rgba(204,34,34,0.15);
+            box-shadow: 0 0 14px rgba(204,34,34,0.4);
+        }
+
+        .pill-btn.blue {
+            border-color: #2244cc;
+            color: #4499ff;
+        }
+
+        .pill-btn.blue:hover {
+            background: rgba(34,68,204,0.15);
+            box-shadow: 0 0 14px rgba(34,68,204,0.4);
+        }
+
+        /* ============================================================
+           RUTA AZUL: OFICINA DEL SISTEMA
+        ============================================================ */
+        .office-screen {
+            text-align: center;
+        }
+
+        .office-desc {
+            font-size: clamp(11px, 2vw, 13px);
+            color: rgba(0,255,65,0.5);
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            line-height: 1.8;
+        }
+
+        .seal-btn {
+            font-family: 'Courier New', monospace;
+            font-size: clamp(12px, 2.5vw, 15px);
+            letter-spacing: 2px;
+            padding: 16px 32px;
+            border: 1px solid rgba(0,255,65,0.3);
+            background: rgba(0,10,0,0.7);
+            color: rgba(0,255,65,0.6);
+            cursor: pointer;
+            transition: all 0.15s;
+            display: block;
+            width: 100%;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+
+        .seal-btn:hover {
+            background: rgba(0,255,65,0.05);
+            color: rgba(0,255,65,0.8);
+        }
+
+        .seal-btn:active {
+            transform: scale(0.98);
+            background: rgba(0,255,65,0.1);
+        }
+
+        .click-counter {
+            font-size: 11px;
+            color: rgba(0,255,65,0.3);
+            letter-spacing: 2px;
+            margin-top: 8px;
+        }
+
+        /* Barra de "progreso" de la oficina (falsa, vacía) */
+        .progress-bar-wrapper {
+            border: 1px solid rgba(0,255,65,0.15);
+            height: 6px;
+            margin: 14px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: rgba(0,255,65,0.2);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        /* ============================================================
+           GLITCH: REVELACIÓN DEL MUNDO REAL
+        ============================================================ */
+        #glitch-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 300;
+            background: #000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 32px;
+            text-align: center;
+        }
+
+        #glitch-overlay.active { display: flex; }
+
+        .glitch-text {
+            font-size: clamp(13px, 3vw, 18px);
+            letter-spacing: 3px;
+            line-height: 2;
+            animation: glitch-anim 0.3s infinite;
+        }
+
+        @keyframes glitch-anim {
+            0%   { transform: translate(0); clip-path: inset(0); }
+            20%  { transform: translate(-2px, 1px); clip-path: inset(30% 0 40% 0); }
+            40%  { transform: translate(2px, -1px); clip-path: inset(60% 0 10% 0); }
+            60%  { transform: translate(-1px, 2px); clip-path: inset(10% 0 70% 0); }
+            80%  { transform: translate(1px, -2px); clip-path: inset(80% 0 5% 0); }
+            100% { transform: translate(0); clip-path: inset(0); }
+        }
+
+        /* Canvas del mundo real (cápsula/cables) */
+        #world-canvas {
+            display: block;
+            image-rendering: pixelated;
+            margin: 20px auto;
+        }
+
+        .real-world-msg {
+            font-size: clamp(12px, 2.5vw, 16px);
+            color: #00ff41;
+            letter-spacing: 3px;
+            margin-top: 12px;
+            text-shadow: 0 0 10px #00ff41;
+        }
+
+        /* ============================================================
+           RUTA ROJA: CONFIRMACIÓN
+        ============================================================ */
+        .matrix-btn {
+            width: 100%;
+            padding: 14px;
+            background: transparent;
+            border: 1px solid #00ff41;
+            color: #00ff41;
+            font-family: 'Courier New', monospace;
+            font-size: clamp(11px, 2.5vw, 13px);
+            letter-spacing: 3px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+            margin-top: 10px;
+        }
+
+        .matrix-btn:hover {
+            background: rgba(0,255,65,0.08);
+            box-shadow: 0 0 15px rgba(0,255,65,0.25);
+        }
+
+        .matrix-btn:active { transform: scale(0.98); }
+    </style>
+</head>
+<body>
+
+    <canvas id="rain-canvas"></canvas>
+
+    <!-- Overlay de glitch (revelación del mundo real) -->
+    <div id="glitch-overlay">
+        <p class="glitch-text" id="glitch-msg">ESTÁS COMETIENDO UN ERROR</p>
+        <canvas id="world-canvas" width="180" height="120"></canvas>
+        <p class="real-world-msg" id="real-world-msg"></p>
+    </div>
+
+    <div id="app">
+        <div class="terminal-card">
+
+            <div class="term-header">
+                <span>MATRIX // EXP_01: LA ENCRUCIJADA</span>
+                <div><div class="status-dot" style="display:inline-block"></div><span style="font-size:10px;letter-spacing:2px">EN LÍNEA</span></div>
+            </div>
+
+            <!-- ======================================================
+                 PANTALLA 1: La elección
+            ====================================================== -->
+            <div class="screen active" id="screen-choice">
+                <p class="narrative">
+                    <span class="prompt">> </span>AGENTE <span class="highlight" id="alias-display-1">---</span> DETECTADO.<br>
+                    <span class="prompt">> </span>MORFEO ESTÁ EN LÍNEA...<br>
+                    <span class="prompt">> </span><span class="morph">MORFEO: "Te ofrezco la verdad, nada más."</span>
+                </p>
+
+                <!-- Canvas pixel art de las dos píldoras -->
+                <div class="pills-container">
+                    <!-- Píldora azul -->
+                    <div class="pill-choice" id="choose-blue">
+                        <canvas class="pill-canvas" id="blue-pill-canvas" width="120" height="80"></canvas>
+                        <span class="pill-label blue">PÍLDORA AZUL</span>
+                        <button class="pill-btn blue">[ OLVIDAR TODO ]</button>
+                    </div>
+                    <!-- Píldora roja -->
+                    <div class="pill-choice" id="choose-red">
+                        <canvas class="pill-canvas" id="red-pill-canvas" width="120" height="80"></canvas>
+                        <span class="pill-label red">PÍLDORA ROJA</span>
+                        <button class="pill-btn red">[ VER LA VERDAD ]</button>
+                    </div>
+                </div>
+
+                <p class="narrative" style="text-align:center; font-size:11px; color:rgba(0,255,65,0.35)">
+                    Recuerda: no te ofrezco nada más que la verdad.
+                </p>
+            </div>
+
+            <!-- ======================================================
+                 PANTALLA 2: Ruta azul — Oficina
+            ====================================================== -->
+            <div class="screen" id="screen-blue">
+                <div class="office-screen">
+                    <p class="narrative">
+                        <span class="prompt">> </span>INICIANDO PROTOCOLO DE NORMALIZACIÓN...<br>
+                        <span class="prompt">> </span>CARGANDO REALIDAD ESTÁNDAR...<br>
+                        <span class="prompt">> </span>BIENVENIDO, <span class="highlight" id="alias-display-2">---</span>. HOY ES UN BUEN DÍA PARA SER PRODUCTIVO.
+                    </p>
+                    <div class="progress-bar-wrapper">
+                        <div class="progress-bar-fill" id="progress-fill"></div>
+                    </div>
+                    <button class="seal-btn" id="btn-seal">
+                        [ SELLAR DOCUMENTO MONÓTONO ]
+                    </button>
+                    <p class="click-counter" id="seal-counter">DOCUMENTOS SELLADOS: 0 / 5</p>
+                </div>
+            </div>
+
+            <!-- ======================================================
+                 PANTALLA 3: Ruta roja — Confirmación
+            ====================================================== -->
+            <div class="screen" id="screen-red">
+                <p class="narrative">
+                    <span class="prompt">> </span>PÍLDORA ROJA INGERIDA.<br>
+                    <span class="prompt">> </span>INICIANDO SECUENCIA DE DESPERTAR...<br>
+                    <span class="prompt">> </span><span class="morph">MORFEO: "Bienvenido al desierto de lo real, <span id="alias-display-3">---</span>."</span>
+                </p>
+                <p class="narrative">
+                    <span class="prompt">> </span>Los agentes te han detectado.<br>
+                    <span class="prompt">> </span>ESTADO: <span style="color:#ffff00">EVADIENDO CAPTURA</span><br>
+                    <span class="prompt">> </span>CICLOS LIBERADOS: <span style="color:#00ff41">+150</span>
+                </p>
+                <button class="matrix-btn" id="btn-next-exp">
+                    [ CONTINUAR — EL ESCAPE ]
+                </button>
+                <button class="matrix-btn" id="btn-back-hub" style="border-color:rgba(0,255,65,0.3);color:rgba(0,255,65,0.4);margin-top:8px;font-size:10px">
+                    [ VOLVER AL HUB ]
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // ================================================================
+        // EXP 1: LA ENCRUCIJADA — Motor del minijuego de las píldoras
+        // Arcade Enramado — Homenaje a Lana y Lilly Wachowski
+        // ================================================================
+
+        // ----------------------------------------------------------------
+        // 1. LLUVIA DE CÓDIGO (misma que el hub)
+        // ----------------------------------------------------------------
+        const rainCanvas = document.getElementById('rain-canvas');
+        const rainCtx = rainCanvas.getContext('2d');
+
+        function resizeRain() {
+            rainCanvas.width = window.innerWidth;
+            rainCanvas.height = window.innerHeight;
+            initRainColumns();
+        }
+        window.addEventListener('resize', resizeRain);
+
+        const RAIN_CHARS = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ#@$%&*';
+        const FONT_SIZE = 14;
+        let columns = [];
+        let rainSpeed = 1;
+
+        function initRainColumns() {
+            const count = Math.floor(rainCanvas.width / FONT_SIZE);
+            columns = Array.from({ length: count }, () => ({
+                y: Math.random() * -rainCanvas.height,
+                speed: 0.4 + Math.random() * 1.2,
+            }));
+        }
+
+        function drawRain() {
+            rainCtx.fillStyle = 'rgba(0,0,0,0.05)';
+            rainCtx.fillRect(0, 0, rainCanvas.width, rainCanvas.height);
+            rainCtx.font = `${FONT_SIZE}px 'Courier New', monospace`;
+
+            columns.forEach((col, i) => {
+                const x = i * FONT_SIZE;
+                const char = RAIN_CHARS[Math.floor(Math.random() * RAIN_CHARS.length)];
+
+                rainCtx.fillStyle = '#ccffcc';
+                rainCtx.fillText(char, x, col.y);
+
+                if (col.y > FONT_SIZE) {
+                    rainCtx.fillStyle = '#00ff41';
+                    rainCtx.fillText(RAIN_CHARS[Math.floor(Math.random() * RAIN_CHARS.length)], x, col.y - FONT_SIZE);
+                }
+
+                if (col.y > FONT_SIZE * 2) {
+                    rainCtx.fillStyle = 'rgba(0,180,55,0.25)';
+                    rainCtx.fillText(RAIN_CHARS[Math.floor(Math.random() * RAIN_CHARS.length)], x, col.y - FONT_SIZE * 2);
+                }
+
+                col.y += col.speed * rainSpeed * FONT_SIZE * 0.14;
+                if (col.y > rainCanvas.height + FONT_SIZE && Math.random() > 0.97) col.y = 0;
+            });
+
+            requestAnimationFrame(drawRain);
+        }
+
+        resizeRain();
+        drawRain();
+
+        // ----------------------------------------------------------------
+        // 2. CARGAR ESTADO Y ALIAS
+        // ----------------------------------------------------------------
+        let matrixState = { alias: 'AGENTE', score: 0, completed: [] };
+
+        try {
+            const saved = localStorage.getItem('matrix_state');
+            if (saved) matrixState = JSON.parse(saved);
+        } catch(e) {}
+
+        function saveState() {
+            localStorage.setItem('matrix_state', JSON.stringify(matrixState));
+        }
+
+        // Inyectar alias en todos los elementos de display
+        const aliasName = matrixState.alias || 'AGENTE';
+        document.getElementById('alias-display-1').textContent = aliasName;
+        document.getElementById('alias-display-2').textContent = aliasName;
+        document.getElementById('alias-display-3').textContent = aliasName;
+
+        // ----------------------------------------------------------------
+        // 3. NAVEGACIÓN ENTRE PANTALLAS
+        // ----------------------------------------------------------------
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        // ----------------------------------------------------------------
+        // 4. PIXEL ART: DIBUJADO DE PÍLDORAS EN CANVAS
+        // ----------------------------------------------------------------
+
+        // Escala de píxeles — 10px por "pixel" del mapa
+        const PIXEL = 10;
+
+        /**
+         * Renderiza un mapa de píxeles en el canvas usando una paleta de colores.
+         * @param {HTMLCanvasElement} canvas - El canvas destino.
+         * @param {number[][]} map - Mapa de píxeles (0 = vacío, 1+ = índice de color).
+         * @param {string[]} palette - Array de colores correspondientes a índices 1, 2, 3...
+         */
+        function drawPixelMap(canvas, map, palette) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            map.forEach((row, ry) => {
+                row.forEach((px, rx) => {
+                    if (px === 0) return;
+                    ctx.fillStyle = palette[px - 1];
+                    ctx.fillRect(rx * PIXEL, ry * PIXEL, PIXEL, PIXEL);
+                });
+            });
+        }
+
+        // Mapa de píxeles de la píldora (forma ovalada simplificada)
+        const PILL_MAP = [
+            [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+            [0, 1, 2, 2, 2, 2, 2, 2, 1, 0],
+            [1, 2, 3, 3, 3, 3, 3, 3, 2, 1],
+            [1, 2, 3, 3, 3, 3, 3, 3, 2, 1],
+            [1, 2, 3, 2, 2, 2, 2, 3, 2, 1],
+            [0, 1, 2, 2, 2, 2, 2, 2, 1, 0],
+            [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+        ];
+
+        // Mapa de la mano (simplificada, apuntando hacia arriba)
+        const HAND_MAP = [
+            [0, 1, 0, 0, 1, 0, 0, 1, 0, 0],
+            [0, 1, 0, 0, 1, 0, 0, 1, 0, 0],
+            [0, 1, 0, 0, 1, 0, 0, 1, 0, 0],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [0, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+            [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+            [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+        ];
+
+        // Paleta de píldora roja
+        const RED_PILL_PALETTE = ['#880000', '#cc2222', '#ff4444'];
+        // Paleta de píldora azul
+        const BLUE_PILL_PALETTE = ['#001166', '#2244cc', '#4499ff'];
+        // Paleta de mano (tono piel pixel-retro)
+        const HAND_PALETTE = ['#5a3820', '#8b6045', '#c49a6c'];
+
+        // Renderizar píldoras y manos en los canvas
+        function renderPills() {
+            // Canvas de píldora azul: 10 columnas x 7 filas para la píldora + 8 filas para la mano
+            const blueCanvas = document.getElementById('blue-pill-canvas');
+            const blueCtx = blueCanvas.getContext('2d');
+            blueCtx.clearRect(0, 0, blueCanvas.width, blueCanvas.height);
+
+            // Dibujar mano
+            HAND_MAP.forEach((row, ry) => {
+                row.forEach((px, rx) => {
+                    if (px === 0) return;
+                    blueCtx.fillStyle = HAND_PALETTE[px - 1];
+                    blueCtx.fillRect(rx * 12, (PILL_MAP.length * 12) + ry * 6, 12, 6);
+                });
+            });
+
+            // Dibujar píldora sobre la mano
+            PILL_MAP.forEach((row, ry) => {
+                row.forEach((px, rx) => {
+                    if (px === 0) return;
+                    blueCtx.fillStyle = BLUE_PILL_PALETTE[px - 1];
+                    blueCtx.fillRect(rx * 12, ry * 10, 12, 10);
+                });
+            });
+
+            // Canvas de píldora roja
+            const redCanvas = document.getElementById('red-pill-canvas');
+            const redCtx = redCanvas.getContext('2d');
+            redCtx.clearRect(0, 0, redCanvas.width, redCanvas.height);
+
+            // Dibujar mano
+            HAND_MAP.forEach((row, ry) => {
+                row.forEach((px, rx) => {
+                    if (px === 0) return;
+                    redCtx.fillStyle = HAND_PALETTE[px - 1];
+                    redCtx.fillRect(rx * 12, (PILL_MAP.length * 12) + ry * 6, 12, 6);
+                });
+            });
+
+            // Dibujar píldora roja
+            PILL_MAP.forEach((row, ry) => {
+                row.forEach((px, rx) => {
+                    if (px === 0) return;
+                    redCtx.fillStyle = RED_PILL_PALETTE[px - 1];
+                    redCtx.fillRect(rx * 12, ry * 10, 12, 10);
+                });
+            });
+        }
+
+        renderPills();
+
+        // ----------------------------------------------------------------
+        // 5. ELECCIÓN DE PÍLDORA
+        // ----------------------------------------------------------------
+
+        // Píldora AZUL — inicia la ruta monótona de la oficina
+        document.getElementById('choose-blue').addEventListener('click', () => {
+            sealCount = 0;
+            updateSealCounter();
+            document.getElementById('progress-fill').style.width = '0%';
+            showScreen('screen-blue');
+        });
+
+        // Píldora ROJA — activa la ruta de la verdad
+        document.getElementById('choose-red').addEventListener('click', () => {
+            completeExp1();
+        });
+
+        // ----------------------------------------------------------------
+        // 6. RUTA AZUL — Oficina monótona (5 clics → glitch del mundo real)
+        // ----------------------------------------------------------------
+
+        let sealCount = 0;
+        const MAX_SEALS = 5;
+
+        function updateSealCounter() {
+            document.getElementById('seal-counter').textContent =
+                `DOCUMENTOS SELLADOS: ${sealCount} / ${MAX_SEALS}`;
+            document.getElementById('progress-fill').style.width =
+                `${(sealCount / MAX_SEALS) * 100}%`;
+        }
+
+        document.getElementById('btn-seal').addEventListener('click', () => {
+            sealCount++;
+            updateSealCounter();
+
+            if (sealCount >= MAX_SEALS) {
+                // Mostrar el glitch del mundo real
+                triggerRealWorldGlitch();
+            }
+        });
+
+        /**
+         * Activa la superposición de glitch que revela el mundo real brevemente.
+         * El mensaje final redirige al jugador de vuelta a la elección.
+         */
+        function triggerRealWorldGlitch() {
+            const overlay = document.getElementById('glitch-overlay');
+            overlay.classList.add('active');
+            rainSpeed = 5; // Lluvia frenética durante el glitch
+
+            // Dibujar la "cápsula" del mundo real en pixel art
+            drawRealWorld();
+
+            // Secuencia de mensajes del glitch
+            const glitchMsg = document.getElementById('glitch-msg');
+            const realWorldMsg = document.getElementById('real-world-msg');
+
+            const sequence = [
+                { msg: 'ERROR DE PROTOCOLO', rw: '', delay: 0 },
+                { msg: '█ █ GLITCH DETECTADO █ █', rw: '', delay: 600 },
+                { msg: 'ESTÁS COMETIENDO UN ERROR', rw: '> VES CABLES. OSCURIDAD. TU CUERPO DORMIDO.', delay: 1400 },
+                { msg: `ESE CUBÍCULO NO TE PERTENECE, ${aliasName}`, rw: '> ESA NO ES TU REALIDAD.', delay: 2400 },
+                { msg: 'FORZANDO REDIRECCIÓN...', rw: '> TOMA LA OTRA PÍLDORA.', delay: 3600 },
+            ];
+
+            sequence.forEach(({ msg, rw, delay }) => {
+                setTimeout(() => {
+                    glitchMsg.textContent = msg;
+                    realWorldMsg.textContent = rw;
+                }, delay);
+            });
+
+            // Cerrar glitch y volver a la elección
+            setTimeout(() => {
+                rainSpeed = 1;
+                overlay.classList.remove('active');
+                sealCount = 0;
+                updateSealCounter();
+                document.getElementById('progress-fill').style.width = '0%';
+                showScreen('screen-choice');
+            }, 5200);
+        }
+
+        /**
+         * Dibuja en pixel art una cápsula de alimentación con cables
+         * representando el mundo real de Matrix.
+         */
+        function drawRealWorld() {
+            const canvas = document.getElementById('world-canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const ps = 6; // Tamaño de cada pixel
+
+            // Cápsula (forma ovalada simple)
+            const capsule = [
+                [0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,1,2,2,2,2,2,2,2,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,1,2,2,3,2,2,2,2,2,2,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [1,2,2,2,2,2,2,2,2,2,2,2,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [1,2,2,2,2,2,2,2,2,2,2,2,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,1,2,2,2,2,2,2,2,2,2,2,1,0,4,4,0,0,4,4,0,0,0,4,4,0,0,0,0,0],
+                [0,0,1,2,2,2,2,2,2,2,2,1,0,0,4,0,0,0,4,0,0,0,0,4,0,0,0,0,0,0],
+                [0,0,0,1,1,1,1,1,1,1,1,0,0,0,4,0,0,0,4,0,0,0,0,4,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,6,0,0,0,0,0,0,4,0,0,0,4,0,0,0,0,4,0,0,0,0,0,0],
+                [0,0,0,0,0,0,6,6,6,0,0,0,0,0,4,4,4,4,4,4,4,4,4,4,4,0,0,0,0,0],
+                [0,0,0,0,0,6,0,6,0,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            ];
+
+            const palette = {
+                1: '#334433', // Borde cápsula
+                2: '#1a2a1a', // Interior oscuro
+                3: '#aaffaa', // Ojo (punto verde)
+                4: '#00cc33', // Cables
+                6: '#00ff41', // Cuerpo pixel debajo
+            };
+
+            capsule.forEach((row, ry) => {
+                row.forEach((px, rx) => {
+                    if (px === 0) return;
+                    ctx.fillStyle = palette[px];
+                    ctx.fillRect(rx * ps, ry * ps, ps, ps);
+                });
+            });
+        }
+
+        // ----------------------------------------------------------------
+        // 7. RUTA ROJA — Completar experiencia 1
+        // ----------------------------------------------------------------
+
+        function completeExp1() {
+            // Sumar puntos
+            if (!matrixState.completed.includes('exp1')) {
+                matrixState.score += 150;
+                matrixState.completed.push('exp1');
+                saveState();
+            }
+            showScreen('screen-red');
+        }
+
+        // Botón de continuar a Exp 2 (cuando esté disponible)
+        document.getElementById('btn-next-exp').addEventListener('click', () => {
+            // Redirigir al hub con parámetro de completado
+            window.location.href = '../index.html?completed=exp1';
+        });
+
+        // Volver al hub sin continuar
+        document.getElementById('btn-back-hub').addEventListener('click', () => {
+            window.location.href = '../index.html';
+        });
+
+    </script>
+</body>
+</html>
