@@ -580,8 +580,30 @@
         const officeCanvas = document.getElementById('office-canvas');
         const officeCtx = officeCanvas.getContext('2d');
         let sealCount = 0;        // Contador interno (no visible al jugador)
-        let monitorBlack = false; // Estado del monitor
         let infiniteMode = false; // Modo loop infinito (eligió quedarse)
+
+        // ----------------------------------------------------------------
+        // MÁQUINA DE ESTADOS DEL MONITOR
+        // Fases: 'normal' → 'glitch' → 'typing' → 'boxes'
+        // ----------------------------------------------------------------
+        const monitorAnim = {
+            phase: 'normal',  // fase actual
+            startTime: 0,     // timestamp de inicio de la fase
+            typedChars: 0,    // cuántos caracteres han aparecido ya
+            animId: null,     // ID del requestAnimationFrame activo
+        };
+
+        // Texto que se tipeará en el monitor negro, línea a línea
+        const MONITOR_LINES = [
+            '> INTERRUPCION DEL SISTEMA.',
+            '',
+            '  ¿SEGUIR AL CONEJO',
+            '  BLANCO O QUEDARTE',
+            '  AQUI PARA SIEMPRE?',
+        ];
+        const MONITOR_FULL = MONITOR_LINES.join('\n');
+        const TYPING_SPEED_MS  = 48;  // ms por carácter
+        const GLITCH_DURATION_MS = 550; // ms de glitch antes del negro
 
         /**
          * Renderiza toda la escena de oficina pixel art en el canvas.
@@ -729,18 +751,28 @@
             const screenW = W * 0.4;
             const screenH = p * 34;
 
-            if (monitorBlack) {
-                // ---- MONITOR NEGRO: conejo blanco aparece ----
+            if (monitorAnim.phase === 'glitch') {
+                // ---- GLITCH: pantalla normal con overlay de ruido ----
+                // Primero dibujamos el fondo de pantalla normal
+                ctx.fillStyle = '#dce8f0';
+                ctx.fillRect(screenX, screenY, screenW, screenH);
+                // Luego superponemos las barras de glitch aleatorias
+                drawGlitchOverlay(ctx, screenX, screenY, screenW, screenH);
+
+            } else if (monitorAnim.phase === 'typing' || monitorAnim.phase === 'boxes') {
+                // ---- MONITOR NEGRO: terminal tipeando en tiempo real ----
                 ctx.fillStyle = '#000810';
                 ctx.fillRect(screenX, screenY, screenW, screenH);
-
-                // Parpadeo sutil verde en los bordes (efecto CRT encendido)
-                ctx.fillStyle = 'rgba(0,255,65,0.05)';
-                ctx.fillRect(screenX, screenY, screenW, p * 2);
-                ctx.fillRect(screenX, screenY + screenH - p * 2, screenW, p * 2);
-
-                // Dibujar conejo blanco en pixel art
-                drawWhiteRabbitOnScreen(ctx, screenX, screenY, screenW, screenH);
+                // Borde CRT sutil (brillo residual de la pantalla)
+                ctx.fillStyle = 'rgba(0,255,65,0.04)';
+                ctx.fillRect(screenX, screenY, screenW, p * 1.5);
+                ctx.fillRect(screenX, screenY + screenH - p * 1.5, screenW, p * 1.5);
+                // Texto verde apareciendo carácter a carácter
+                drawMonitorTyping(ctx, screenX, screenY, screenW, screenH);
+                // Cajitas de opción (solo cuando el tipeo terminó)
+                if (monitorAnim.phase === 'boxes') {
+                    drawMonitorOptionBoxes(ctx, screenX, screenY, screenW, screenH);
+                }
 
             } else {
                 // ---- MONITOR NORMAL: torta estadística aburrida ----
@@ -885,53 +917,161 @@
             ctx.stroke();
         }
 
+        // ----------------------------------------------------------------
+        // FUNCIONES DE ANIMACIÓN DEL MONITOR
+        // ----------------------------------------------------------------
+
         /**
-         * Dibuja el conejo blanco en pixel art dentro del monitor negro.
-         * Es la señal de que hay algo más allá de la Matrix.
-         * @param {CanvasRenderingContext2D} ctx
-         * @param {number} screenX, screenY, screenW, screenH - Coordenadas de la pantalla
+         * Superpone barras de ruido aleatorias sobre la pantalla del monitor.
+         * Simula un glitch de CRT antes de apagarse.
          */
-        function drawWhiteRabbitOnScreen(ctx, screenX, screenY, screenW, screenH) {
-            // Mapa del conejo blanco (pixel art)
-            const rabbit = [
-                [0,1,0,0,0,0,0,1,0,0,0,0],
-                [0,1,0,0,0,0,0,1,0,0,0,0],
-                [0,1,1,0,0,0,1,1,0,0,0,0],
-                [0,0,1,1,1,1,1,0,0,0,0,0],
-                [0,1,1,2,1,2,1,1,0,0,0,0],
-                [0,1,1,1,1,1,1,1,0,0,0,0],
-                [0,1,1,1,1,1,1,1,0,0,0,0],
-                [0,0,1,1,0,0,1,1,0,0,0,0],
-                [0,0,1,0,0,0,0,1,0,0,0,0],
-                [0,0,1,0,0,0,0,1,0,0,0,0],
+        function drawGlitchOverlay(ctx, sx, sy, sw, sh) {
+            const numBars = 6 + Math.floor(Math.random() * 10);
+            const glitchColors = [
+                '#00ff41', '#ffffff', '#000000',
+                '#004400', '#003300', '#33ff33',
+                '#ff0000', '#0000ff',
             ];
 
-            // Tamaño del pixel del conejo según el espacio disponible
-            const ps = Math.max(3, Math.floor(screenW / 18));
-            const totalW = rabbit[0].length * ps;
-            const totalH = rabbit.length * ps;
+            for (let i = 0; i < numBars; i++) {
+                const barH  = 2 + Math.random() * 14;
+                const barW  = sw * (0.2 + Math.random() * 0.8);
+                const barX  = sx + Math.random() * (sw - barW);
+                const barY  = sy + Math.random() * sh;
+                ctx.fillStyle = glitchColors[Math.floor(Math.random() * glitchColors.length)];
+                ctx.globalAlpha = 0.35 + Math.random() * 0.5;
+                ctx.fillRect(barX, barY, barW, barH);
+            }
 
-            // Centrar el conejo en la pantalla del monitor
-            const offsetX = screenX + (screenW - totalW) / 2;
-            const offsetY = screenY + screenH * 0.08;
+            // Flash verde sutil en toda la pantalla
+            if (Math.random() > 0.6) {
+                ctx.fillStyle = '#00ff41';
+                ctx.globalAlpha = 0.06;
+                ctx.fillRect(sx, sy, sw, sh);
+            }
 
-            const palette = { 1: '#f0f0f0', 2: '#ffaacc' }; // Blanco y ojos rosados
+            ctx.globalAlpha = 1; // Restaurar opacidad
+        }
 
-            rabbit.forEach((row, ry) => {
-                row.forEach((px, rx) => {
-                    if (!px) return;
-                    ctx.fillStyle = palette[px];
-                    ctx.fillRect(offsetX + rx * ps, offsetY + ry * ps, ps, ps);
-                });
+        /**
+         * Dibuja el texto que va apareciendo carácter a carácter en el monitor negro.
+         * Incluye cursor parpadeante al final de la última línea visible.
+         */
+        function drawMonitorTyping(ctx, sx, sy, sw, sh) {
+            const text     = MONITOR_FULL.substring(0, monitorAnim.typedChars);
+            const lines    = text.split('\n');
+            const fontSize = Math.max(9, Math.floor(sh * 0.085));
+            const lineH    = fontSize * 1.75;
+            const padX     = sw * 0.07;
+            const startY   = sy + sh * 0.12;
+
+            ctx.fillStyle  = '#00ff41';
+            ctx.font       = `${fontSize}px 'Courier New'`;
+            ctx.textAlign  = 'left';
+
+            lines.forEach((line, i) => {
+                ctx.fillText(line, sx + padX, startY + i * lineH);
             });
 
-            // Texto bajo el conejo (verde fosforescente en la pantalla negra)
-            ctx.fillStyle = '#00ff41';
-            ctx.font = `${Math.max(8, ps * 1.5)}px 'Courier New'`;
-            ctx.textAlign = 'center';
-            const textY = offsetY + totalH + ps * 2;
-            ctx.fillText('SIGUE AL CONEJO', screenX + screenW / 2, textY);
-            ctx.fillText('BLANCO', screenX + screenW / 2, textY + ps * 2.2);
+            // Cursor parpadeante al final del último carácter
+            if (monitorAnim.typedChars < MONITOR_FULL.length) {
+                const lastLine  = lines[lines.length - 1];
+                const lineWidth = ctx.measureText(lastLine).width;
+                const cursorX   = sx + padX + lineWidth + 2;
+                const cursorY   = startY + (lines.length - 1) * lineH - fontSize + 1;
+                // Parpadeo: visible cada 500ms
+                if (Math.floor(Date.now() / 500) % 2 === 0) {
+                    ctx.fillStyle = '#00ff41';
+                    ctx.fillRect(cursorX, cursorY, Math.max(4, fontSize * 0.55), fontSize);
+                }
+            }
+        }
+
+        /**
+         * Dibuja las dos cajitas de opción en pixel art dentro del monitor negro.
+         * Aparecen después de que el texto termina de tipearse.
+         * Son la representación visual de los botones del HTML de abajo.
+         */
+        function drawMonitorOptionBoxes(ctx, sx, sy, sw, sh) {
+            const fontSize = Math.max(9, Math.floor(sh * 0.085));
+            const lineH    = fontSize * 1.75;
+            const lines    = MONITOR_LINES.length;
+            const baseY    = sy + sh * 0.12 + lines * lineH + lineH * 0.4;
+
+            const boxH     = Math.floor(fontSize * 2);
+            const boxW     = Math.floor(sw * 0.37);
+            const gap      = Math.floor(sw * 0.06);
+            const totalW   = boxW * 2 + gap;
+            const boxStartX = sx + Math.floor((sw - totalW) / 2);
+
+            // Cajita 1: SEGUIR (borde brillante)
+            ctx.strokeStyle = '#00ff41';
+            ctx.lineWidth   = 1;
+            ctx.strokeRect(boxStartX, baseY, boxW, boxH);
+            ctx.fillStyle   = '#00ff41';
+            ctx.font        = `${Math.max(7, fontSize * 0.85)}px 'Courier New'`;
+            ctx.textAlign   = 'center';
+            ctx.fillText('[ SEGUIR ]', boxStartX + boxW / 2, baseY + boxH * 0.67);
+
+            // Cajita 2: QUEDAR (borde tenue — opción menos atractiva)
+            ctx.strokeStyle = 'rgba(0,255,65,0.28)';
+            ctx.strokeRect(boxStartX + boxW + gap, baseY, boxW, boxH);
+            ctx.fillStyle   = 'rgba(0,255,65,0.28)';
+            ctx.fillText('[ QUEDAR ]', boxStartX + boxW + gap + boxW / 2, baseY + boxH * 0.67);
+        }
+
+        // ----------------------------------------------------------------
+        // LOOP DE ANIMACIÓN DEL MONITOR
+        // ----------------------------------------------------------------
+
+        /**
+         * Inicia la secuencia completa de animación del monitor:
+         * glitch → negro → texto tipeado → cajitas de opción.
+         */
+        function startMonitorAnimation() {
+            monitorAnim.phase     = 'glitch';
+            monitorAnim.startTime = performance.now();
+            monitorAnim.typedChars = 0;
+            runMonitorLoop(performance.now());
+        }
+
+        function runMonitorLoop(timestamp) {
+            const elapsed = timestamp - monitorAnim.startTime;
+
+            if (monitorAnim.phase === 'glitch') {
+                // Redibujar con overlay de glitch en cada frame
+                renderOfficeScene();
+
+                if (elapsed >= GLITCH_DURATION_MS) {
+                    // Glitch terminó → pasar a tipeo
+                    monitorAnim.phase     = 'typing';
+                    monitorAnim.startTime = timestamp;
+                    monitorAnim.typedChars = 0;
+                }
+                monitorAnim.animId = requestAnimationFrame(runMonitorLoop);
+
+            } else if (monitorAnim.phase === 'typing') {
+                const elapsedTyping = timestamp - monitorAnim.startTime;
+                const target = Math.floor(elapsedTyping / TYPING_SPEED_MS);
+                monitorAnim.typedChars = Math.min(target, MONITOR_FULL.length);
+
+                // Redibujar la escena con el texto actualizado
+                renderOfficeScene();
+
+                if (monitorAnim.typedChars < MONITOR_FULL.length) {
+                    // Seguir tipeando
+                    monitorAnim.animId = requestAnimationFrame(runMonitorLoop);
+                } else {
+                    // Tipeo completado → mostrar cajitas tras una pausa
+                    setTimeout(() => {
+                        monitorAnim.phase = 'boxes';
+                        renderOfficeScene();
+                        // Mostrar el overlay HTML con los botones interactivos reales
+                        document.getElementById('rabbit-choice-overlay').classList.add('visible');
+                    }, 700);
+                }
+            }
+            // 'boxes': sin loop — la escena está estática hasta que el usuario elige
         }
 
         // Renderizar la escena inicial (sin documentos sellados)
@@ -945,21 +1085,22 @@
         const rabbitOverlay = document.getElementById('rabbit-choice-overlay');
 
         btnSeal.addEventListener('click', () => {
+            // En modo infinito: sellar eternamente sin consecuencias
             if (infiniteMode) {
-                // En modo infinito: sellar es para siempre, no pasa nada
                 sealCount++;
-                renderOfficeScene(); // La pila de archivos sigue creciendo infinitamente
+                renderOfficeScene();
                 return;
             }
+
+            // Ignorar clics mientras la animación del monitor está activa
+            if (monitorAnim.phase !== 'normal') return;
 
             sealCount++;
             renderOfficeScene();
 
-            if (sealCount === 5 && !monitorBlack) {
-                // Al quinto sello: el monitor se apaga y aparece el conejo
-                monitorBlack = true;
-                renderOfficeScene(); // Redibujar con monitor negro y conejo
-                rabbitOverlay.classList.add('visible');
+            if (sealCount === 5) {
+                // Quinto sello: disparar la secuencia glitch → tipeo → cajitas
+                startMonitorAnimation();
             }
         });
 
