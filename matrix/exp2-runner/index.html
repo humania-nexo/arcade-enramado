@@ -719,10 +719,10 @@
                 if (isHelicopter) {
                     obstacles.push({
                         type: 'helicopter',
-                        x: GW + 40,
-                        y: GROUND_Y - 80, // Vuela lo suficientemente alto para pasar sobre Neo si está de pie
-                        w: 42,
-                        h: 24,
+                        x: GW + 120,
+                        y: 35, // Vuela en la parte superior de la pantalla, dejando espacio libre abajo
+                        w: 110,
+                        h: 60,
                         animFrame: 0,
                         animTimer: 0,
                     });
@@ -1038,52 +1038,101 @@
         // Vuela por encima del jugador. Las aspas y rotor se animan.
         // ================================================================
         function drawHelicopter(obs) {
-            const x = obs.x, y = obs.y, s = 2, f = obs.animFrame;
+            const x = obs.x, y = obs.y, f = obs.animFrame;
             gCtx.save();
             
-            // Fuselaje principal (gris/negro oscuro)
-            gCtx.fillStyle = '#0f1712';
-            gCtx.fillRect(x + 10, y + 8, 22, 10);
-            gCtx.fillRect(x + 14, y + 6, 14, 2);
-            gCtx.fillRect(x + 24, y + 8, 6, 6);
+            // 1. Fuselaje principal (Main Cabin)
+            // Color base: verde militar ultra oscuro
+            gCtx.fillStyle = '#080d09';
+            // Cabina central
+            gCtx.fillRect(x + 25, y + 25, 45, 30);
+            // Parte superior (motor/transmisión)
+            gCtx.fillRect(x + 35, y + 18, 30, 8);
+            // Nariz redondeada (frente, izquierda)
+            gCtx.fillRect(x + 15, y + 30, 10, 20);
             
-            // Parabrisas (verde brillante hacker)
+            // Detalles de relieve / sombra
+            gCtx.fillStyle = '#142017';
+            gCtx.fillRect(x + 28, y + 28, 38, 4);
+            gCtx.fillRect(x + 38, y + 20, 22, 3);
+            
+            // 2. Cabina/Parabrisas (Cockpit - mirando hacia la izquierda)
+            // Color: verde hacker brillante para el vidrio
             gCtx.fillStyle = '#00ff41';
-            gCtx.fillRect(x + 28, y + 9, 4, 4);
+            // Ventana frontal inclinada
+            gCtx.fillRect(x + 13, y + 32, 5, 10);
+            gCtx.fillRect(x + 18, y + 30, 10, 12);
+            // Ventanas laterales
             gCtx.fillStyle = 'rgba(0, 255, 65, 0.4)';
-            gCtx.fillRect(x + 18, y + 10, 4, 3);
+            gCtx.fillRect(x + 32, y + 30, 8, 8);
+            gCtx.fillRect(x + 44, y + 30, 8, 8);
             
-            // Cola
-            gCtx.fillStyle = '#0f1712';
-            gCtx.fillRect(x + 2, y + 10, 8, 4);
-            gCtx.fillRect(x, y + 6, 2, 8);
+            // Brillo blanco en el parabrisas
+            gCtx.fillStyle = '#ffffff';
+            gCtx.fillRect(x + 16, y + 32, 2, 4);
             
-            // Hélice de cola animada
-            gCtx.fillStyle = '#555';
+            // 3. Cola del helicóptero (se extiende hacia la derecha)
+            gCtx.fillStyle = '#080d09';
+            gCtx.fillRect(x + 70, y + 30, 30, 10); // cola principal
+            gCtx.fillRect(x + 100, y + 25, 8, 18); // sección final angulada
+            gCtx.fillRect(x + 104, y + 15, 4, 30); // alerón vertical trasero
+            
+            // Sombra en la cola
+            gCtx.fillStyle = '#030504';
+            gCtx.fillRect(x + 70, y + 37, 30, 3);
+            
+            // 4. Rotor de cola (Tail Rotor) - Animado
+            gCtx.fillStyle = '#666';
+            const rx = x + 106;
+            const ry = y + 18;
             if (f === 0) {
-                gCtx.fillRect(x - 2, y + 4, 2, 4);
-                gCtx.fillRect(x, y + 12, 2, 4);
+                // Aspas verticales del rotor de cola
+                gCtx.fillRect(rx, ry - 10, 2, 10);
+                gCtx.fillRect(rx, ry + 2, 2, 10);
+                // Centro
+                gCtx.fillStyle = '#00ff41';
+                gCtx.fillRect(rx - 1, ry, 4, 4);
             } else {
-                gCtx.fillRect(x - 2, y + 10, 4, 2);
+                // Aspas horizontales del rotor de cola
+                gCtx.fillRect(rx - 10, ry, 10, 2);
+                gCtx.fillRect(rx + 2, ry, 10, 2);
+                // Centro
+                gCtx.fillStyle = '#00ff41';
+                gCtx.fillRect(rx - 1, ry, 4, 4);
             }
             
-            // Patines de aterrizaje
+            // 5. Soporte y patines de aterrizaje (Skids)
+            gCtx.fillStyle = '#222d25';
+            // Soportes (patas) inclinados
+            gCtx.fillRect(x + 32, y + 55, 3, 8);
+            gCtx.fillRect(x + 58, y + 55, 3, 8);
+            // Barra horizontal del patín
+            gCtx.fillStyle = '#111';
+            gCtx.fillRect(x + 18, y + 62, 52, 3);
+            // Punta curvada del patín en el frente (izquierda)
+            gCtx.fillRect(x + 15, y + 59, 4, 4);
+            
+            // 6. Mástil del rotor principal
             gCtx.fillStyle = '#333';
-            gCtx.fillRect(x + 12, y + 18, 2, 3);
-            gCtx.fillRect(x + 26, y + 18, 2, 3);
-            gCtx.fillRect(x + 8, y + 21, 24, 2);
+            gCtx.fillRect(x + 48, y + 12, 4, 6);
             
-            // Hélice principal animada
-            gCtx.fillStyle = '#222';
-            gCtx.fillRect(x + 19, y + 4, 2, 2); // mástil
+            // 7. Aspas principales (Main Rotor blades) - Animadas y con desenfoque de movimiento
+            gCtx.fillStyle = 'rgba(0, 255, 65, 0.15)'; // efecto de área giratoria (motion blur)
+            gCtx.fillRect(x - 5, y + 6, 115, 6);
             
-            gCtx.fillStyle = '#888';
+            gCtx.fillStyle = '#889990';
             if (f === 0) {
-                gCtx.fillRect(x + 4, y + 2, 32, 2);
+                // Aspas extendidas
+                gCtx.fillRect(x - 10, y + 8, 120, 3);
+                // Puntas de advertencia rojas
+                gCtx.fillStyle = '#ff4444';
+                gCtx.fillRect(x - 10, y + 8, 3, 3);
+                gCtx.fillRect(x + 107, y + 8, 3, 3);
             } else {
-                gCtx.fillRect(x + 10, y + 2, 20, 2);
-                gCtx.fillStyle = '#444';
-                gCtx.fillRect(x + 6, y + 3, 28, 1);
+                // Posición alternativa
+                gCtx.fillRect(x + 10, y + 8, 80, 3);
+                gCtx.fillStyle = '#3f4f46';
+                gCtx.fillRect(x - 2, y + 9, 104, 1);
             }
             
             gCtx.restore();
