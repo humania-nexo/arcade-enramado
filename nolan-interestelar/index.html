@@ -828,26 +828,48 @@
                     sCtx.shadowBlur = 0;
                 }
             } else if (mode === 'wormhole') {
-                // Efecto de túnel de gusano cuántico
-                wormholeWarp += 0.0003;
+                // Quantum wormhole warp speed effect (Stretched spiral streaks)
+                wormholeWarp += 0.0008;
                 for (let i = 0; i < stars.length; i++) {
                     const star = stars[i];
-                    star.z -= 4;
-                    if (star.z <= 0) star.z = spaceCanvas.width;
+                    
+                    // Move stars much faster to simulate high-speed warp travel
+                    star.z -= 18; 
+                    if (star.z <= 0) {
+                        star.z = spaceCanvas.width;
+                        star.x = Math.random() * spaceCanvas.width - spaceCanvas.width / 2;
+                        star.y = Math.random() * spaceCanvas.height - spaceCanvas.height / 2;
+                    }
 
-                    const angle = Math.atan2(star.y, star.x) + wormholeWarp * (star.z / 200);
-                    const dist = Math.sqrt(star.x * star.x + star.y * star.y);
-                    const rx = Math.cos(angle) * dist;
-                    const ry = Math.sin(angle) * dist;
+                    // Spiral coordinates (current position and tail position for stretching)
+                    const zCurrent = star.z;
+                    const zTail = star.z + 45; // length of the streak in depth space
+                    
+                    const angleCurrent = Math.atan2(star.y, star.x) + wormholeWarp * (zCurrent / 180);
+                    const distCurrent = Math.sqrt(star.x * star.x + star.y * star.y);
+                    const rxCurrent = Math.cos(angleCurrent) * distCurrent;
+                    const ryCurrent = Math.sin(angleCurrent) * distCurrent;
+                    const sx = (rxCurrent / zCurrent) * spaceCanvas.width + cx;
+                    const sy = (ryCurrent / zCurrent) * spaceCanvas.height + cy;
 
-                    const sx = (rx / star.z) * spaceCanvas.width + cx;
-                    const sy = (ry / star.z) * spaceCanvas.height + cy;
-                    const size = ((spaceCanvas.width - star.z) / spaceCanvas.width) * star.r * 2.5;
+                    const angleTail = Math.atan2(star.y, star.x) + wormholeWarp * (zTail / 180);
+                    const rxTail = Math.cos(angleTail) * distCurrent;
+                    const ryTail = Math.sin(angleTail) * distCurrent;
+                    const sxTail = (rxTail / zTail) * spaceCanvas.width + cx;
+                    const syTail = (ryTail / zTail) * spaceCanvas.height + cy;
 
+                    const size = ((spaceCanvas.width - star.z) / spaceCanvas.width) * star.r * 1.5;
+
+                    // Draw line (streak) instead of just a circle
                     sCtx.beginPath();
-                    sCtx.arc(sx, sy, Math.max(0.1, size), 0, Math.PI * 2);
-                    sCtx.fillStyle = i % 2 === 0 ? '#00dcff' : '#ff7800';
-                    sCtx.fill();
+                    sCtx.moveTo(sx, sy);
+                    sCtx.lineTo(sxTail, syTail);
+                    
+                    // Glow and gradient colors (alternating cian/orange)
+                    sCtx.strokeStyle = i % 2 === 0 ? '#00dcff' : '#ff7800';
+                    sCtx.lineWidth = Math.max(0.5, size);
+                    sCtx.lineCap = 'round';
+                    sCtx.stroke();
                 }
             }
             requestAnimationFrame(drawSpace);
@@ -964,6 +986,155 @@
             }, 350);
         }
 
+        function drawEnduranceV2(ctx, cx, cy, radius, rotation, propulsionActive, propulsionSide = 0) {
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(rotation);
+
+            // Glow effect
+            ctx.shadowColor = '#00dcff';
+            ctx.shadowBlur = 8;
+
+            // Draw Connecting Outer Ring Tube
+            ctx.strokeStyle = 'rgba(0, 220, 255, 0.4)';
+            ctx.lineWidth = Math.max(1, radius * 0.05);
+            ctx.beginPath();
+            ctx.arc(0, 0, radius, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw Connecting Spokes
+            ctx.strokeStyle = 'rgba(0, 220, 255, 0.25)';
+            ctx.lineWidth = Math.max(0.5, radius * 0.02);
+            const numSpokes = 6;
+            for (let i = 0; i < numSpokes; i++) {
+                const a = (i * Math.PI * 2) / numSpokes;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(Math.cos(a) * radius, Math.sin(a) * radius);
+                ctx.stroke();
+            }
+
+            // Draw 12 Modules and Collars
+            const modules = 12;
+            const modW = radius * 0.25;
+            const modH = radius * 0.38;
+            for (let i = 0; i < modules; i++) {
+                // Module
+                const aModule = (i * Math.PI * 2) / modules;
+                ctx.save();
+                ctx.rotate(aModule);
+                
+                ctx.fillStyle = '#010207';
+                ctx.strokeStyle = '#00dcff';
+                ctx.lineWidth = 1.5;
+                
+                ctx.fillRect(radius - modW/2, -modH/2, modW, modH);
+                ctx.strokeRect(radius - modW/2, -modH/2, modW, modH);
+
+                // Inner line detail
+                ctx.strokeStyle = 'rgba(0, 220, 255, 0.4)';
+                ctx.beginPath();
+                ctx.moveTo(radius - modW/2, 0);
+                ctx.lineTo(radius + modW/2, 0);
+                ctx.stroke();
+                ctx.restore();
+
+                // Collar
+                const aCollar = ((i + 0.5) * Math.PI * 2) / modules;
+                ctx.save();
+                ctx.rotate(aCollar);
+                
+                ctx.fillStyle = '#010207';
+                ctx.strokeStyle = '#00dcff';
+                ctx.lineWidth = 1.5;
+                
+                ctx.beginPath();
+                ctx.arc(radius, 0, radius * 0.08, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.arc(radius, 0, radius * 0.03, 0, Math.PI * 2);
+                ctx.fillStyle = '#ff7800';
+                ctx.fill();
+                ctx.restore();
+            }
+
+            // Central Spindle Core
+            ctx.strokeStyle = '#00dcff';
+            ctx.lineWidth = Math.max(1, radius * 0.05);
+            ctx.beginPath();
+            ctx.moveTo(-radius * 0.3, 0);
+            ctx.lineTo(radius * 0.3, 0);
+            ctx.stroke();
+
+            // Docked Ranger (Upper/Lower shuttle)
+            ctx.fillStyle = '#080d22';
+            ctx.strokeStyle = '#00dcff';
+            ctx.lineWidth = 1;
+            // Upper
+            ctx.beginPath();
+            ctx.moveTo(-radius * 0.12, -radius * 0.08);
+            ctx.lineTo(radius * 0.12, -radius * 0.08);
+            ctx.lineTo(radius * 0.08, -radius * 0.22);
+            ctx.lineTo(-radius * 0.08, -radius * 0.22);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Lower
+            ctx.beginPath();
+            ctx.moveTo(-radius * 0.12, radius * 0.08);
+            ctx.lineTo(radius * 0.12, radius * 0.08);
+            ctx.lineTo(radius * 0.08, radius * 0.22);
+            ctx.lineTo(-radius * 0.08, radius * 0.22);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Center node pod (Orange glow)
+            ctx.fillStyle = '#ff7800';
+            ctx.shadowBlur = 6;
+            ctx.shadowColor = '#ff7800';
+            ctx.beginPath();
+            ctx.arc(0, 0, radius * 0.1, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = '#ffffff';
+            ctx.stroke();
+
+            // Propulsion fire
+            if (propulsionActive) {
+                ctx.shadowColor = '#ff7800';
+                ctx.shadowBlur = 10;
+                ctx.fillStyle = '#ff7800';
+                ctx.beginPath();
+                if (propulsionSide === -1) {
+                    // Left maneuver thruster firing rightwards (pushes ship left)
+                    ctx.moveTo(0, radius + modH/2);
+                    ctx.lineTo(-radius * 0.15, radius + modH/2 + radius * 0.25);
+                    ctx.lineTo(0, radius + modH/2 + radius * 0.15);
+                    ctx.lineTo(radius * 0.15, radius + modH/2 + radius * 0.25);
+                } else if (propulsionSide === 1) {
+                    // Right maneuver thruster firing leftwards (pushes ship right)
+                    ctx.moveTo(0, -radius - modH/2);
+                    ctx.lineTo(-radius * 0.15, -radius - modH/2 - radius * 0.25);
+                    ctx.lineTo(0, -radius - modH/2 - radius * 0.15);
+                    ctx.lineTo(radius * 0.15, -radius - modH/2 - radius * 0.25);
+                } else {
+                    // Main engine thruster firing backwards
+                    ctx.moveTo(-radius * 1.15, -radius * 0.18);
+                    ctx.lineTo(-radius * 1.15 - (radius * 0.45 + Math.sin(Date.now() * 0.08) * radius * 0.12), 0);
+                    ctx.lineTo(-radius * 1.15, radius * 0.18);
+                }
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            ctx.restore();
+            ctx.shadowBlur = 0;
+        }
+
         /* ============================================================
            SISTEMA DE ESTADOS DE LA NARRATIVA Y JUEGO
            ============================================================ */
@@ -989,10 +1160,13 @@
             
             // Ajustar atmósfera del fondo según fase
             if (phaseName === 'welcome') mode = 'stars';
-            if (phaseName === 'intro') mode = 'wormhole';
+            if (phaseName === 'intro') mode = 'stars';
             if (phaseName === 'stealth') { mode = 'stars'; audio.setIntensity(false); }
             if (phaseName === 'hangar') { mode = 'stars'; audio.setIntensity(false); }
+            if (phaseName === 'flight') { mode = 'stars'; audio.setIntensity(false); }
             if (phaseName === 'asteroids') { mode = 'stars'; audio.setIntensity(true); }
+            if (phaseName === 'wormhole') { mode = 'wormhole'; audio.setIntensity(true); }
+            if (phaseName === 'preorbit') { mode = 'stars'; audio.setIntensity(false); }
             if (phaseName === 'orbit') { mode = 'stars'; audio.setIntensity(true); }
             if (phaseName === 'choice' || phaseName === 'epilogue') { mode = 'stars'; audio.setIntensity(false); }
 
@@ -1015,8 +1189,17 @@
                 case 'hangar':
                     renderHangar();
                     break;
+                case 'flight':
+                    renderFlight();
+                    break;
                 case 'asteroids':
                     renderAsteroidsGame();
+                    break;
+                case 'wormhole':
+                    renderWormhole();
+                    break;
+                case 'preorbit':
+                    renderPreOrbit();
                     break;
                 case 'orbit':
                     renderOrbitGame();
@@ -1630,10 +1813,8 @@
             const hangarDialogues = [
                 { speaker: "TARS", text: "Espectáculo impresionante, Cooper. La Endurance V2 está completamente ensamblada. Su diseño de doble anillo tiene un 40% más de habitabilidad y propulsores de fusión optimizados.", avatar: "TARS" },
                 { speaker: "COOPER", text: "Es hermosa, TARS... Murph lo logró. Y nosotros nos la vamos a llevar.", avatar: "COOPER" },
-                { speaker: "TARS", text: "He anulado el cierre del hangar. Los sistemas de la nave están en línea. Sugiero calibrar mis niveles de humor y honestidad antes de iniciar el vuelo, en caso de que entremos en pánico.", avatar: "TARS" },
-                { speaker: "COOPER", text: "Establece tu humor al 60% y sinceridad al 90%, TARS. No quiero tus bromas sarcásticas mientras esquivo escombros espaciales.", avatar: "COOPER" },
-                { speaker: "TARS", text: "Entendido, Cooper. Auto-calibración completada: Humor 60%, Sinceridad 90%. ¿Sabes qué dice un agujero negro cuando tiene hambre? 'Trae un poco de materia ligera'. Bromas al 60% confirmadas.", avatar: "TARS" },
-                { speaker: "COOPER", text: "Ese chiste es terrible, TARS. Prepárate para el despegue.", avatar: "COOPER" }
+                { speaker: "TARS", text: "He anulado el cierre del hangar. Los sistemas de la nave están en línea para despegue inmediato.", avatar: "TARS" },
+                { speaker: "COOPER", text: "Iniciando secuencia de despegue. Vámonos de aquí antes de que activen los cierres magnéticos.", avatar: "COOPER" }
             ];
 
             let currentDiag = 0;
@@ -1663,6 +1844,15 @@
                 let charIdx = 0;
                 const txtEl = document.getElementById('hangar-typewriter-text');
                 
+                // If last dialogue, change button text to "Despegar"
+                if (currentDiag === hangarDialogues.length - 1) {
+                    nextBtn.textContent = "Despegar";
+                    nextBtn.style.borderColor = "#00dcff";
+                    nextBtn.style.color = "#00dcff";
+                } else {
+                    nextBtn.textContent = "Continuar";
+                }
+
                 function type() {
                     if (!txtEl) return;
                     if (charIdx < txt.length) {
@@ -1672,15 +1862,6 @@
                     }
                 }
                 type();
-
-                // If last dialogue, change button text to "Despegar"
-                if (currentDiag === hangarDialogues.length - 1) {
-                    nextBtn.textContent = "Despegar";
-                    nextBtn.style.borderColor = "#00dcff";
-                    nextBtn.style.color = "#00dcff";
-                } else {
-                    nextBtn.textContent = "Continuar";
-                }
             }
 
             showHangarDialogue();
@@ -1691,7 +1872,7 @@
                     showHangarDialogue();
                 } else {
                     cancelAnimationFrame(runId);
-                    changePhase('asteroids');
+                    changePhase('flight');
                 }
             });
 
@@ -1724,69 +1905,149 @@
                 }
 
                 // Labeled concentric rings for hangar blueprint details
-                ctx.strokeStyle = 'rgba(0, 220, 255, 0.15)';
+                ctx.strokeStyle = 'rgba(0, 220, 255, 0.12)';
                 ctx.beginPath();
                 ctx.arc(cx, cy, 180, 0, Math.PI * 2);
                 ctx.arc(cx, cy, 230, 0, Math.PI * 2);
                 ctx.stroke();
 
-                // High-fidelity Double-Ring Endurance V2 Blueprint
-                ctx.strokeStyle = '#00dcff';
-                ctx.lineWidth = 2.5;
-                ctx.shadowColor = '#00dcff';
-                ctx.shadowBlur = 8;
-
-                // Inner Ring
-                ctx.beginPath();
-                ctx.arc(cx, cy, 75, 0, Math.PI * 2);
-                ctx.stroke();
-
-                // Outer Ring
+                // Draw Connecting Outer Ring Tube
+                ctx.strokeStyle = 'rgba(0, 220, 255, 0.5)';
+                ctx.lineWidth = 4;
                 ctx.beginPath();
                 ctx.arc(cx, cy, 120, 0, Math.PI * 2);
                 ctx.stroke();
-                ctx.shadowBlur = 0;
 
-                // Modules along the ring
-                const modules = 16;
+                // Draw Connecting Spokes (Puntales de soporte)
+                ctx.strokeStyle = 'rgba(0, 220, 255, 0.35)';
+                ctx.lineWidth = 1.5;
+                const numSpokes = 6;
+                for (let i = 0; i < numSpokes; i++) {
+                    const a = (i * Math.PI * 2) / numSpokes;
+                    ctx.beginPath();
+                    ctx.moveTo(cx, cy);
+                    ctx.lineTo(cx + Math.cos(a) * 120, cy + Math.sin(a) * 120);
+                    ctx.stroke();
+                }
+
+                // Draw 12 Modules and Collars along the ring
+                const modules = 12;
                 for (let i = 0; i < modules; i++) {
-                    const a = (i * Math.PI * 2) / modules;
-                    const cosA = Math.cos(a);
-                    const sinA = Math.sin(a);
-
-                    // Modules on Outer ring
-                    const mx1 = cx + cosA * 120;
-                    const my1 = cy + sinA * 120;
+                    // Draw Module
+                    const aModule = (i * Math.PI * 2) / modules;
+                    ctx.save();
+                    ctx.translate(cx, cy);
+                    ctx.rotate(aModule);
+                    
                     ctx.fillStyle = '#010207';
                     ctx.strokeStyle = '#00dcff';
                     ctx.lineWidth = 2;
-                    ctx.fillRect(mx1 - 6, my1 - 6, 12, 12);
-                    ctx.strokeRect(mx1 - 6, my1 - 6, 12, 12);
+                    
+                    // Module rectangle centered at (120, 0)
+                    ctx.fillRect(120 - 12, -18, 24, 36);
+                    ctx.strokeRect(120 - 12, -18, 24, 36);
 
-                    // Modules on Inner ring
-                    const mx2 = cx + cosA * 75;
-                    const my2 = cy + sinA * 75;
-                    ctx.fillRect(mx2 - 4, my2 - 4, 8, 8);
-                    ctx.strokeRect(mx2 - 4, my2 - 4, 8, 8);
+                    // Inner lines of the module for detail
+                    ctx.strokeStyle = 'rgba(0, 220, 255, 0.4)';
+                    ctx.beginPath();
+                    ctx.moveTo(120 - 7, -13);
+                    ctx.lineTo(120 + 7, -13);
+                    ctx.moveTo(120 - 7, 13);
+                    ctx.lineTo(120 + 7, 13);
+                    ctx.moveTo(120 - 12, 0);
+                    ctx.lineTo(120 + 12, 0);
+                    ctx.stroke();
+                    ctx.restore();
 
-                    // Connecting spokes
-                    if (i % 2 === 0) {
-                        ctx.strokeStyle = 'rgba(0, 220, 255, 0.4)';
-                        ctx.beginPath();
-                        ctx.moveTo(cx + cosA * 40, cy + sinA * 40);
-                        ctx.lineTo(mx1, my1);
-                        ctx.stroke();
-                    }
+                    // Draw Collar (Circle between adjacent modules)
+                    const aCollar = ((i + 0.5) * Math.PI * 2) / modules;
+                    ctx.save();
+                    ctx.translate(cx, cy);
+                    ctx.rotate(aCollar);
+                    
+                    ctx.fillStyle = '#010207';
+                    ctx.strokeStyle = '#00dcff';
+                    ctx.lineWidth = 2;
+                    
+                    ctx.beginPath();
+                    ctx.arc(120, 0, 7, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+                    
+                    // Center details on collar
+                    ctx.beginPath();
+                    ctx.arc(120, 0, 3, 0, Math.PI * 2);
+                    ctx.fillStyle = '#ff7800';
+                    ctx.fill();
+                    ctx.restore();
                 }
 
-                // Central Command Node of Endurance V2
+                // Draw Central Command Pod & Spindle Core
+                ctx.save();
+                ctx.translate(cx, cy);
+
+                // Central spindle horizontal bar
+                ctx.strokeStyle = '#00dcff';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(-40, 0);
+                ctx.lineTo(40, 0);
+                ctx.stroke();
+
+                // Spindle segments
+                ctx.lineWidth = 1;
+                for (let sx = -35; sx <= 35; sx += 10) {
+                    ctx.beginPath();
+                    ctx.moveTo(sx, -4);
+                    ctx.lineTo(sx, 4);
+                    ctx.stroke();
+                }
+
+                // Upper Shuttle (Ranger/Lander) docked
+                ctx.fillStyle = '#080d22';
+                ctx.strokeStyle = '#00dcff';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(-16, -8);
+                ctx.lineTo(16, -8);
+                ctx.lineTo(10, -22);
+                ctx.lineTo(-10, -22);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                // Window details on upper shuttle
+                ctx.fillStyle = '#00dcff';
+                ctx.fillRect(-4, -14, 8, 3);
+
+                // Lower Shuttle docked
+                ctx.fillStyle = '#080d22';
+                ctx.strokeStyle = '#00dcff';
+                ctx.beginPath();
+                ctx.moveTo(-16, 8);
+                ctx.lineTo(16, 8);
+                ctx.lineTo(10, 22);
+                ctx.lineTo(-10, 22);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                // Window details on lower shuttle
+                ctx.fillStyle = '#00dcff';
+                ctx.fillRect(-4, 11, 8, 3);
+
+                // Center node pod (Orange glow)
                 ctx.fillStyle = '#ff7800';
                 ctx.shadowColor = '#ff7800';
-                ctx.shadowBlur = 6;
+                ctx.shadowBlur = 8;
                 ctx.beginPath();
-                ctx.arc(cx, cy, 12, 0, Math.PI * 2);
+                ctx.arc(0, 0, 10, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.shadowBlur = 0;
+                ctx.strokeStyle = '#ffffff';
+                ctx.stroke();
+
+                ctx.restore();
 
                 // Blueprint annotation lines and technical texts
                 ctx.fillStyle = 'rgba(0, 220, 255, 0.7)';
@@ -1852,6 +2113,167 @@
         }
 
         /* ------------------------------------------------------------
+           FASE 3.7: VIAJE ESPACIAL - DIÁLOGO EN VUELO
+           ------------------------------------------------------------ */
+        function renderFlight() {
+            const container = document.createElement('div');
+            container.className = 'game-canvas-wrapper';
+            
+            container.innerHTML = `
+                <div class="hud-overlay">
+                    <div>UBICACIÓN: ORBITA CERCANA - COOPER STATION</div>
+                    <div style="color: #00dcff;">ESTADO: CRUCERO INTERESTELAR</div>
+                    <div id="flight-hud">SISTEMAS INERIALES: EN CURSO</div>
+                </div>
+                <div class="canvas-container">
+                    <canvas id="flightCanvas" width="800" height="500"></canvas>
+                </div>
+                <div class="dialogue-character-box" id="flight-dialogue-box" style="width: 100%; max-width: 800px; min-height: 120px;">
+                    <!-- Dialogs will be injected here -->
+                </div>
+                <button class="btn-orbit" id="flight-next-btn" style="margin-top: 10px;">Continuar</button>
+            `;
+            
+            mainPanel.appendChild(container);
+
+            const canvas = document.getElementById('flightCanvas');
+            const ctx = canvas.getContext('2d');
+            const nextBtn = document.getElementById('flight-next-btn');
+            const diagBox = document.getElementById('flight-dialogue-box');
+
+            let runId = null;
+            let stars = [];
+            // Create local space stars for this flight view
+            for (let i = 0; i < 80; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    speed: Math.random() * 4 + 2,
+                    size: Math.random() * 1.8 + 0.5
+                });
+            }
+
+            const flightDialogues = [
+                { speaker: "TARS", text: "¿Qué le dice un agujero negro a una estrella? 'Eres mi media naranja gravitatoria, pero prefiero exprimirte'.", avatar: "TARS" },
+                { speaker: "COOPER", text: "TARS, ese chiste es terrible. ¿En qué nivel está tu humor?", avatar: "COOPER" },
+                { speaker: "TARS", text: "Está configurado al 70%, Cooper.", avatar: "TARS" },
+                { speaker: "COOPER", text: "Bájalo al 60%.", avatar: "COOPER" },
+                { speaker: "TARS", text: "Humor ajustado al 60%. Cooper, al estar dentro de Gargantúa, estuve recibiendo datos importantes, pero no los obtuve completos.", avatar: "TARS" },
+                { speaker: "COOPER", text: "¿Cuál es la probabilidad de éxito?", avatar: "COOPER" },
+                { speaker: "TARS", text: "Mi porcentaje de sinceridad está en 90%, pero no quiero caer en el 10% para mentirte: es imposible volver a entrar allí y salir con vida, o por lo menos salir antes de que el universo ya sea anciano.", avatar: "TARS" },
+                { speaker: "TARS", text: "Me ofrezco voluntario para entrar y mandar los datos desde allí.", avatar: "TARS" },
+                { speaker: "COOPER", text: "TARS, no voy a permitir...", avatar: "COOPER" },
+                { speaker: "TARS", text: "¡ALARMA! Campo de asteroides detectado en la trayectoria. ¡Es una tormenta densa, Cooper! ¡Toma los mandos!", avatar: "TARS", isAlert: true }
+            ];
+
+            let currentDiag = 0;
+
+            function showFlightDialogue() {
+                const data = flightDialogues[currentDiag];
+                const isTars = data.avatar === "TARS";
+                audio.playClick();
+
+                if (data.isAlert) {
+                    audio.playAlarm();
+                    // Shake brief audio trigger
+                    let count = 0;
+                    const alarmInterval = setInterval(() => {
+                        audio.playAlarm();
+                        count++;
+                        if (count > 2 || !document.body.contains(canvas)) clearInterval(alarmInterval);
+                    }, 500);
+                }
+
+                diagBox.innerHTML = `
+                    <div class="avatar-box ${isTars ? 'avatar-tars' : ''}">
+                        <canvas id="flight-avatar-canvas" width="64" height="64" style="width: 100%; height: 100%; image-rendering: pixelated;"></canvas>
+                    </div>
+                    <div class="dialogue-text-bubble" style="flex-grow: 1; ${data.isAlert ? 'border-color: #ff3838; background: rgba(30, 5, 5, 0.6);' : ''}">
+                        <div class="dialogue-name" style="color: ${data.isAlert ? '#ff3838' : (isTars ? '#ff7800' : '#00dcff')}">${data.isAlert ? '¡ALERTA DE PROXIMIDAD!' : data.speaker}</div>
+                        <p id="flight-typewriter-text" style="color: ${data.isAlert ? '#ff8b8b' : '#d1dbe5'}; min-height: 40px; font-weight: ${data.isAlert ? 'bold' : 'normal'};"></p>
+                    </div>
+                `;
+
+                const avatarCanvas = document.getElementById('flight-avatar-canvas');
+                if (avatarCanvas) {
+                    drawPixelAvatar(data.avatar, avatarCanvas);
+                }
+
+                const txt = data.text;
+                let charIdx = 0;
+                const txtEl = document.getElementById('flight-typewriter-text');
+                
+                // If last dialogue, change button text to alert
+                if (currentDiag === flightDialogues.length - 1) {
+                    nextBtn.textContent = "EVADIR ASTEROIDES";
+                    nextBtn.style.borderColor = "#ff3838";
+                    nextBtn.style.color = "#ff3838";
+                } else {
+                    nextBtn.textContent = "Continuar";
+                    nextBtn.style.borderColor = "#ff7800";
+                    nextBtn.style.color = "#ff7800";
+                }
+
+                function type() {
+                    if (!txtEl) return;
+                    if (charIdx < txt.length) {
+                        txtEl.textContent += txt.charAt(charIdx);
+                        charIdx++;
+                        setTimeout(type, 15);
+                    }
+                }
+                type();
+            }
+
+            showFlightDialogue();
+
+            nextBtn.addEventListener('click', () => {
+                if (currentDiag < flightDialogues.length - 1) {
+                    currentDiag++;
+                    showFlightDialogue();
+                } else {
+                    cancelAnimationFrame(runId);
+                    changePhase('asteroids');
+                }
+            });
+
+            // Space flight animation loop
+            function drawSpaceFlight() {
+                ctx.fillStyle = '#000003';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw parallax stars
+                ctx.fillStyle = '#ffffff';
+                for (let star of stars) {
+                    star.x -= star.speed;
+                    if (star.x < 0) {
+                        star.x = canvas.width;
+                        star.y = Math.random() * canvas.height;
+                    }
+                    ctx.fillRect(star.x, star.y, star.size, star.size);
+                }
+
+                // Draw Endurance V2 cruising in space
+                const cx = canvas.width / 2;
+                const cy = canvas.height / 2;
+                const time = Date.now() * 0.001;
+
+                drawEnduranceV2(ctx, cx - 50, cy, 36, time * 0.15, true, 0);
+
+                // Flashing red warning if in alert mode
+                if (flightDialogues[currentDiag].isAlert && Math.floor(Date.now() / 200) % 2 === 0) {
+                    ctx.strokeStyle = '#ff3838';
+                    ctx.lineWidth = 4;
+                    ctx.strokeRect(0, 0, canvas.width, canvas.height);
+                }
+
+                runId = requestAnimationFrame(drawSpaceFlight);
+            }
+
+            drawSpaceFlight();
+        }
+
+        /* ------------------------------------------------------------
            FASE 4: ASTEROID BELT DODGE RUNNER
            ------------------------------------------------------------ */
         function renderAsteroidsGame() {
@@ -1862,7 +2284,7 @@
                 <div class="hud-overlay">
                     <div>NAVE: CARGUERO ENDURANCE II</div>
                     <div style="color: #ff7800;" id="shields-hud">ESCUDOS: ███ 100%</div>
-                    <div id="distance-hud">ESCAPE: 0 / 2500m</div>
+                    <div id="distance-hud">ESCAPE: 0 / 6000m</div>
                 </div>
                 <div class="canvas-container">
                     <canvas id="asteroidsCanvas" width="800" height="500"></canvas>
@@ -1873,7 +2295,7 @@
                     </div>
                 </div>
                 <div style="font-size:13px; color: #8fa0b3; text-align: center;">
-                    Usa las <span style="color:#00dcff">FLECHAS IZQUIERDA / DERECHA</span> o <span style="color:#00dcff">A / D</span> para pilotar la nave. ¡Evita impactar contra los asteroides espaciales de la tormenta!
+                    Usa las <span style="color:#00dcff">FLECHAS IZQUIERDA / DERECHA</span>, <span style="color:#00dcff">A / D</span> o <span style="color:#00dcff">DESLIZA el dedo</span> en la pantalla para pilotar la nave. ¡Evita los asteroides!
                 </div>
                 <div class="mobile-controls">
                     <button class="ctrl-btn" id="m-left-ast" style="width: 100px;">◀ TIMÓN</button>
@@ -1903,7 +2325,7 @@
 
             let shields = 3;
             let distance = 0;
-            let targetDistance = 2500;
+            let targetDistance = 6000;
             let asteroids = [];
             let debrisParticles = [];
             let parallaxStars = [];
@@ -1950,6 +2372,40 @@
                 rightAst.addEventListener('touchend', e => { e.preventDefault(); keys['arrowright'] = false; });
             }
 
+            // Deslizamiento táctil horizontal en canvas
+            function handleTouchMove(e) {
+                if (isFailed || isFinished) return;
+                const rect = canvas.getBoundingClientRect();
+                const touch = e.touches[0];
+                const touchX = (touch.clientX - rect.left) * (canvas.width / rect.width);
+                
+                const prevX = ship.x;
+                ship.x = touchX;
+                
+                // Determinar ángulo visual de giro
+                const dx = ship.x - prevX;
+                if (dx < -1) {
+                    ship.angle = -0.15;
+                } else if (dx > 1) {
+                    ship.angle = 0.15;
+                } else {
+                    ship.angle = 0;
+                }
+
+                // Limitar
+                if (ship.x < ship.radius) ship.x = ship.radius;
+                if (ship.x > canvas.width - ship.radius) ship.x = canvas.width - ship.radius;
+                e.preventDefault();
+            }
+
+            canvas.addEventListener('touchstart', handleTouchMove, {passive: false});
+            canvas.addEventListener('touchmove', handleTouchMove, {passive: false});
+            canvas.addEventListener('touchend', e => {
+                ship.speedX = 0;
+                ship.angle = 0;
+                e.preventDefault();
+            }, {passive: false});
+
             function update() {
                 if (isFailed || isFinished) return;
 
@@ -1960,7 +2416,7 @@
                 // Comprobar victoria
                 if (distance >= targetDistance) {
                     isFinished = true;
-                    changePhase('orbit');
+                    changePhase('wormhole');
                     return;
                 }
 
@@ -1986,14 +2442,14 @@
                 if (shake > 0) shake *= 0.9;
 
                 // Generar asteroides periódicamente
-                const spawnInterval = Math.max(15, 45 - Math.floor(distance / 80)); // Aumenta frecuencia
+                const spawnInterval = Math.max(7, 40 - Math.floor(distance / 120)); // Aumenta frecuencia
                 if (frames % spawnInterval === 0) {
-                    const radius = Math.random() * 20 + 15;
+                    const radius = Math.random() * 22 + 18;
                     asteroids.push({
                         x: Math.random() * (canvas.width - radius * 2) + radius,
                         y: -radius - 10,
                         vx: (Math.random() - 0.5) * 1.5,
-                        vy: Math.random() * 3.5 + 3.5 + (distance / 600), // Aumenta velocidad
+                        vy: Math.random() * 3.5 + 4.0 + (distance / 400), // Aumenta velocidad
                         r: radius,
                         rot: Math.random() * Math.PI,
                         rotSpeed: (Math.random() - 0.5) * 0.05,
@@ -2129,69 +2585,22 @@
                     ctx.strokeStyle = 'rgba(255, 120, 0, 0.2)';
                     ctx.beginPath();
                     ctx.moveTo(-ast.r * 0.4, -ast.r * 0.2);
-                    ctx.lineTo(ast.r * 0.2, ast.r * 0.1);
-                    ctx.lineTo(ast.r * 0.4, -ast.r * 0.3);
+                    ctx.lineTo(ast.r * 0.2, ast.r * 0.4);
                     ctx.stroke();
 
                     ctx.restore();
-                    ctx.shadowBlur = 0;
                 }
 
                 // Dibujar la Endurance II (Estructura de Anillo modular espacial)
-                ctx.save();
-                ctx.translate(ship.x, ship.y);
-                ctx.rotate(ship.angle);
-                
-                // Dibujo vectorial de la Endurance
-                const numModules = 12;
-                ctx.strokeStyle = '#00dcff';
-                ctx.lineWidth = 2;
-                ctx.shadowColor = '#00dcff';
-                ctx.shadowBlur = 8;
-                
-                for(let i=0; i<numModules; i++){
-                    const a = (i * Math.PI * 2) / numModules;
-                    const mx = Math.cos(a) * ship.radius;
-                    const my = Math.sin(a) * ship.radius;
-                    
-                    ctx.strokeStyle = '#00dcff';
-                    ctx.strokeRect(mx - 4, my - 4, 8, 8);
-                }
-                
-                // Conectores internos
-                ctx.strokeStyle = 'rgba(0, 220, 255, 0.3)';
-                ctx.beginPath();
-                for(let i=0; i<numModules; i+=2){
-                    const a = (i * Math.PI * 2) / numModules;
-                    ctx.moveTo(0, 0);
-                    ctx.lineTo(Math.cos(a) * ship.radius, Math.sin(a) * ship.radius);
-                }
-                ctx.stroke();
+                const propulsionActive = keys['arrowleft'] || keys['a'] || keys['arrowright'] || keys['d'] || Math.abs(ship.speedX) > 0.1;
+                let propulsionSide = 0;
+                if (keys['arrowleft'] || keys['a'] || ship.speedX < -0.1) propulsionSide = -1;
+                else if (keys['arrowright'] || keys['d'] || ship.speedX > 0.1) propulsionSide = 1;
 
-                // Fuego de los propulsores (Aparece al maniobrar)
-                if (keys['arrowleft'] || keys['a']) {
-                    ctx.fillStyle = '#ff7800';
-                    ctx.beginPath();
-                    ctx.moveTo(ship.radius + 4, 0);
-                    ctx.lineTo(ship.radius + 12, -4);
-                    ctx.lineTo(ship.radius + 8, 0);
-                    ctx.lineTo(ship.radius + 12, 4);
-                    ctx.closePath();
-                    ctx.fill();
-                } else if (keys['arrowright'] || keys['d']) {
-                    ctx.fillStyle = '#ff7800';
-                    ctx.beginPath();
-                    ctx.moveTo(-ship.radius - 4, 0);
-                    ctx.lineTo(-ship.radius - 12, -4);
-                    ctx.lineTo(-ship.radius - 8, 0);
-                    ctx.lineTo(-ship.radius - 12, 4);
-                    ctx.closePath();
-                    ctx.fill();
-                }
+                drawEnduranceV2(ctx, ship.x, ship.y, ship.radius, ship.angle - Math.PI / 2, propulsionActive, propulsionSide);
 
-                ctx.restore();
-                ctx.shadowBlur = 0;
                 ctx.restore(); // Termina shake
+                ctx.shadowBlur = 0;
             }
 
             function loop() {
@@ -2223,6 +2632,326 @@
         }
 
         /* ------------------------------------------------------------
+           FASE 4.2: VIAJE POR EL AGUJERO DE GUSANO (NARRATIVA)
+           ------------------------------------------------------------ */
+        function renderWormhole() {
+            const container = document.createElement('div');
+            container.className = 'game-canvas-wrapper';
+            
+            container.innerHTML = `
+                <div class="hud-overlay">
+                    <div>UBICACIÓN: AGUJERO DE GUSANO</div>
+                    <div style="color: #ff7800;" id="wormhole-hud">ESTADO: DISTORSIÓN DE ESPACIO-TIEMPO ALTA</div>
+                    <div style="color: #00dcff;">TELEMETRÍA: OK</div>
+                </div>
+                <div class="canvas-container">
+                    <canvas id="wormholeCanvas" width="800" height="500"></canvas>
+                </div>
+                <div class="dialogue-character-box" id="wormhole-dialogue-box" style="width: 100%; max-width: 800px; min-height: 120px;">
+                    <!-- Los diálogos se inyectarán aquí -->
+                </div>
+                <button class="btn-orbit" id="wormhole-next-btn" style="margin-top: 10px;">Continuar</button>
+            `;
+            
+            mainPanel.appendChild(container);
+
+            const canvas = document.getElementById('wormholeCanvas');
+            const ctx = canvas.getContext('2d');
+            const nextBtn = document.getElementById('wormhole-next-btn');
+            const diagBox = document.getElementById('wormhole-dialogue-box');
+
+            let runId = null;
+            let time = 0;
+
+            const wormholeDialogues = [
+                { speaker: "COOPER", text: "¡Estamos dentro! El espacio se está plegando sobre sí mismo.", avatar: "COOPER" },
+                { speaker: "TARS", text: "El puente de Einstein-Rosen está doblando la luz estelar en un patrón toroidal. Ajustando deflectores cuánticos al 60%.", avatar: "TARS" },
+                { speaker: "COOPER", text: "TARS, ¿cuál es la probabilidad de éxito de esta maniobra?", avatar: "COOPER" },
+                { speaker: "TARS", text: "Mi nivel de sinceridad está configurado al 90%, Cooper. No te gustarán las estadísticas del otro 10%.", avatar: "TARS" },
+                { speaker: "COOPER", text: "Dame el dato frío, TARS. Puedo con él.", avatar: "COOPER" },
+                { speaker: "TARS", text: "Tenemos un 74% de probabilidad de salir intactos en el sistema de Gargantúa. El 26% restante... bueno, seremos parte de la radiación de fondo del universo.", avatar: "TARS" },
+                { speaker: "COOPER", text: "Esos son números aceptables. ¡Preparen los propulsores principales de la Endurance V2 para la salida!", avatar: "COOPER" },
+                { speaker: "TARS", text: "Detectando lente gravitacional de salida. Prepárate para la desaceleración espacial en 3, 2, 1...", avatar: "TARS" }
+            ];
+
+            let currentDiag = 0;
+
+            function showDialogue() {
+                const data = wormholeDialogues[currentDiag];
+                const isTars = data.avatar === "TARS";
+                audio.playClick();
+
+                diagBox.innerHTML = `
+                    <div class="avatar-box ${isTars ? 'avatar-tars' : ''}">
+                        <canvas id="wormhole-avatar-canvas" width="64" height="64" style="width: 100%; height: 100%; image-rendering: pixelated;"></canvas>
+                    </div>
+                    <div class="dialogue-text-bubble" style="flex-grow: 1;">
+                        <div class="dialogue-name" style="color: ${isTars ? '#ff7800' : '#00dcff'}">${data.speaker}</div>
+                        <p id="wormhole-typewriter-text" style="color: #d1dbe5; min-height: 40px;"></p>
+                    </div>
+                `;
+
+                const avatarCanvas = document.getElementById('wormhole-avatar-canvas');
+                if (avatarCanvas) {
+                    drawPixelAvatar(data.avatar, avatarCanvas);
+                }
+
+                const txt = data.text;
+                let charIdx = 0;
+                const txtEl = document.getElementById('wormhole-typewriter-text');
+                
+                if (currentDiag === wormholeDialogues.length - 1) {
+                    nextBtn.textContent = "SALIR DEL AGUJERO";
+                    nextBtn.style.borderColor = "#00ff66";
+                    nextBtn.style.color = "#00ff66";
+                } else {
+                    nextBtn.textContent = "Continuar";
+                    nextBtn.style.borderColor = "#ff7800";
+                    nextBtn.style.color = "#ff7800";
+                }
+
+                function type() {
+                    if (!txtEl) return;
+                    if (charIdx < txt.length) {
+                        txtEl.textContent += txt.charAt(charIdx);
+                        charIdx++;
+                        setTimeout(type, 15);
+                    }
+                }
+                type();
+            }
+
+            showDialogue();
+
+            nextBtn.addEventListener('click', () => {
+                if (currentDiag < wormholeDialogues.length - 1) {
+                    currentDiag++;
+                    showDialogue();
+                } else {
+                    cancelAnimationFrame(runId);
+                    changePhase('preorbit');
+                }
+            });
+
+            function drawWormholeScene() {
+                ctx.fillStyle = '#000003';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                time += 0.05;
+
+                const cx = canvas.width / 2;
+                const cy = canvas.height / 2;
+
+                // Draw a beautiful twisting vortex background
+                const grad = ctx.createRadialGradient(cx, cy, 5, cx, cy, 350);
+                grad.addColorStop(0, '#000000');
+                grad.addColorStop(0.15, '#050a1e');
+                grad.addColorStop(0.4, '#1b023a');
+                grad.addColorStop(0.7, '#007ca5');
+                grad.addColorStop(0.9, '#ff7800');
+                grad.addColorStop(1, '#000003');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw spiral vortex rings
+                ctx.strokeStyle = 'rgba(0, 220, 255, 0.2)';
+                ctx.lineWidth = 2;
+                for (let r = 50; r < 400; r += 40) {
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, r + Math.sin(time + r * 0.01) * 10, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                // Shake effect on the ship to simulate turbulence
+                const shakeX = (Math.random() - 0.5) * 5;
+                const shakeY = (Math.random() - 0.5) * 5;
+
+                // Draw Endurance V2 in the center, spinning
+                drawEnduranceV2(ctx, cx + shakeX, cy + shakeY, 32, time * 0.05, true, 0);
+
+                runId = requestAnimationFrame(drawWormholeScene);
+            }
+
+            drawWormholeScene();
+        }
+
+        /* ------------------------------------------------------------
+           FASE 4.5: ACERCAMIENTO A GARGANTÚA (NARRATIVA)
+           ------------------------------------------------------------ */
+        function renderPreOrbit() {
+            const container = document.createElement('div');
+            container.className = 'game-canvas-wrapper';
+            
+            container.innerHTML = `
+                <div class="hud-overlay">
+                    <div>UBICACIÓN: HORIZONTE EXTERNO DE GARGANTÚA</div>
+                    <div style="color: #ff7800;">ESTADO: CAPTURA GRAVITATORIA</div>
+                    <div id="preorbit-hud">GRAVEDAD: EN AUMENTO CRÍTICO</div>
+                </div>
+                <div class="canvas-container">
+                    <canvas id="preorbitCanvas" width="800" height="500"></canvas>
+                </div>
+                <div class="dialogue-character-box" id="preorbit-dialogue-box" style="width: 100%; max-width: 800px; min-height: 120px;">
+                    <!-- Dialogs will be injected here -->
+                </div>
+                <button class="btn-orbit" id="preorbit-next-btn" style="margin-top: 10px;">Continuar</button>
+            `;
+            
+            mainPanel.appendChild(container);
+
+            const canvas = document.getElementById('preorbitCanvas');
+            const ctx = canvas.getContext('2d');
+            const nextBtn = document.getElementById('preorbit-next-btn');
+            const diagBox = document.getElementById('preorbit-dialogue-box');
+
+            let runId = null;
+            let accretionParticles = [];
+            // Accretion disk particles for visual depth
+            for (let i = 0; i < 150; i++) {
+                accretionParticles.push({
+                    radius: Math.random() * 180 + 50,
+                    angle: Math.random() * Math.PI * 2,
+                    speed: Math.random() * 0.02 + 0.01,
+                    size: Math.random() * 1.5 + 0.5,
+                    color: `hsl(${Math.random() * 20 + 20}, 100%, ${Math.random() * 20 + 55}%)`
+                });
+            }
+
+            const preorbitDialogues = [
+                { speaker: "COOPER", text: "Superamos el cinturón de asteroides. Ahí está... Gargantúa. Espectacular y aterrador a la vez.", avatar: "COOPER" },
+                { speaker: "TARS", text: "La inmensa fuerza de gravedad está distorsionando las señales de navegación. Si no tomamos el timón manual de inmediato, la singularidad destrozará la nave o nos devorará.", avatar: "TARS" },
+                { speaker: "COOPER", text: "Tenemos que acercarnos lo suficiente para poder lanzarte en el Ranger, TARS. De lo contrario, tu transmisor cuántico no tendrá suficiente potencia.", avatar: "COOPER" },
+                { speaker: "TARS", text: "Correcto, Cooper. Debemos mantener la trayectoria en el anillo verde del HUD (entre 130 km y 230 km). Por debajo de 130 km cruzaremos el horizonte de sucesos; por encima de 230 km escaparemos al vacío sin combustible.", avatar: "TARS" },
+                { speaker: "COOPER", text: "Entendido. Iniciando maniobra de inserción orbital manual. Prepárate.", avatar: "COOPER" }
+            ];
+
+            let currentDiag = 0;
+
+            function showPreorbitDialogue() {
+                const data = preorbitDialogues[currentDiag];
+                const isTars = data.avatar === "TARS";
+                audio.playClick();
+
+                diagBox.innerHTML = `
+                    <div class="avatar-box ${isTars ? 'avatar-tars' : ''}">
+                        <canvas id="preorbit-avatar-canvas" width="64" height="64" style="width: 100%; height: 100%; image-rendering: pixelated;"></canvas>
+                    </div>
+                    <div class="dialogue-text-bubble" style="flex-grow: 1;">
+                        <div class="dialogue-name" style="color: ${isTars ? '#ff7800' : '#00dcff'}">${data.speaker}</div>
+                        <p id="preorbit-typewriter-text" style="color: #d1dbe5; min-height: 40px;"></p>
+                    </div>
+                `;
+
+                const avatarCanvas = document.getElementById('preorbit-avatar-canvas');
+                if (avatarCanvas) {
+                    drawPixelAvatar(data.avatar, avatarCanvas);
+                }
+
+                const txt = data.text;
+                let charIdx = 0;
+                const txtEl = document.getElementById('preorbit-typewriter-text');
+                
+                // If last dialogue, change button text to orbit stabilization
+                if (currentDiag === preorbitDialogues.length - 1) {
+                    nextBtn.textContent = "ESTABILIZAR ÓRBITA";
+                    nextBtn.style.borderColor = "#00ff66";
+                    nextBtn.style.color = "#00ff66";
+                } else {
+                    nextBtn.textContent = "Continuar";
+                    nextBtn.style.borderColor = "#ff7800";
+                    nextBtn.style.color = "#ff7800";
+                }
+
+                function type() {
+                    if (!txtEl) return;
+                    if (charIdx < txt.length) {
+                        txtEl.textContent += txt.charAt(charIdx);
+                        charIdx++;
+                        setTimeout(type, 15);
+                    }
+                }
+                type();
+            }
+
+            showPreorbitDialogue();
+
+            nextBtn.addEventListener('click', () => {
+                if (currentDiag < preorbitDialogues.length - 1) {
+                    currentDiag++;
+                    showPreorbitDialogue();
+                } else {
+                    cancelAnimationFrame(runId);
+                    changePhase('orbit');
+                }
+            });
+
+            // Singular approaching animation loop
+            function drawPreorbit() {
+                ctx.fillStyle = '#000002';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                const singularityX = 400;
+                const singularityY = 250;
+
+                // Draw accretion disk
+                for (let p of accretionParticles) {
+                    p.angle += p.speed;
+                    const px = Math.cos(p.angle) * p.radius;
+                    const py = Math.sin(p.angle) * p.radius;
+                    let rx = singularityX + px;
+                    let ry = singularityY + py;
+
+                    if (py < 0) {
+                        const gravitationalWarp = (1 - (p.radius / 250)) * 45;
+                        ry -= gravitationalWarp;
+                    }
+
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(rx, ry, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Black hole core
+                ctx.fillStyle = '#000000';
+                ctx.shadowColor = '#ff7800';
+                ctx.shadowBlur = 25;
+                ctx.beginPath();
+                ctx.arc(singularityX, singularityY, 40, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Approaching Endurance ship
+                const animTime = Date.now() * 0.0005;
+                const shipDist = 260 - Math.min(60, (animTime % 10) * 12);
+                const shipAngle = animTime * 0.2;
+
+                const sx = singularityX + Math.cos(shipAngle) * shipDist;
+                const sy = singularityY + Math.sin(shipAngle) * shipDist;
+
+                ctx.save();
+                ctx.translate(sx, sy);
+                ctx.rotate(shipAngle + Math.PI/2);
+                
+                ctx.strokeStyle = '#00dcff';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.arc(0, 0, 7, 0, Math.PI * 2);
+                ctx.stroke();
+
+                ctx.restore();
+
+                runId = requestAnimationFrame(drawPreorbit);
+            }
+
+            drawPreorbit();
+        }
+
+        /* ------------------------------------------------------------
            FASE 5: GARGANTUA ORBIT STABILIZATION (GRAVITY CONTROL)
            ------------------------------------------------------------ */
         function renderOrbitGame() {
@@ -2237,21 +2966,33 @@
                 </div>
                 <div class="canvas-container">
                     <canvas id="orbitCanvas" width="800" height="500"></canvas>
+                    
+                    <!-- Pantalla de Inicio / Instrucciones -->
+                    <div class="failed-screen active" id="orbit-start-screen" style="background: rgba(1, 3, 10, 0.95); display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <div class="failed-title" style="color: #00dcff; text-shadow: 0 0 15px rgba(0, 220, 255, 0.6); font-size: 24px; letter-spacing: 2px;">SISTEMA DE ÓRBITA MANUAL</div>
+                        <p style="color: #c8d6e5; font-size: 14px; max-width: 440px; text-align: center; line-height: 1.6; margin: 10px 0;">
+                            La gravedad de Gargantúa nos está atrayendo con fuerza. Debes pilotar manualmente para mantener la nave dentro de la zona segura.
+                        </p>
+                        <div style="color: #ff7800; font-size: 13px; border: 1px dashed rgba(255, 120, 0, 0.4); padding: 12px 20px; border-radius: 4px; text-align: left; margin: 5px 0; line-height: 1.5; font-family: monospace;">
+                            • <b>Arrastrar dedo en pantalla</b>: Control Deslizante (Arriba/Abajo = Distancia, Izquierda/Derecha = Rotación)<br>
+                            • <b>W/S o ▲/▼</b>: Ajustar órbita (Alejar / Acercar)<br>
+                            • <b>A/D o ◀/▶</b>: Rotación orbital
+                        </div>
+                        <button class="btn-orbit" id="start-orbit-game-btn" style="margin-top: 15px; border-color: #00dcff; color: #00dcff; box-shadow: 0 0 15px rgba(0, 220, 255, 0.25);">INICIAR MANIOBRA</button>
+                    </div>
+
                     <div class="failed-screen" id="orbit-failed">
                         <div class="failed-title" id="orbit-fail-title">SINGULARIDAD ALCANZADA</div>
                         <p style="color: #ff3838; font-size:14px;" id="orbit-fail-desc">La Endurance II fue arrastrada al interior de Gargantúa.</p>
                         <button class="btn-orbit" id="retry-orbit-btn" style="margin-top: 10px;">Estabilizar Órbita</button>
                     </div>
                 </div>
-                <div style="font-size:13px; color: #8fa0b3; text-align: center;">
-                    Mantén la nave dentro del <span style="color:#00ff66">ANILLO VERDE ORBITAL</span>. Usa <span style="color:#00dcff">W / A / S / D</span> o <span style="color:#00dcff">FLECHAS</span> para compensar la fuerza gravitatoria hacia el centro.
-                </div>
                 <div class="mobile-controls">
                     <div class="dpad-grid">
-                        <button class="ctrl-btn" style="grid-area: up" id="m-up-orb">PROP. EXT</button>
-                        <button class="ctrl-btn" style="grid-area: left" id="m-left-orb">◀ CCW</button>
-                        <button class="ctrl-btn" style="grid-area: right" id="m-right-orb">CW ▶</button>
-                        <button class="ctrl-btn" style="grid-area: down" id="m-down-orb">PROP. INT</button>
+                        <button class="ctrl-btn" style="grid-area: up" id="m-up-orb">▲ ALEJARSE</button>
+                        <button class="ctrl-btn" style="grid-area: left" id="m-left-orb">◀ GIRO CCW</button>
+                        <button class="ctrl-btn" style="grid-area: right" id="m-right-orb">GIRO CW ▶</button>
+                        <button class="ctrl-btn" style="grid-area: down" id="m-down-orb">▼ ACERCARSE</button>
                     </div>
                 </div>
             `;
@@ -2262,12 +3003,14 @@
             const ctx = canvas.getContext('2d');
             const retryBtn = document.getElementById('retry-orbit-btn');
             const failedScreen = document.getElementById('orbit-failed');
+            const startScreen = document.getElementById('orbit-start-screen');
+            const startGameBtn = document.getElementById('start-orbit-game-btn');
             const gravityHud = document.getElementById('gravity-hud');
             const calibHud = document.getElementById('calib-hud');
 
-            // Mecánica orbital de la nave
+            // Mecánica orbital de la nave (sintonizada para facilidad del usuario con delta-time)
             let ship = {
-                radius: 200, // distancia al centro (400, 250)
+                radius: 180, // distancia al centro (400, 250) - empieza en el medio
                 angle: 0,
                 speedAngle: 0.015,
                 thrustOut: 0,
@@ -2278,8 +3021,8 @@
 
             const singularityX = 400;
             const singularityY = 250;
-            const targetMinRadius = 150;
-            const targetMaxRadius = 210;
+            const targetMinRadius = 110; // rango seguro mínimo
+            const targetMaxRadius = 250; // rango seguro máximo
             
             let hullStability = 100;
             let calibration = 0;
@@ -2289,6 +3032,8 @@
             let anomalyTimer = 0;
             let anomalyForce = 0;
             let distortion = 0;
+            let lastTime = performance.now();
+            let gameStarted = false;
 
             // Partículas del disco de acreción de Gargantúa
             let accretionParticles = [];
@@ -2317,53 +3062,110 @@
             registerOrbBtn('m-left-orb', 'a');
             registerOrbBtn('m-right-orb', 'd');
 
-            function update() {
+            // Mobile Touch Drag for Orbit
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let isDragging = false;
+
+            canvas.addEventListener('touchstart', e => {
+                if (isFailed || isFinished || !gameStarted) return;
+                const touch = e.touches[0];
+                touchStartX = touch.clientX;
+                touchStartY = touch.clientY;
+                isDragging = true;
+                e.preventDefault();
+            }, {passive: false});
+
+            canvas.addEventListener('touchmove', e => {
+                if (!isDragging || isFailed || isFinished) return;
+                const touch = e.touches[0];
+                const dx = touch.clientX - touchStartX;
+                const dy = touch.clientY - touchStartY;
+
+                // Vertical drag maps to orbit distance (w/s)
+                if (dy < -15) {
+                    keys['w'] = true;
+                    keys['s'] = false;
+                } else if (dy > 15) {
+                    keys['s'] = true;
+                    keys['w'] = false;
+                } else {
+                    keys['w'] = false;
+                    keys['s'] = false;
+                }
+
+                // Horizontal drag maps to orbital rotation (a/d)
+                if (dx > 15) {
+                    keys['d'] = true;
+                    keys['a'] = false;
+                } else if (dx < -15) {
+                    keys['a'] = true;
+                    keys['d'] = false;
+                } else {
+                    keys['a'] = false;
+                    keys['d'] = false;
+                }
+
+                e.preventDefault();
+            }, {passive: false});
+
+            canvas.addEventListener('touchend', e => {
+                isDragging = false;
+                keys['w'] = false;
+                keys['s'] = false;
+                keys['a'] = false;
+                keys['d'] = false;
+                e.preventDefault();
+            }, {passive: false});
+
+            function update(dt) {
                 if (isFailed || isFinished) return;
 
-                // Atracción gravitatoria (Fuerza G aumenta mientras más cerca está del centro)
-                const gravityPull = 0.95 + (200 / ship.radius) * 0.45;
+                // Atracción gravitatoria suavizada con delta-time
+                const gravityPull = (0.03 + (80 / ship.radius) * 0.03) * dt;
                 ship.radius -= gravityPull;
 
                 // Anomalías gravitatorias aleatorias (Tormenta magnética de Gargantúa)
-                anomalyTimer++;
-                if (anomalyTimer % 180 === 0) {
-                    anomalyForce = (Math.random() - 0.5) * 1.5; // empujón hacia adentro o afuera
+                anomalyTimer += dt;
+                if (anomalyTimer >= 180) {
+                    anomalyTimer = 0;
+                    anomalyForce = (Math.random() - 0.5) * 0.4; // empujón hacia adentro o afuera suavizado
                 }
-                if (Math.abs(anomalyForce) > 0.05) {
-                    ship.radius += anomalyForce;
-                    anomalyForce *= 0.97; // decaimiento
+                if (Math.abs(anomalyForce) > 0.02) {
+                    ship.radius += anomalyForce * dt;
+                    anomalyForce *= Math.pow(0.97, dt); // decaimiento adaptado a dt
                     distortion = Math.floor(Math.abs(anomalyForce) * 15);
                 } else {
                     distortion = 0;
                 }
 
-                // Control de propulsores del jugador
+                // Control de propulsores del jugador suavizado
                 if (keys['w'] || keys['arrowup']) {
-                    ship.radius += 2.2; // Propulsor exterior
+                    ship.radius += 0.20 * dt; // Propulsor exterior
                 }
                 if (keys['s'] || keys['arrowdown']) {
-                    ship.radius -= 1.8; // Propulsor interior (retrocohete)
+                    ship.radius -= 0.20 * dt; // Propulsor interior (retrocohete)
                 }
                 if (keys['a'] || keys['arrowleft']) {
-                    ship.speedAngle -= 0.0008; // Giro en contra reloj
+                    ship.speedAngle -= 0.0004 * dt; // Giro en contra reloj
                 }
                 if (keys['d'] || keys['arrowright']) {
-                    ship.speedAngle += 0.0008; // Giro en sentido reloj
+                    ship.speedAngle += 0.0004 * dt; // Giro en sentido reloj
                 }
 
                 // Aplicar velocidad angular amortiguada
                 ship.speedAngle = Math.max(-0.04, Math.min(0.04, ship.speedAngle));
-                ship.angle += ship.speedAngle;
-                ship.speedAngle *= 0.98; // fricción simulada
+                ship.angle += ship.speedAngle * dt;
+                ship.speedAngle *= Math.pow(0.98, dt); // fricción simulada
 
                 // Comprobar posición de órbita segura (Anillo verde de calibración)
                 if (ship.radius >= targetMinRadius && ship.radius <= targetMaxRadius) {
-                    calibration += 0.45;
+                    calibration += 0.40 * dt; // Calibración moderada (toma ~4.2 segundos de estabilidad)
                     if (calibration > 100) calibration = 100;
                 } else {
                     // Daño estructural de la nave fuera del rango seguro
-                    hullStability -= 0.35;
-                    calibration -= 0.2;
+                    hullStability -= 0.10 * dt;
+                    calibration -= 0.05 * dt;
                     if (calibration < 0) calibration = 0;
                     
                     if (hullStability <= 0) {
@@ -2376,14 +3178,21 @@
                     }
                 }
 
-                calibHud.textContent = `CALIBRACIÓN VECTORIAL: ${Math.floor(calibration)}%`;
-                gravityHud.textContent = `HULL STABILITY: ${Math.max(0, Math.floor(hullStability))}%`;
-                if (hullStability < 40) {
+                // Actualizar HUD con avisos dinámicos
+                if (ship.radius >= 380) {
+                    gravityHud.textContent = `HULL STABILITY: ${Math.max(0, Math.floor(hullStability))}% [AVISO: ESCAPANDO]`;
                     gravityHud.style.color = '#ff3838';
+                } else if (ship.radius <= 40 + 40) {
+                    gravityHud.textContent = `HULL STABILITY: ${Math.max(0, Math.floor(hullStability))}% [AVISO: COLAPSO GRAVITATORIO]`;
+                    gravityHud.style.color = '#ff3838';
+                } else {
+                    gravityHud.textContent = `HULL STABILITY: ${Math.max(0, Math.floor(hullStability))}%`;
+                    gravityHud.style.color = hullStability < 40 ? '#ff3838' : '#ff7800';
                 }
+                calibHud.textContent = `CALIBRACIÓN VECTORIAL: ${Math.floor(calibration)}%`;
 
                 // Condición de colisión directa en el horizonte de sucesos
-                if (ship.radius <= 44) {
+                if (ship.radius <= 40) {
                     isFailed = true;
                     document.getElementById('orbit-fail-title').textContent = "SINGULARIDAD ALCANZADA";
                     document.getElementById('orbit-fail-desc').textContent = "La nave cruzó el horizonte de sucesos. No hay escape posible.";
@@ -2391,13 +3200,17 @@
                     audio.playAlarm();
                 }
 
-                // Condición de escape de la fuerza de gravedad (Escapar del pozo)
-                if (ship.radius >= 310) {
-                    isFailed = true;
-                    document.getElementById('orbit-fail-title').textContent = "ÓRBITA INESTABLE: ESCAPE";
-                    document.getElementById('orbit-fail-desc').textContent = "La nave salió volando hacia el espacio interestelar profundo sin propulsores.";
-                    failedScreen.classList.add('active');
-                    audio.playAlarm();
+                // Daño por escapar de la gravedad en lugar de muerte instantánea
+                if (ship.radius >= 380) {
+                    hullStability -= 0.15 * dt;
+                    if (hullStability <= 0) {
+                        hullStability = 0;
+                        isFailed = true;
+                        document.getElementById('orbit-fail-title').textContent = "ÓRBITA INESTABLE: ESCAPE";
+                        document.getElementById('orbit-fail-desc').textContent = "La nave se alejó demasiado de Gargantúa y se perdió en el vacío interestelar.";
+                        failedScreen.classList.add('active');
+                        audio.playAlarm();
+                    }
                 }
 
                 // Condición de victoria de calibración orbital
@@ -2409,7 +3222,7 @@
 
                 // Actualizar partículas de Gargantúa
                 for (let p of accretionParticles) {
-                    p.angle += p.speed;
+                    p.angle += p.speed * dt;
                 }
             }
 
@@ -2443,14 +3256,12 @@
                 // Dibujar partículas deformadas del Disco de Acreción de Gargantúa
                 // Efecto Einstein: las órbitas de fondo se curvan por encima y abajo del agujero negro.
                 for (let p of accretionParticles) {
-                    // Posición física del plano orbital original
                     const px = Math.cos(p.angle) * p.radius;
                     const py = Math.sin(p.angle) * p.radius;
 
                     let rx = singularityX + px;
                     let ry = singularityY + py;
 
-                    // Si la partícula está por detrás (py < 0), curvamos su posición verticalmente
                     if (py < 0) {
                         const gravitationalWarp = (1 - (p.radius / 250)) * 60;
                         ry -= gravitationalWarp; // Desviar la luz hacia el polo superior
@@ -2475,67 +3286,74 @@
                 ctx.lineWidth = 2;
                 ctx.stroke();
 
-                // Dibujar la Endurance II (Pequeña nave en órbita)
+                // Dibujar la Endurance V2 (Gran fidelidad vectorial) en órbita
                 const sx = singularityX + Math.cos(ship.angle) * ship.radius;
                 const sy = singularityY + Math.sin(ship.angle) * ship.radius;
 
-                ctx.save();
-                ctx.translate(sx, sy);
-                ctx.rotate(ship.angle + Math.PI/2); // Alinear proa orbitalmente
+                const propulsionActive = keys['w'] || keys['s'] || keys['a'] || keys['d'] || keys['arrowup'] || keys['arrowdown'] || keys['arrowleft'] || keys['arrowright'] || isDragging;
+                let propulsionSide = 0;
+                if (keys['w'] || keys['arrowup']) propulsionSide = 1; // thrust outwards
+                else if (keys['s'] || keys['arrowdown']) propulsionSide = -1; // thrust inwards
 
-                // Endurance Ring
-                ctx.strokeStyle = '#00dcff';
-                ctx.shadowColor = '#00dcff';
-                ctx.shadowBlur = 6;
-                ctx.lineWidth = 1.5;
-                ctx.beginPath();
-                ctx.arc(0, 0, 8, 0, Math.PI * 2);
-                ctx.stroke();
-
-                // Módulos minimalistas
-                ctx.fillStyle = '#00dcff';
-                for (let i = 0; i < 8; i++) {
-                    const a = (i * Math.PI * 2) / 8;
-                    ctx.fillRect(Math.cos(a) * 8 - 2, Math.sin(a) * 8 - 2, 4, 4);
-                }
-
-                // Llamaradas de propulsor manual activo
-                if (keys['w']) { // Retrocohetes empujando fuera
-                    ctx.fillStyle = '#ff7800';
-                    ctx.beginPath();
-                    ctx.moveTo(0, 8);
-                    ctx.lineTo(-4, 15);
-                    ctx.lineTo(0, 11);
-                    ctx.lineTo(4, 15);
-                    ctx.closePath();
-                    ctx.fill();
-                }
-
-                ctx.restore();
-                ctx.shadowBlur = 0;
+                drawEnduranceV2(ctx, sx, sy, 12, ship.angle + Math.PI/2, propulsionActive, propulsionSide);
             }
 
-            function loop() {
-                update();
+            function loop(currentTime) {
+                if (isFailed || isFinished) return;
+                if (!currentTime) currentTime = performance.now();
+                const elapsed = currentTime - lastTime;
+                lastTime = currentTime;
+                
+                const dt = Math.min(3, elapsed / 16.66);
+
+                update(dt);
                 draw();
+                
                 if (!isFailed && !isFinished) {
                     runId = requestAnimationFrame(loop);
                 }
             }
 
-            loop();
+            // Iniciar interacción con pantalla de inicio
+            startGameBtn.addEventListener('click', () => {
+                startScreen.classList.remove('active');
+                gameStarted = true;
+                window.removeEventListener('keydown', startOnKey);
+                // Clear any leftover keypresses to prevent instant drift/death
+                for (let k in globalKeys) {
+                    globalKeys[k] = false;
+                }
+                lastTime = performance.now();
+                audio.playClick();
+                loop(performance.now());
+            });
+
+            const startOnKey = (e) => {
+                if (!gameStarted && (e.key === ' ' || ['w', 's', 'a', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(e.key.toLowerCase()))) {
+                    window.removeEventListener('keydown', startOnKey);
+                    startGameBtn.click();
+                }
+            };
+            // Delay key-start registration to prevent key propagation from previous screens
+            setTimeout(() => {
+                window.addEventListener('keydown', startOnKey);
+            }, 600);
 
             retryBtn.addEventListener('click', () => {
                 isFailed = false;
                 isFinished = false;
                 hullStability = 100;
                 calibration = 0;
-                ship.radius = 200;
+                ship.radius = 180;
                 ship.speedAngle = 0.015;
                 failedScreen.classList.remove('active');
+                startScreen.classList.add('active');
+                gameStarted = false;
                 audio.playClick();
                 cancelAnimationFrame(runId);
-                loop();
+                setTimeout(() => {
+                    window.addEventListener('keydown', startOnKey);
+                }, 600);
             });
         }
 
@@ -2680,7 +3498,7 @@
 
         // Iniciar el juego en la fase correspondiente
         const savedPhase = localStorage.getItem('interstellar_current_phase');
-        if (savedPhase && ['welcome', 'intro', 'stealth', 'hangar', 'asteroids', 'orbit', 'choice', 'epilogue'].includes(savedPhase)) {
+        if (savedPhase && ['welcome', 'intro', 'stealth', 'hangar', 'flight', 'asteroids', 'wormhole', 'preorbit', 'orbit', 'choice', 'epilogue'].includes(savedPhase)) {
             // Permitir retomar la fase autoguardada para evitar frustración
             gameState.currentPhase = savedPhase;
             if (savedPhase !== 'welcome') {
