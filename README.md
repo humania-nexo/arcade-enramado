@@ -26,6 +26,7 @@ Los jugadores llegan aquí a través de **semillas transmedia** sembradas en los
 | 1 | [Matrix](#) | Lana y Lilly Wachowski | 🔴 PRIMERA (semilla plantada Cap.1) | Diseñado |
 | 2 | [Crónicas de la Selección Perdida](#) | J.K. Rowling | 🟡 Segunda | Diseñado |
 | 3 | [Mozart: El Último Compás](#) | Wolfgang Amadeus Mozart | 🟡 Tercera | Diseñado |
+| 4 | [Interstellar: No Entres Dócilmente](nolan-interestelar/index.html) | Christopher Nolan | 🔴 PRIMERA | Diseñado y Completado |
 
 ---
 
@@ -92,8 +93,12 @@ arcade-enramado/
 ├── garcia-marquez-macondo/            ← Gabriel García Márquez
 │   └── design.md
 │
-└── sagan-cosmos/                      ← Carl Sagan
-    └── design.md
+├── sagan-cosmos/                      ← Carl Sagan
+│   └── design.md
+│
+└── nolan-interestelar/                ← Christopher Nolan
+    ├── design.md
+    └── index.html
 ```
 
 ---
