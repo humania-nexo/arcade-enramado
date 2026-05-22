@@ -1114,7 +1114,7 @@
             }
 
             // Guardias: posición, recorrido de patrulla, cono de visión
-            let guards = [
+            const initialGuards = [
                 {
                     x: 100, y: 80,
                     startX: 100, endX: 400,
@@ -1162,6 +1162,8 @@
                     isTurret: true
                 }
             ];
+
+            let guards = JSON.parse(JSON.stringify(initialGuards));
 
             let keys = {};
             let isFailed = false;
@@ -1464,8 +1466,10 @@
                 isFailed = false;
                 player.x = 375;
                 player.y = 460;
+                guards = JSON.parse(JSON.stringify(initialGuards));
                 failedScreen.classList.remove('active');
                 audio.playClick();
+                cancelAnimationFrame(runId);
                 loop();
             });
         }
@@ -1836,6 +1840,7 @@
                 shieldsEl.style.color = "#00dcff";
                 failedScreen.classList.remove('active');
                 audio.playClick();
+                cancelAnimationFrame(runId);
                 loop();
             });
         }
@@ -2151,6 +2156,7 @@
                 ship.speedAngle = 0.015;
                 failedScreen.classList.remove('active');
                 audio.playClick();
+                cancelAnimationFrame(runId);
                 loop();
             });
         }
