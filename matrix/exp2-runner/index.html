@@ -564,9 +564,10 @@
         };
 
         // Obstáculos (agentes)
-        let obstacles        = [];
-        let obstacleTimer    = 0;
-        let obstacleInterval = 115; // frames entre spawns
+        let obstacles            = [];
+        let obstacleTimer        = 0;
+        let obstacleInterval     = 100; // frames entre spawns (comienza más rápido)
+        let currentSpawnInterval = null;
 
         // Cabina telefónica
         let phoneBooth = null;
@@ -634,10 +635,11 @@
                 vy: 0, onGround: true, animFrame: 0, animTimer: 0,
             });
 
-            obstacles        = [];
-            obstacleTimer    = 0;
-            obstacleInterval = 115;
-            phoneBooth       = null;
+            obstacles            = [];
+            obstacleTimer        = 0;
+            obstacleInterval     = 100;
+            currentSpawnInterval = null;
+            phoneBooth           = null;
 
             // Edificios iniciales distribuidos por el ancho de la pantalla
             buildings = [];
@@ -662,11 +664,11 @@
             if (!gameRunning || gameOver || gameWon) return;
 
             frameCount++;
-            // Acelerar gradualmente
-            gameSpeed = Math.min(4 + frameCount * 0.0012, 9);
-            // Dificultar la frecuencia de agentes
-            if (frameCount % 750 === 0 && obstacleInterval > 60) {
-                obstacleInterval -= 5;
+            // Acelerar gradualmente más rápido y con mayor velocidad tope
+            gameSpeed = Math.min(4.5 + frameCount * 0.0022, 11.5);
+            // Dificultar la frecuencia de agentes de manera más agresiva
+            if (frameCount % 450 === 0 && obstacleInterval > 40) {
+                obstacleInterval -= 8;
             }
 
             // Distancia
@@ -710,12 +712,36 @@
 
             // ---- Spawn de agentes y helicópteros ----
             obstacleTimer++;
-            // Añadimos un pequeño desvío aleatorio en el tiempo de spawn para romper la monotonía matemática
-            const currentInterval = obstacleInterval + Math.floor(Math.random() * 26 - 13);
-            if (obstacleTimer >= currentInterval && distance < WIN_DIST - 650) {
+            
+            // Si no tenemos un intervalo calculado para este spawn, lo calculamos
+            if (currentSpawnInterval === null) {
+                let base = obstacleInterval;
+                // Si el jugador avanzó bastante (más de 1200m), hay una probabilidad del 35% de combos rápidos
+                if (distance > 1200 && Math.random() < 0.35) {
+                    // Combo rápido: reduce el intervalo base a un valor bajo (entre 38 y 50 frames)
+                    base = Math.max(38, Math.floor(base * 0.45));
+                }
+                // Añadimos pequeña variación aleatoria
+                currentSpawnInterval = base + Math.floor(Math.random() * 16 - 8);
+            }
+
+            if (obstacleTimer >= currentSpawnInterval && distance < WIN_DIST - 650) {
                 obstacleTimer = 0;
+                currentSpawnInterval = null; // Reiniciar para calcular el siguiente
                 
-                const isHelicopter = Math.random() > 0.65; // ~35% de probabilidad de helicópteros
+                // Decidir inteligentemente alternar para crear combos más peligrosos
+                const lastObs = obstacles[obstacles.length - 1];
+                let isHelicopter = Math.random() > 0.65; // base ~35% de helicópteros
+                if (lastObs) {
+                    if (lastObs.type === 'agent') {
+                        // Si el último fue agente en el suelo, aumentamos la probabilidad de helicóptero aéreo (65%)
+                        isHelicopter = Math.random() < 0.65;
+                    } else {
+                        // Si el último fue helicóptero aéreo, aumentamos la probabilidad de agente en el suelo (80%)
+                        isHelicopter = Math.random() < 0.20;
+                    }
+                }
+                
                 if (isHelicopter) {
                     obstacles.push({
                         type: 'helicopter',
