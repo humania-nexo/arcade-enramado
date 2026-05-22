@@ -708,18 +708,35 @@
                 if (d.y > GROUND_Y) { d.y = -d.len; d.x = Math.random() * GW; }
             });
 
-            // ---- Spawn de agentes ----
+            // ---- Spawn de agentes y helicópteros ----
             obstacleTimer++;
-            if (obstacleTimer >= obstacleInterval && distance < WIN_DIST - 650) {
+            // Añadimos un pequeño desvío aleatorio en el tiempo de spawn para romper la monotonía matemática
+            const currentInterval = obstacleInterval + Math.floor(Math.random() * 26 - 13);
+            if (obstacleTimer >= currentInterval && distance < WIN_DIST - 650) {
                 obstacleTimer = 0;
-                obstacles.push({
-                    x: GW + 22,
-                    y: GROUND_Y - AGENT_H,
-                    w: AGENT_W,
-                    h: AGENT_H,
-                    animFrame: 0,
-                    animTimer: 0,
-                });
+                
+                const isHelicopter = Math.random() > 0.65; // ~35% de probabilidad de helicópteros
+                if (isHelicopter) {
+                    obstacles.push({
+                        type: 'helicopter',
+                        x: GW + 40,
+                        y: GROUND_Y - 80, // Vuela lo suficientemente alto para pasar sobre Neo si está de pie
+                        w: 42,
+                        h: 24,
+                        animFrame: 0,
+                        animTimer: 0,
+                    });
+                } else {
+                    obstacles.push({
+                        type: 'agent',
+                        x: GW + 22,
+                        y: GROUND_Y - AGENT_H,
+                        w: AGENT_W,
+                        h: AGENT_H,
+                        animFrame: 0,
+                        animTimer: 0,
+                    });
+                }
             }
             obstacles.forEach(obs => {
                 obs.x -= gameSpeed;
@@ -809,8 +826,14 @@
             gCtx.fillStyle = 'rgba(0,60,0,0.25)';
             for (let i = 1; i < 4; i++) gCtx.fillRect(0, GROUND_Y + i * 15, GW, 1);
 
-            // Agentes
-            obstacles.forEach(drawAgent);
+            // Obstáculos (Agentes y Helicópteros)
+            obstacles.forEach(obs => {
+                if (obs.type === 'helicopter') {
+                    drawHelicopter(obs);
+                } else {
+                    drawAgent(obs);
+                }
+            });
 
             // Jugador
             drawPlayer();
@@ -1008,6 +1031,62 @@
             } else {
                 gCtx.fillRect(x + s * 3, y + s * 10, s * 2,     s); // zapato trasero
             }
+        }
+
+        // ================================================================
+        // DRAW HELICOPTER: Helicóptero en pixel art Matrix (mirando a la izquierda)
+        // Vuela por encima del jugador. Las aspas y rotor se animan.
+        // ================================================================
+        function drawHelicopter(obs) {
+            const x = obs.x, y = obs.y, s = 2, f = obs.animFrame;
+            gCtx.save();
+            
+            // Fuselaje principal (gris/negro oscuro)
+            gCtx.fillStyle = '#0f1712';
+            gCtx.fillRect(x + 10, y + 8, 22, 10);
+            gCtx.fillRect(x + 14, y + 6, 14, 2);
+            gCtx.fillRect(x + 24, y + 8, 6, 6);
+            
+            // Parabrisas (verde brillante hacker)
+            gCtx.fillStyle = '#00ff41';
+            gCtx.fillRect(x + 28, y + 9, 4, 4);
+            gCtx.fillStyle = 'rgba(0, 255, 65, 0.4)';
+            gCtx.fillRect(x + 18, y + 10, 4, 3);
+            
+            // Cola
+            gCtx.fillStyle = '#0f1712';
+            gCtx.fillRect(x + 2, y + 10, 8, 4);
+            gCtx.fillRect(x, y + 6, 2, 8);
+            
+            // Hélice de cola animada
+            gCtx.fillStyle = '#555';
+            if (f === 0) {
+                gCtx.fillRect(x - 2, y + 4, 2, 4);
+                gCtx.fillRect(x, y + 12, 2, 4);
+            } else {
+                gCtx.fillRect(x - 2, y + 10, 4, 2);
+            }
+            
+            // Patines de aterrizaje
+            gCtx.fillStyle = '#333';
+            gCtx.fillRect(x + 12, y + 18, 2, 3);
+            gCtx.fillRect(x + 26, y + 18, 2, 3);
+            gCtx.fillRect(x + 8, y + 21, 24, 2);
+            
+            // Hélice principal animada
+            gCtx.fillStyle = '#222';
+            gCtx.fillRect(x + 19, y + 4, 2, 2); // mástil
+            
+            gCtx.fillStyle = '#888';
+            if (f === 0) {
+                gCtx.fillRect(x + 4, y + 2, 32, 2);
+            } else {
+                gCtx.fillRect(x + 10, y + 2, 20, 2);
+                gCtx.fillStyle = '#444';
+                gCtx.fillRect(x + 6, y + 3, 28, 1);
+            }
+            
+            gCtx.restore();
         }
 
         function drawPhoneBooth() {
