@@ -856,10 +856,119 @@
 
 
         /* ============================================================
+           SISTEMA DE TECLADO GLOBAL (Evita Key Pollution y Scrolls)
+           ============================================================ */
+        const globalKeys = {};
+        window.addEventListener('keydown', e => {
+            const key = e.key.toLowerCase();
+            globalKeys[key] = true;
+            // Evitar comportamiento por defecto en teclas de juego
+            if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd', ' '].includes(key)) {
+                e.preventDefault();
+            }
+        });
+        window.addEventListener('keyup', e => {
+            globalKeys[e.key.toLowerCase()] = false;
+        });
+
+        /* ============================================================
+           CREADOR DE AVATARES PROCEDURALES EN PIXEL ART (Cooper y TARS)
+           ============================================================ */
+        function drawPixelAvatar(speaker, canvas) {
+            const ctx = canvas.getContext('2d');
+            const pixelSize = Math.max(1, Math.floor(canvas.width / 16));
+            
+            function drawFrame(isLightOn) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.imageSmoothingEnabled = false;
+                
+                if (speaker === 'COOPER') {
+                    // Traje / Cuello
+                    ctx.fillStyle = '#4b6584';
+                    ctx.fillRect(3 * pixelSize, 13 * pixelSize, 10 * pixelSize, 3 * pixelSize);
+                    ctx.fillStyle = '#ff7800'; // Detalle naranja
+                    ctx.fillRect(7 * pixelSize, 14 * pixelSize, 2 * pixelSize, 1 * pixelSize);
+                    
+                    // Base del casco
+                    ctx.fillStyle = '#d1dbe5';
+                    ctx.fillRect(3 * pixelSize, 3 * pixelSize, 10 * pixelSize, 10 * pixelSize);
+                    ctx.fillRect(4 * pixelSize, 2 * pixelSize, 8 * pixelSize, 12 * pixelSize);
+                    ctx.fillRect(2 * pixelSize, 4 * pixelSize, 12 * pixelSize, 8 * pixelSize);
+                    
+                    // Sombreado del casco
+                    ctx.fillStyle = '#a4b3c4';
+                    ctx.fillRect(3 * pixelSize, 11 * pixelSize, 10 * pixelSize, 1 * pixelSize);
+                    ctx.fillRect(11 * pixelSize, 4 * pixelSize, 1 * pixelSize, 8 * pixelSize);
+                    
+                    // Borde del visor
+                    ctx.fillStyle = '#1e272e';
+                    ctx.fillRect(3 * pixelSize, 4 * pixelSize, 10 * pixelSize, 7 * pixelSize);
+                    
+                    // Cristal de visor (Azul profundo)
+                    ctx.fillStyle = '#0f172a';
+                    ctx.fillRect(4 * pixelSize, 5 * pixelSize, 8 * pixelSize, 5 * pixelSize);
+                    
+                    // Brillo interno pulsante (Simula telemetría HUD en visor)
+                    ctx.fillStyle = isLightOn ? '#00dcff' : '#00a8cc';
+                    ctx.fillRect(5 * pixelSize, 6 * pixelSize, 6 * pixelSize, 3 * pixelSize);
+                    
+                    // Reflejo exterior del visor
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(5 * pixelSize, 6 * pixelSize, 1 * pixelSize, 1 * pixelSize);
+                    ctx.fillRect(6 * pixelSize, 7 * pixelSize, 1 * pixelSize, 1 * pixelSize);
+                    ctx.fillRect(9 * pixelSize, 6 * pixelSize, 2 * pixelSize, 1 * pixelSize);
+                } else if (speaker === 'TARS') {
+                    // TARS: Robot monolito metálico de 4 columnas
+                    const cols = [
+                        { x: 3, w: 2, c: '#475569' }, // Columna 1 (izquierda - sombreada)
+                        { x: 5, w: 3, c: '#94a3b8' }, // Columna 2
+                        { x: 8, w: 3, c: '#cbd5e1' }, // Columna 3 (iluminada)
+                        { x: 11, w: 2, c: '#64748b' } // Columna 4 (derecha - sombreada)
+                    ];
+                    
+                    cols.forEach(col => {
+                        ctx.fillStyle = col.c;
+                        ctx.fillRect(col.x * pixelSize, 2 * pixelSize, col.w * pixelSize, 12 * pixelSize);
+                    });
+                    
+                    // Divisiones verticales de las columnas
+                    ctx.fillStyle = '#0f172a';
+                    ctx.fillRect(5 * pixelSize, 2 * pixelSize, 1, 12 * pixelSize);
+                    ctx.fillRect(8 * pixelSize, 2 * pixelSize, 1, 12 * pixelSize);
+                    ctx.fillRect(11 * pixelSize, 2 * pixelSize, 1, 12 * pixelSize);
+                    
+                    // Líneas de corte de juntas del monolito (para más detalle mecánico)
+                    ctx.fillRect(3 * pixelSize, 6 * pixelSize, 10 * pixelSize, 1);
+                    ctx.fillRect(3 * pixelSize, 10 * pixelSize, 10 * pixelSize, 1);
+                    
+                    // Lente / Sensor que parpadea
+                    ctx.fillStyle = isLightOn ? '#ff3838' : '#7f1d1d'; // Blink del sensor
+                    ctx.fillRect(6 * pixelSize, 4 * pixelSize, 1 * pixelSize, 1 * pixelSize);
+                    
+                    // Indicador de actividad (luz verde/azul pequeña)
+                    ctx.fillStyle = '#00dcff';
+                    ctx.fillRect(9 * pixelSize, 4 * pixelSize, 1 * pixelSize, 1 * pixelSize);
+                }
+            }
+            
+            let lightState = true;
+            drawFrame(lightState);
+            
+            const intervalId = setInterval(() => {
+                if (!document.body.contains(canvas)) {
+                    clearInterval(intervalId);
+                    return;
+                }
+                lightState = !lightState;
+                drawFrame(lightState);
+            }, 350);
+        }
+
+        /* ============================================================
            SISTEMA DE ESTADOS DE LA NARRATIVA Y JUEGO
            ============================================================ */
         const gameState = {
-            currentPhase: 'welcome', // welcome, intro, stealth, asteroids, orbit, choice, epilogue
+            currentPhase: 'welcome', // welcome, intro, stealth, hangar, asteroids, orbit, choice, epilogue
             epilogueType: 'tars', // tars, cooper
             stealthDeaths: 0,
             asteroidsShields: 3,
@@ -875,10 +984,14 @@
             localStorage.setItem('interstellar_current_phase', phaseName);
             audio.playClick();
             
+            // Limpiar estado del teclado
+            for (let k in globalKeys) globalKeys[k] = false;
+            
             // Ajustar atmósfera del fondo según fase
             if (phaseName === 'welcome') mode = 'stars';
             if (phaseName === 'intro') mode = 'wormhole';
             if (phaseName === 'stealth') { mode = 'stars'; audio.setIntensity(false); }
+            if (phaseName === 'hangar') { mode = 'stars'; audio.setIntensity(false); }
             if (phaseName === 'asteroids') { mode = 'stars'; audio.setIntensity(true); }
             if (phaseName === 'orbit') { mode = 'stars'; audio.setIntensity(true); }
             if (phaseName === 'choice' || phaseName === 'epilogue') { mode = 'stars'; audio.setIntensity(false); }
@@ -898,6 +1011,9 @@
                     break;
                 case 'stealth':
                     renderStealthGame();
+                    break;
+                case 'hangar':
+                    renderHangar();
                     break;
                 case 'asteroids':
                     renderAsteroidsGame();
@@ -987,14 +1103,19 @@
                 audio.playClick();
                 
                 diagBox.innerHTML = `
-                    <div class="avatar-box ${isTars ? 'avatar-tars' : ''}" style="color: ${isTars ? '#ff7800' : '#00dcff'}">
-                        ${data.speaker}
+                    <div class="avatar-box ${isTars ? 'avatar-tars' : ''}">
+                        <canvas id="dialogue-avatar-canvas" width="64" height="64" style="width: 100%; height: 100%; image-rendering: pixelated;"></canvas>
                     </div>
                     <div class="dialogue-text-bubble">
                         <div class="dialogue-name" style="color: ${isTars ? '#ff7800' : '#00dcff'}">${data.speaker}</div>
                         <p id="typewriter-text" style="color: #d1dbe5;"></p>
                     </div>
                 `;
+
+                const avatarCanvas = document.getElementById('dialogue-avatar-canvas');
+                if (avatarCanvas) {
+                    drawPixelAvatar(data.avatar, avatarCanvas);
+                }
 
                 // Efecto Typewriter
                 const txt = data.text;
@@ -1165,13 +1286,10 @@
 
             let guards = JSON.parse(JSON.stringify(initialGuards));
 
-            let keys = {};
+            const keys = globalKeys;
             let isFailed = false;
+            let isFinished = false;
             let runId = null;
-
-            // Eventos de teclado
-            window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
-            window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
 
             // Controles de móviles
             const registerMobileBtn = (id, keyName) => {
@@ -1242,7 +1360,7 @@
 
             // Loop de actualización
             function update() {
-                if (isFailed) return;
+                if (isFailed || isFinished) return;
 
                 // Entrada de Cooper
                 let dx = 0;
@@ -1277,8 +1395,8 @@
                 const gridY = Math.floor(player.y / cellSize);
                 const currentTile = walls[gridY * gridWidth + gridX];
                 if (currentTile === 3) {
-                    cancelAnimationFrame(runId);
-                    changePhase('asteroids');
+                    isFinished = true;
+                    changePhase('hangar');
                     return;
                 }
 
@@ -1453,10 +1571,9 @@
             // Loop de juego
             function loop() {
                 update();
+                if (isFailed || isFinished) return;
                 draw();
-                if (!isFailed) {
-                    runId = requestAnimationFrame(loop);
-                }
+                runId = requestAnimationFrame(loop);
             }
 
             loop();
@@ -1464,6 +1581,7 @@
             // Reintentar infiltración
             retryBtn.addEventListener('click', () => {
                 isFailed = false;
+                isFinished = false;
                 player.x = 375;
                 player.y = 460;
                 guards = JSON.parse(JSON.stringify(initialGuards));
@@ -1472,6 +1590,265 @@
                 cancelAnimationFrame(runId);
                 loop();
             });
+        }
+
+        /* ------------------------------------------------------------
+           FASE 3.5: EL HANGAR Y LA ENDURANCE V2
+           ------------------------------------------------------------ */
+        function renderHangar() {
+            const container = document.createElement('div');
+            container.className = 'game-canvas-wrapper';
+            
+            container.innerHTML = `
+                <div class="hud-overlay">
+                    <div>UBICACIÓN: HANGAR PRINCIPAL NASA</div>
+                    <div style="color: #00dcff;">ESTADO: ESCANEO DE SISTEMAS</div>
+                    <div id="hangar-hud">ENDURANCE V2: DETECTADA</div>
+                </div>
+                <div class="canvas-container">
+                    <canvas id="hangarCanvas" width="800" height="500"></canvas>
+                </div>
+                <div class="dialogue-character-box" id="hangar-dialogue-box" style="width: 100%; max-width: 800px; min-height: 120px;">
+                    <!-- Dialogs will be injected here -->
+                </div>
+                <button class="btn-orbit" id="hangar-next-btn" style="margin-top: 10px;">Continuar</button>
+            `;
+            
+            mainPanel.appendChild(container);
+
+            const canvas = document.getElementById('hangarCanvas');
+            const ctx = canvas.getContext('2d');
+            const nextBtn = document.getElementById('hangar-next-btn');
+            const diagBox = document.getElementById('hangar-dialogue-box');
+
+            // Hangar Blueprint Animation variables
+            let scanLineY = 0;
+            let scanDir = 1;
+            let runId = null;
+
+            // Dialogue sequence inside the hangar
+            const hangarDialogues = [
+                { speaker: "TARS", text: "Espectáculo impresionante, Cooper. La Endurance V2 está completamente ensamblada. Su diseño de doble anillo tiene un 40% más de habitabilidad y propulsores de fusión optimizados.", avatar: "TARS" },
+                { speaker: "COOPER", text: "Es hermosa, TARS... Murph lo logró. Y nosotros nos la vamos a llevar.", avatar: "COOPER" },
+                { speaker: "TARS", text: "He anulado el cierre del hangar. Los sistemas de la nave están en línea. Sugiero calibrar mis niveles de humor y honestidad antes de iniciar el vuelo, en caso de que entremos en pánico.", avatar: "TARS" },
+                { speaker: "COOPER", text: "Establece tu humor al 60% y sinceridad al 90%, TARS. No quiero tus bromas sarcásticas mientras esquivo escombros espaciales.", avatar: "COOPER" },
+                { speaker: "TARS", text: "Entendido, Cooper. Auto-calibración completada: Humor 60%, Sinceridad 90%. ¿Sabes qué dice un agujero negro cuando tiene hambre? 'Trae un poco de materia ligera'. Bromas al 60% confirmadas.", avatar: "TARS" },
+                { speaker: "COOPER", text: "Ese chiste es terrible, TARS. Prepárate para el despegue.", avatar: "COOPER" }
+            ];
+
+            let currentDiag = 0;
+
+            function showHangarDialogue() {
+                const data = hangarDialogues[currentDiag];
+                const isTars = data.avatar === "TARS";
+                audio.playClick();
+
+                diagBox.innerHTML = `
+                    <div class="avatar-box ${isTars ? 'avatar-tars' : ''}">
+                        <canvas id="hangar-avatar-canvas" width="64" height="64" style="width: 100%; height: 100%; image-rendering: pixelated;"></canvas>
+                    </div>
+                    <div class="dialogue-text-bubble" style="flex-grow: 1;">
+                        <div class="dialogue-name" style="color: ${isTars ? '#ff7800' : '#00dcff'}">${data.speaker}</div>
+                        <p id="hangar-typewriter-text" style="color: #d1dbe5; min-height: 40px;"></p>
+                    </div>
+                `;
+
+                const avatarCanvas = document.getElementById('hangar-avatar-canvas');
+                if (avatarCanvas) {
+                    drawPixelAvatar(data.avatar, avatarCanvas);
+                }
+
+                // Typewriter effect
+                const txt = data.text;
+                let charIdx = 0;
+                const txtEl = document.getElementById('hangar-typewriter-text');
+                
+                function type() {
+                    if (!txtEl) return;
+                    if (charIdx < txt.length) {
+                        txtEl.textContent += txt.charAt(charIdx);
+                        charIdx++;
+                        setTimeout(type, 15);
+                    }
+                }
+                type();
+
+                // If last dialogue, change button text to "Despegar"
+                if (currentDiag === hangarDialogues.length - 1) {
+                    nextBtn.textContent = "Despegar";
+                    nextBtn.style.borderColor = "#00dcff";
+                    nextBtn.style.color = "#00dcff";
+                } else {
+                    nextBtn.textContent = "Continuar";
+                }
+            }
+
+            showHangarDialogue();
+
+            nextBtn.addEventListener('click', () => {
+                if (currentDiag < hangarDialogues.length - 1) {
+                    currentDiag++;
+                    showHangarDialogue();
+                } else {
+                    cancelAnimationFrame(runId);
+                    changePhase('asteroids');
+                }
+            });
+
+            // Blueprint rendering loop
+            function drawHangarBlueprint() {
+                ctx.fillStyle = '#010207';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Grid background (like a blueprint sheet)
+                ctx.strokeStyle = 'rgba(0, 220, 255, 0.05)';
+                ctx.lineWidth = 1;
+                for (let x = 0; x < canvas.width; x += 40) {
+                    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+                }
+                for (let y = 0; y < canvas.height; y += 40) {
+                    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+                }
+
+                const cx = canvas.width / 2;
+                const cy = canvas.height / 2 - 20;
+
+                // Converging perspective lines representing the hangar floor
+                ctx.strokeStyle = 'rgba(0, 220, 255, 0.08)';
+                ctx.lineWidth = 1.5;
+                for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 6) {
+                    ctx.beginPath();
+                    ctx.moveTo(cx, cy);
+                    ctx.lineTo(cx + Math.cos(angle) * 450, cy + Math.sin(angle) * 450);
+                    ctx.stroke();
+                }
+
+                // Labeled concentric rings for hangar blueprint details
+                ctx.strokeStyle = 'rgba(0, 220, 255, 0.15)';
+                ctx.beginPath();
+                ctx.arc(cx, cy, 180, 0, Math.PI * 2);
+                ctx.arc(cx, cy, 230, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // High-fidelity Double-Ring Endurance V2 Blueprint
+                ctx.strokeStyle = '#00dcff';
+                ctx.lineWidth = 2.5;
+                ctx.shadowColor = '#00dcff';
+                ctx.shadowBlur = 8;
+
+                // Inner Ring
+                ctx.beginPath();
+                ctx.arc(cx, cy, 75, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Outer Ring
+                ctx.beginPath();
+                ctx.arc(cx, cy, 120, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+
+                // Modules along the ring
+                const modules = 16;
+                for (let i = 0; i < modules; i++) {
+                    const a = (i * Math.PI * 2) / modules;
+                    const cosA = Math.cos(a);
+                    const sinA = Math.sin(a);
+
+                    // Modules on Outer ring
+                    const mx1 = cx + cosA * 120;
+                    const my1 = cy + sinA * 120;
+                    ctx.fillStyle = '#010207';
+                    ctx.strokeStyle = '#00dcff';
+                    ctx.lineWidth = 2;
+                    ctx.fillRect(mx1 - 6, my1 - 6, 12, 12);
+                    ctx.strokeRect(mx1 - 6, my1 - 6, 12, 12);
+
+                    // Modules on Inner ring
+                    const mx2 = cx + cosA * 75;
+                    const my2 = cy + sinA * 75;
+                    ctx.fillRect(mx2 - 4, my2 - 4, 8, 8);
+                    ctx.strokeRect(mx2 - 4, my2 - 4, 8, 8);
+
+                    // Connecting spokes
+                    if (i % 2 === 0) {
+                        ctx.strokeStyle = 'rgba(0, 220, 255, 0.4)';
+                        ctx.beginPath();
+                        ctx.moveTo(cx + cosA * 40, cy + sinA * 40);
+                        ctx.lineTo(mx1, my1);
+                        ctx.stroke();
+                    }
+                }
+
+                // Central Command Node of Endurance V2
+                ctx.fillStyle = '#ff7800';
+                ctx.shadowColor = '#ff7800';
+                ctx.shadowBlur = 6;
+                ctx.beginPath();
+                ctx.arc(cx, cy, 12, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // Blueprint annotation lines and technical texts
+                ctx.fillStyle = 'rgba(0, 220, 255, 0.7)';
+                ctx.font = '10px Share Tech Mono';
+                
+                // Annotation line for double-ring fusion drive
+                ctx.strokeStyle = 'rgba(0, 220, 255, 0.4)';
+                ctx.beginPath();
+                ctx.moveTo(cx + 80, cy - 80);
+                ctx.lineTo(cx + 160, cy - 140);
+                ctx.lineTo(cx + 260, cy - 140);
+                ctx.stroke();
+                ctx.fillText("PROPULSOR DE FUSIÓN DUAL", cx + 165, cy - 145);
+                ctx.fillText("OPTIMIZACIÓN MÍNIMA 1.4x", cx + 165, cy - 130);
+
+                // Annotation line for modules
+                ctx.beginPath();
+                ctx.moveTo(cx - 100, cy + 60);
+                ctx.lineTo(cx - 180, cy + 120);
+                ctx.lineTo(cx - 280, cy + 120);
+                ctx.stroke();
+                ctx.fillText("MÓDULO DE HÁBITAT INTEGRADO", cx - 275, cy + 115);
+                ctx.fillText("ANILLO DE ROTACIÓN CON TARS", cx - 275, cy + 100);
+
+                // Spotlights animations (expanding circles simulating hangar lights)
+                const time = Date.now() * 0.001;
+                ctx.strokeStyle = 'rgba(255, 120, 0, 0.1)';
+                ctx.lineWidth = 1;
+                for (let k = 0; k < 3; k++) {
+                    const radius = ((time + k) % 3) * 100;
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                // Animated green scanning line
+                scanLineY += scanDir * 2.5;
+                if (scanLineY > canvas.height || scanLineY < 0) {
+                    scanDir *= -1;
+                }
+
+                ctx.strokeStyle = 'rgba(0, 255, 100, 0.35)';
+                ctx.lineWidth = 3;
+                ctx.shadowColor = '#00ff66';
+                ctx.shadowBlur = 12;
+                ctx.beginPath();
+                ctx.moveTo(0, scanLineY);
+                ctx.lineTo(canvas.width, scanLineY);
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+
+                // "ESCANEO EN PROGRESO" overlay
+                ctx.fillStyle = 'rgba(0, 255, 100, 0.8)';
+                ctx.font = '12px Orbitron';
+                ctx.fillText("ESCANEO DE VECTORES COOPER_STATION", 25, 45);
+                ctx.fillText(`Y-POS: ${Math.floor(scanLineY)}m`, 25, 65);
+                ctx.fillText("TASA DE HUMOR REQUERIDA: 60%", 25, 85);
+
+                runId = requestAnimationFrame(drawHangarBlueprint);
+            }
+
+            drawHangarBlueprint();
         }
 
         /* ------------------------------------------------------------
@@ -1531,6 +1908,7 @@
             let debrisParticles = [];
             let parallaxStars = [];
             let isFailed = false;
+            let isFinished = false;
             let runId = null;
             let frames = 0;
             let shake = 0;
@@ -1560,9 +1938,7 @@
                 return points;
             }
 
-            let keys = {};
-            window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
-            window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
+            const keys = globalKeys;
 
             // Táctil
             const leftAst = document.getElementById('m-left-ast');
@@ -1575,7 +1951,7 @@
             }
 
             function update() {
-                if (isFailed) return;
+                if (isFailed || isFinished) return;
 
                 frames++;
                 distance += 4;
@@ -1583,7 +1959,7 @@
 
                 // Comprobar victoria
                 if (distance >= targetDistance) {
-                    cancelAnimationFrame(runId);
+                    isFinished = true;
                     changePhase('orbit');
                     return;
                 }
@@ -1821,7 +2197,7 @@
             function loop() {
                 update();
                 draw();
-                if (!isFailed) {
+                if (!isFailed && !isFinished) {
                     runId = requestAnimationFrame(loop);
                 }
             }
@@ -1830,6 +2206,7 @@
 
             retryBtn.addEventListener('click', () => {
                 isFailed = false;
+                isFinished = false;
                 shields = 3;
                 distance = 0;
                 asteroids = [];
@@ -1907,6 +2284,7 @@
             let hullStability = 100;
             let calibration = 0;
             let isFailed = false;
+            let isFinished = false;
             let runId = null;
             let anomalyTimer = 0;
             let anomalyForce = 0;
@@ -1924,9 +2302,7 @@
                 });
             }
 
-            let keys = {};
-            window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
-            window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
+            const keys = globalKeys;
 
             // Táctil
             const registerOrbBtn = (id, keyName) => {
@@ -1942,7 +2318,7 @@
             registerOrbBtn('m-right-orb', 'd');
 
             function update() {
-                if (isFailed) return;
+                if (isFailed || isFinished) return;
 
                 // Atracción gravitatoria (Fuerza G aumenta mientras más cerca está del centro)
                 const gravityPull = 0.95 + (200 / ship.radius) * 0.45;
@@ -2026,8 +2402,9 @@
 
                 // Condición de victoria de calibración orbital
                 if (calibration >= 100) {
-                    cancelAnimationFrame(runId);
+                    isFinished = true;
                     changePhase('choice');
+                    return;
                 }
 
                 // Actualizar partículas de Gargantúa
@@ -2141,7 +2518,7 @@
             function loop() {
                 update();
                 draw();
-                if (!isFailed) {
+                if (!isFailed && !isFinished) {
                     runId = requestAnimationFrame(loop);
                 }
             }
@@ -2150,6 +2527,7 @@
 
             retryBtn.addEventListener('click', () => {
                 isFailed = false;
+                isFinished = false;
                 hullStability = 100;
                 calibration = 0;
                 ship.radius = 200;
@@ -2179,8 +2557,11 @@
                 </div>
 
                 <div class="dialogue-character-box" style="margin-top: 10px; max-width:650px;">
-                    <div class="avatar-box avatar-tars" style="color: #ff7800;">TARS</div>
+                    <div class="avatar-box avatar-tars">
+                        <canvas id="choice-avatar-canvas" width="64" height="64" style="width: 100%; height: 100%; image-rendering: pixelated;"></canvas>
+                    </div>
                     <div class="dialogue-text-bubble">
+                        <div class="dialogue-name" style="color: #ff7800;">TARS</div>
                         <p style="color:#d1dbe5; font-size:15px; text-align: left;">
                             "Cooper, la física no miente. Si queremos propulsar a la Endurance II con la masa restante de vuelta al planeta de Brand, uno de nosotros debe desacoplarse manualmente y caer dentro del agujero negro. El Ranger trasero está listo para soltarse. ¿Cuál es tu decisión?"
                         </p>
@@ -2200,6 +2581,11 @@
             `;
 
             mainPanel.appendChild(container);
+
+            const avatarCanvas = document.getElementById('choice-avatar-canvas');
+            if (avatarCanvas) {
+                drawPixelAvatar('TARS', avatarCanvas);
+            }
 
             document.getElementById('opt-tars').addEventListener('click', () => {
                 gameState.epilogueType = 'tars';
@@ -2294,7 +2680,7 @@
 
         // Iniciar el juego en la fase correspondiente
         const savedPhase = localStorage.getItem('interstellar_current_phase');
-        if (savedPhase && ['welcome', 'intro', 'stealth', 'asteroids', 'orbit', 'choice', 'epilogue'].includes(savedPhase)) {
+        if (savedPhase && ['welcome', 'intro', 'stealth', 'hangar', 'asteroids', 'orbit', 'choice', 'epilogue'].includes(savedPhase)) {
             // Permitir retomar la fase autoguardada para evitar frustración
             gameState.currentPhase = savedPhase;
             if (savedPhase !== 'welcome') {
