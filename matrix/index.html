@@ -438,6 +438,10 @@
                     style="border-color:rgba(0,255,65,0.15);color:rgba(0,255,65,0.25);font-size:9px;letter-spacing:2px;margin-top:14px">
                     [ CAMBIAR IDENTIDAD ]
                 </button>
+                <button class="matrix-btn" id="btn-reset-system"
+                    style="border-color:rgba(255,65,65,0.15);color:rgba(255,65,65,0.35);font-size:9px;letter-spacing:2px;margin-top:10px">
+                    [ REINICIAR SISTEMA ]
+                </button>
             </div>
 
         </div>
@@ -629,9 +633,9 @@
                 const isImplemented = game.id === 'exp1' || game.id === 'exp2';
                 const isUnlocked  = isImplemented && (!game.unlockAfter || completed.includes(game.unlockAfter));
                 
-                // Si ya está completado, no se puede volver a jugar (no rejugable)
-                const isClickable = isUnlocked && !isCompleted;
-                const isLocked    = !isClickable;
+                // Los juegos desbloqueados son siempre jugables, incluso si ya fueron completados
+                const isClickable = isUnlocked;
+                const isLocked    = !isUnlocked;
 
                 const item = document.createElement('a');
 
@@ -784,6 +788,18 @@
             aliasError.style.display = 'none';
             showScreen('screen-alias');
             setTimeout(() => aliasInput.focus(), 100);
+        });
+
+        // Reiniciar sistema — limpia alias, progreso y puntuación
+        document.getElementById('btn-reset-system').addEventListener('click', () => {
+            if (confirm('¿CONFIRMAS REINICIAR EL SISTEMA?\nSe borrará todo tu progreso, alias y puntuación.')) {
+                matrixState = { alias: '', score: 0, completed: [] };
+                saveState();
+                aliasInput.value = '';
+                aliasError.style.display = 'none';
+                showScreen('screen-alias');
+                setTimeout(() => aliasInput.focus(), 100);
+            }
         });
     </script>
 </body>
