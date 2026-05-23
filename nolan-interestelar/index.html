@@ -3490,8 +3490,8 @@
 
             const singularityX = 400;
             const singularityY = 250;
-            const targetMinRadius = 110; // rango seguro mínimo
-            const targetMaxRadius = 250; // rango seguro máximo
+            const targetMinRadius = 140; // rango seguro mínimo (más desafiante)
+            const targetMaxRadius = 210; // rango seguro máximo
             
             let hullStability = 100;
             let calibration = 0;
@@ -3876,12 +3876,14 @@
 
             document.getElementById('opt-tars').addEventListener('click', () => {
                 gameState.epilogueType = 'tars';
-                changePhase('decouple');
+                gameState.resumeDiagIndex = 0; // Fresh start
+                changePhase('epilogue');
             });
 
             document.getElementById('opt-cooper').addEventListener('click', () => {
                 gameState.epilogueType = 'cooper';
-                changePhase('decouple');
+                gameState.resumeDiagIndex = 0; // Fresh start
+                changePhase('epilogue');
             });
         }
 
@@ -4180,7 +4182,8 @@
             ];
 
             const dialogues = isTarsPath ? epilogueDialoguesTars : epilogueDialoguesCooper;
-            let currentDiag = 0;
+            let currentDiag = gameState.resumeDiagIndex || 0;
+            gameState.resumeDiagIndex = 0; // reset
 
             function startProbeGame(callback) {
                 const canvas = document.getElementById('probe-wave-canvas');
@@ -4338,7 +4341,23 @@
                 let charIdx = 0;
                 const txtEl = document.getElementById('epilogue-typewriter-text');
 
-                nextBtn.textContent = (currentDiag === dialogues.length - 1) ? 'Ver desenlace' : 'Continuar';
+                const transitionIndex = isTarsPath ? 2 : 3;
+                if (currentDiag === transitionIndex) {
+                    nextBtn.textContent = 'Iniciar Desacople';
+                    nextBtn.style.borderColor = '#ff3838';
+                    nextBtn.style.color = '#ff3838';
+                    nextBtn.style.boxShadow = '0 0 12px rgba(255,56,56,0.3)';
+                } else if (currentDiag === dialogues.length - 1) {
+                    nextBtn.textContent = 'Ver desenlace';
+                    nextBtn.style.borderColor = '#00dcff';
+                    nextBtn.style.color = '#00dcff';
+                    nextBtn.style.boxShadow = 'none';
+                } else {
+                    nextBtn.textContent = 'Continuar';
+                    nextBtn.style.borderColor = '#ff7800';
+                    nextBtn.style.color = '#ff7800';
+                    nextBtn.style.boxShadow = 'none';
+                }
 
                 function type() {
                     if (!txtEl || !document.body.contains(txtEl)) return;
@@ -4390,10 +4409,10 @@
 
                 epilogueCtx.clearRect(0, 0, w, h);
 
-                const transitionIndex = isTarsPath ? 3 : 4;
+                const transitionIndex = isTarsPath ? 2 : 3;
 
                 if (currentDiag < transitionIndex) {
-                    // Space decoupling visual
+                    // Space decoupling visual (Endurance with Ranger attached, shaking)
                     epilogueCtx.fillStyle = '#000004';
                     epilogueCtx.fillRect(0, 0, w, h);
 
@@ -4426,23 +4445,20 @@
                     epilogueCtx.arc(gX, gY, 50, -Math.PI * 0.6, Math.PI * 0.6);
                     epilogueCtx.stroke();
 
-                    // Endurance II escaping to the left
-                    const endX = 180;
-                    const endY = h / 2;
-                    drawEnduranceV2(epilogueCtx, endX, endY, 14, Date.now() * 0.0005, true, 0, 0);
+                    // Shaking Endurance II with Ranger attached (pre-decouple)
+                    const shakeX = (Math.random() - 0.5) * 2.5;
+                    const shakeY = (Math.random() - 0.5) * 2.5;
+                    const endX = 220 + shakeX;
+                    const endY = h / 2 + shakeY;
+                    
+                    // Draw Endurance V2
+                    drawEnduranceV2(epilogueCtx, endX, endY, 14, Date.now() * 0.0003, true, 0, 0);
 
-                    // Detaching Ranger pod drifting to the right
-                    const t = (Date.now() % 3000) / 3000;
-                    const rx = endX + 30 + t * (gX - endX - 60);
-                    const ry = endY + Math.sin(t * Math.PI) * 15;
-                    const rangerScale = 1 - t * 0.7;
-
+                    // Draw Ranger attached to the rear of Endurance
                     epilogueCtx.save();
-                    epilogueCtx.translate(rx, ry);
-                    epilogueCtx.rotate(t * Math.PI * 2);
-                    epilogueCtx.scale(rangerScale, rangerScale);
+                    epilogueCtx.translate(endX + 16, endY);
                     epilogueCtx.shadowColor = isTarsPath ? '#00dcff' : '#ff7800';
-                    epilogueCtx.shadowBlur = 6;
+                    epilogueCtx.shadowBlur = 4;
                     epilogueCtx.fillStyle = '#010207';
                     epilogueCtx.strokeStyle = isTarsPath ? '#00dcff' : '#ff7800';
                     epilogueCtx.lineWidth = 1;
@@ -4457,11 +4473,11 @@
                     epilogueCtx.restore();
 
                     // Telemetry text
-                    epilogueCtx.fillStyle = 'rgba(255, 56, 56, 0.8)';
+                    epilogueCtx.fillStyle = 'rgba(255, 56, 56, 0.85)';
                     epilogueCtx.font = '9px monospace';
-                    epilogueCtx.fillText('SECUENCIA DE INYECCIÓN DE EMPUJE', 15, 20);
+                    epilogueCtx.fillText('ESTADO: ANCLAJE BAJO TENSIÓN CRÍTICA', 15, 20);
                     epilogueCtx.fillStyle = '#00dcff';
-                    epilogueCtx.fillText('RANGER DESACOPLADO EN RUTA DE CAÍDA', 15, 32);
+                    epilogueCtx.fillText('COMPARTIMENTACIÓN ORBITAL CALIBRADA', 15, 32);
 
                 } else {
                     // Doctor Brand's Planet Visual (Edmund's Planet)
@@ -4601,8 +4617,15 @@
             showEpilogueDialogue();
 
             nextBtn.addEventListener('click', () => {
-                currentDiag++;
-                showEpilogueDialogue();
+                const transitionIndex = isTarsPath ? 2 : 3;
+                if (currentDiag === transitionIndex) {
+                    gameState.resumeDiagIndex = transitionIndex + 1; // 3 for TARS, 4 for Cooper
+                    cancelAnimationFrame(epilogueRunId);
+                    changePhase('decouple');
+                } else {
+                    currentDiag++;
+                    showEpilogueDialogue();
+                }
             });
         }
 
