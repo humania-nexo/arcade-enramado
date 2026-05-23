@@ -323,6 +323,7 @@
             position: relative;
             border-radius: 4px;
             overflow: hidden;
+            flex-shrink: 0;
         }
 
         canvas {
@@ -485,6 +486,9 @@
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.5s ease;
+            overflow-y: auto;
+            box-sizing: border-box;
+            padding: 15px;
         }
 
         .failed-screen.active {
@@ -511,6 +515,37 @@
             padding: 4px 10px;
             border-radius: 3px;
             align-self: center;
+        }
+
+        /* Responsive overrides for mobile screens */
+        @media (max-width: 600px) {
+            .canvas-container {
+                aspect-ratio: auto !important;
+                height: 380px !important;
+            }
+            .failed-screen {
+                justify-content: flex-start !important;
+                gap: 10px !important;
+                padding: 20px 10px !important;
+            }
+            .failed-title {
+                font-size: 18px !important;
+            }
+            .failed-screen p {
+                font-size: 12px !important;
+                margin: 5px 0 !important;
+            }
+            .failed-screen div[style*="dashed"] {
+                font-size: 11px !important;
+                padding: 8px 12px !important;
+                margin: 2px 0 !important;
+                line-height: 1.3 !important;
+            }
+            .btn-orbit {
+                margin-top: 8px !important;
+                padding: 8px 16px !important;
+                font-size: 12px !important;
+            }
         }
     </style>
 </head>
@@ -939,6 +974,156 @@
                     ctx.fillRect(5 * pixelSize, 6 * pixelSize, 1 * pixelSize, 1 * pixelSize);
                     ctx.fillRect(6 * pixelSize, 7 * pixelSize, 1 * pixelSize, 1 * pixelSize);
                     ctx.fillRect(9 * pixelSize, 6 * pixelSize, 2 * pixelSize, 1 * pixelSize);
+                } else if (speaker === 'COOPER_NO_HELMET') {
+                    // Suit / Collar
+                    ctx.fillStyle = '#334155'; // Dark suit collar
+                    ctx.fillRect(3 * pixelSize, 12 * pixelSize, 10 * pixelSize, 4 * pixelSize);
+                    ctx.fillStyle = '#e2e8f0'; // White inner shirt
+                    ctx.fillRect(6 * pixelSize, 12 * pixelSize, 4 * pixelSize, 2 * pixelSize);
+                    ctx.fillStyle = '#ff7800'; // Orange mission badge
+                    ctx.fillRect(4 * pixelSize, 13 * pixelSize, 1 * pixelSize, 2 * pixelSize);
+                    
+                    // Neck
+                    ctx.fillStyle = '#eab087'; // Skin tone
+                    ctx.fillRect(6 * pixelSize, 10 * pixelSize, 4 * pixelSize, 2 * pixelSize);
+                    
+                    // Head / Face
+                    ctx.fillStyle = '#fed7aa'; // Peach light skin
+                    ctx.fillRect(4 * pixelSize, 3 * pixelSize, 8 * pixelSize, 7 * pixelSize);
+                    ctx.fillRect(5 * pixelSize, 2 * pixelSize, 6 * pixelSize, 1 * pixelSize);
+                    
+                    // Hair (Brown, messy/wavy)
+                    ctx.fillStyle = '#4a2c11';
+                    ctx.fillRect(4 * pixelSize, 1 * pixelSize, 8 * pixelSize, 2 * pixelSize);
+                    ctx.fillRect(3 * pixelSize, 2 * pixelSize, 2 * pixelSize, 4 * pixelSize);
+                    ctx.fillRect(11 * pixelSize, 2 * pixelSize, 2 * pixelSize, 3 * pixelSize);
+                    ctx.fillRect(5 * pixelSize, 0 * pixelSize, 6 * pixelSize, 1 * pixelSize);
+                    ctx.fillRect(6 * pixelSize, 2 * pixelSize, 2 * pixelSize, 1 * pixelSize); // hair strand
+                    
+                    // Eyes (Dark blue/black)
+                    ctx.fillStyle = '#1e293b';
+                    ctx.fillRect(5 * pixelSize, 5 * pixelSize, 1 * pixelSize, 1 * pixelSize);
+                    ctx.fillRect(10 * pixelSize, 5 * pixelSize, 1 * pixelSize, 1 * pixelSize);
+                    
+                    // Eyebrows
+                    ctx.fillStyle = '#4a2c11';
+                    ctx.fillRect(4 * pixelSize, 4 * pixelSize, 3 * pixelSize, 1 * pixelSize);
+                    ctx.fillRect(9 * pixelSize, 4 * pixelSize, 3 * pixelSize, 1 * pixelSize);
+                    
+                    // Mouth (simple line)
+                    ctx.fillStyle = '#dd7a5f';
+                    ctx.fillRect(6 * pixelSize, 8 * pixelSize, 4 * pixelSize, 1 * pixelSize);
+                } else if (speaker === 'BRAND') {
+                    // Suit / Astronaut collar
+                    ctx.fillStyle = '#4b6584'; // Blueish uniform
+                    ctx.fillRect(3 * pixelSize, 12 * pixelSize, 10 * pixelSize, 4 * pixelSize);
+                    ctx.fillStyle = '#ff7800'; // Orange detailing
+                    ctx.fillRect(5 * pixelSize, 12 * pixelSize, 6 * pixelSize, 1 * pixelSize);
+                    
+                    // Neck
+                    ctx.fillStyle = '#f8a5c2'; // Slightly rosier peach skin
+                    ctx.fillRect(6 * pixelSize, 10 * pixelSize, 4 * pixelSize, 2 * pixelSize);
+                    
+                    // Face
+                    ctx.fillStyle = '#ffe0cb'; // Rosy light skin
+                    ctx.fillRect(4 * pixelSize, 3 * pixelSize, 8 * pixelSize, 7 * pixelSize);
+                    ctx.fillRect(5 * pixelSize, 2 * pixelSize, 6 * pixelSize, 1 * pixelSize);
+                    
+                    // Short Pixie Hair (Dark brown, tight)
+                    ctx.fillStyle = '#3d2006';
+                    ctx.fillRect(4 * pixelSize, 1 * pixelSize, 8 * pixelSize, 2 * pixelSize);
+                    ctx.fillRect(3 * pixelSize, 2 * pixelSize, 1 * pixelSize, 5 * pixelSize);
+                    ctx.fillRect(12 * pixelSize, 2 * pixelSize, 1 * pixelSize, 5 * pixelSize);
+                    ctx.fillRect(4 * pixelSize, 2 * pixelSize, 2 * pixelSize, 1 * pixelSize); // Bangs
+                    ctx.fillRect(10 * pixelSize, 2 * pixelSize, 2 * pixelSize, 1 * pixelSize);
+                    
+                    // Eyes (Green/Brown)
+                    ctx.fillStyle = '#2d5a27'; // Dark green eyes
+                    ctx.fillRect(5 * pixelSize, 5 * pixelSize, 1 * pixelSize, 1 * pixelSize);
+                    ctx.fillRect(10 * pixelSize, 5 * pixelSize, 1 * pixelSize, 1 * pixelSize);
+                    
+                    // Rosy cheeks
+                    ctx.fillStyle = '#f8a5c2';
+                    ctx.fillRect(4 * pixelSize, 6 * pixelSize, 1 * pixelSize, 1 * pixelSize);
+                    ctx.fillRect(11 * pixelSize, 6 * pixelSize, 1 * pixelSize, 1 * pixelSize);
+                    
+                    // Mouth (small pink line)
+                    ctx.fillStyle = '#ea8685';
+                    ctx.fillRect(7 * pixelSize, 8 * pixelSize, 2 * pixelSize, 1 * pixelSize);
+                } else if (speaker === 'POLITICIAN') {
+                    // Suit / Grey jacket
+                    ctx.fillStyle = '#475569'; // Grey jacket
+                    ctx.fillRect(3 * pixelSize, 12 * pixelSize, 10 * pixelSize, 4 * pixelSize);
+                    ctx.fillStyle = '#f8fafc'; // White shirt
+                    ctx.fillRect(6 * pixelSize, 12 * pixelSize, 4 * pixelSize, 2 * pixelSize);
+                    ctx.fillStyle = '#ef4444'; // Red tie
+                    ctx.fillRect(7 * pixelSize, 12 * pixelSize, 2 * pixelSize, 3 * pixelSize);
+                    
+                    // Neck
+                    ctx.fillStyle = '#f5b041'; // Older tanned skin tone
+                    ctx.fillRect(6 * pixelSize, 10 * pixelSize, 4 * pixelSize, 2 * pixelSize);
+                    
+                    // Face
+                    ctx.fillStyle = '#f9e79f'; // Older skin
+                    ctx.fillRect(4 * pixelSize, 3 * pixelSize, 8 * pixelSize, 7 * pixelSize);
+                    ctx.fillRect(5 * pixelSize, 2 * pixelSize, 6 * pixelSize, 1 * pixelSize);
+                    
+                    // Receding Hair (Grey/White hair at sides/top corners, bald center)
+                    ctx.fillStyle = '#94a3b8'; // Grey hair
+                    ctx.fillRect(3 * pixelSize, 2 * pixelSize, 2 * pixelSize, 6 * pixelSize);
+                    ctx.fillRect(11 * pixelSize, 2 * pixelSize, 2 * pixelSize, 6 * pixelSize);
+                    ctx.fillRect(4 * pixelSize, 1 * pixelSize, 1 * pixelSize, 1 * pixelSize);
+                    ctx.fillRect(11 * pixelSize, 1 * pixelSize, 1 * pixelSize, 1 * pixelSize);
+                    
+                    // Eyes (squinted/tired)
+                    ctx.fillStyle = '#0f172a';
+                    ctx.fillRect(5 * pixelSize, 5 * pixelSize, 1 * pixelSize, 1 * pixelSize);
+                    ctx.fillRect(10 * pixelSize, 5 * pixelSize, 1 * pixelSize, 1 * pixelSize);
+                    
+                    // Wrinkles / details
+                    ctx.fillStyle = '#d5dbdb';
+                    ctx.fillRect(5 * pixelSize, 7 * pixelSize, 1 * pixelSize, 1 * pixelSize);
+                    ctx.fillRect(10 * pixelSize, 7 * pixelSize, 1 * pixelSize, 1 * pixelSize);
+                    
+                    // Mouth (neutral/serious)
+                    ctx.fillStyle = '#ba4a00';
+                    ctx.fillRect(6 * pixelSize, 8 * pixelSize, 4 * pixelSize, 1 * pixelSize);
+                } else if (speaker === 'SCIENTIST') {
+                    // White lab coat
+                    ctx.fillStyle = '#f1f2f6'; // White coat
+                    ctx.fillRect(3 * pixelSize, 12 * pixelSize, 10 * pixelSize, 4 * pixelSize);
+                    ctx.fillStyle = '#2f3542'; // Dark blue/grey shirt inside
+                    ctx.fillRect(6 * pixelSize, 12 * pixelSize, 4 * pixelSize, 2 * pixelSize);
+                    
+                    // Neck
+                    ctx.fillStyle = '#f7d794'; // Skin tone
+                    ctx.fillRect(6 * pixelSize, 10 * pixelSize, 4 * pixelSize, 2 * pixelSize);
+                    
+                    // Face
+                    ctx.fillStyle = '#ffeaa7'; // Skin tone
+                    ctx.fillRect(4 * pixelSize, 3 * pixelSize, 8 * pixelSize, 7 * pixelSize);
+                    ctx.fillRect(5 * pixelSize, 2 * pixelSize, 6 * pixelSize, 1 * pixelSize);
+                    
+                    // Hair (Silver-grey, wild/scientific)
+                    ctx.fillStyle = '#dfe4ea'; // Silver hair
+                    ctx.fillRect(3 * pixelSize, 1 * pixelSize, 10 * pixelSize, 2 * pixelSize);
+                    ctx.fillRect(2 * pixelSize, 2 * pixelSize, 2 * pixelSize, 5 * pixelSize);
+                    ctx.fillRect(12 * pixelSize, 2 * pixelSize, 2 * pixelSize, 5 * pixelSize);
+                    ctx.fillRect(5 * pixelSize, 0 * pixelSize, 6 * pixelSize, 1 * pixelSize);
+                    
+                    // Glasses (Cyan lenses, blue frames)
+                    ctx.fillStyle = '#2e86de'; // Frame bridge
+                    ctx.fillRect(7 * pixelSize, 5 * pixelSize, 2 * pixelSize, 1 * pixelSize);
+                    ctx.fillStyle = '#00dcff'; // Glowing cyan lenses
+                    ctx.fillRect(5 * pixelSize, 5 * pixelSize, 2 * pixelSize, 2 * pixelSize);
+                    ctx.fillRect(9 * pixelSize, 5 * pixelSize, 2 * pixelSize, 2 * pixelSize);
+                    ctx.fillStyle = '#2e86de'; // Outer frames
+                    ctx.fillRect(4 * pixelSize, 5 * pixelSize, 1 * pixelSize, 2 * pixelSize);
+                    ctx.fillRect(11 * pixelSize, 5 * pixelSize, 1 * pixelSize, 2 * pixelSize);
+                    
+                    // Mouth (focused line)
+                    ctx.fillStyle = '#b71c1c';
+                    ctx.fillRect(7 * pixelSize, 9 * pixelSize, 2 * pixelSize, 1 * pixelSize);
                 } else if (speaker === 'TARS') {
                     // TARS: Robot monolito metálico de 4 columnas
                     const cols = [
@@ -1151,26 +1336,33 @@
         const mainPanel = document.getElementById('main-panel');
 
         function changePhase(phaseName) {
-            gameState.currentPhase = phaseName;
-            localStorage.setItem('interstellar_current_phase', phaseName);
-            audio.playClick();
+            mainPanel.style.transition = 'opacity 0.4s ease';
+            mainPanel.style.opacity = '0';
             
-            // Limpiar estado del teclado
-            for (let k in globalKeys) globalKeys[k] = false;
-            
-            // Ajustar atmósfera del fondo según fase
-            if (phaseName === 'welcome') mode = 'stars';
-            if (phaseName === 'intro') mode = 'stars';
-            if (phaseName === 'stealth') { mode = 'stars'; audio.setIntensity(false); }
-            if (phaseName === 'hangar') { mode = 'stars'; audio.setIntensity(false); }
-            if (phaseName === 'flight') { mode = 'stars'; audio.setIntensity(false); }
-            if (phaseName === 'asteroids') { mode = 'stars'; audio.setIntensity(true); }
-            if (phaseName === 'wormhole') { mode = 'wormhole'; audio.setIntensity(true); }
-            if (phaseName === 'preorbit') { mode = 'stars'; audio.setIntensity(false); }
-            if (phaseName === 'orbit') { mode = 'stars'; audio.setIntensity(true); }
-            if (phaseName === 'choice' || phaseName === 'epilogue') { mode = 'stars'; audio.setIntensity(false); }
+            setTimeout(() => {
+                gameState.currentPhase = phaseName;
+                localStorage.setItem('interstellar_current_phase', phaseName);
+                audio.playClick();
+                
+                // Limpiar estado del teclado
+                for (let k in globalKeys) globalKeys[k] = false;
+                
+                // Ajustar atmósfera del fondo según fase
+                if (phaseName === 'welcome') mode = 'stars';
+                if (phaseName === 'intro') mode = 'stars';
+                if (phaseName === 'stealth') { mode = 'stars'; audio.setIntensity(false); }
+                if (phaseName === 'hangar') { mode = 'stars'; audio.setIntensity(false); }
+                if (phaseName === 'flight') { mode = 'stars'; audio.setIntensity(false); }
+                if (phaseName === 'asteroids') { mode = 'stars'; audio.setIntensity(true); }
+                if (phaseName === 'wormhole') { mode = 'wormhole'; audio.setIntensity(true); }
+                if (phaseName === 'preorbit') { mode = 'stars'; audio.setIntensity(false); }
+                if (phaseName === 'orbit') { mode = 'stars'; audio.setIntensity(true); }
+                if (phaseName === 'choice' || phaseName === 'epilogue') { mode = 'stars'; audio.setIntensity(false); }
 
-            renderPhase();
+                renderPhase();
+                
+                mainPanel.style.opacity = '1';
+            }, 400);
         }
 
         function renderPhase() {
@@ -2293,6 +2485,13 @@
                         <p style="color: #ff3838; font-size:14px;">El casco de la Endurance II sufrió descompresión de emergencia.</p>
                         <button class="btn-orbit" id="retry-asteroids-btn" style="margin-top: 10px;">Reconfigurar Propulsores</button>
                     </div>
+                    <div class="failed-screen" id="asteroids-success" style="background: rgba(1, 10, 5, 0.95);">
+                        <div class="failed-title" style="color: #00ff66; text-shadow: 0 0 15px rgba(0, 255, 102, 0.6); font-size: 22px; letter-spacing: 2px;">¡CINTURÓN DE SATURNO SUPERADO!</div>
+                        <p style="color: #c8d6e5; font-size: 14px; max-width: 440px; text-align: center; line-height: 1.6; margin: 10px 0;">
+                            Hemos navegado con éxito a través del peligroso cinturón de asteroides de Saturno. Frente a nosotros se abre el agujero de gusano.
+                        </p>
+                        <button class="btn-orbit" id="success-asteroids-btn" style="margin-top: 15px; border-color: #00ff66; color: #00ff66; box-shadow: 0 0 15px rgba(0, 255, 102, 0.25);">CRUZAR EL AGUJERO DE GUSANO</button>
+                    </div>
                 </div>
                 <div style="font-size:13px; color: #8fa0b3; text-align: center;">
                     Usa las <span style="color:#00dcff">FLECHAS IZQUIERDA / DERECHA</span>, <span style="color:#00dcff">A / D</span> o <span style="color:#00dcff">DESLIZA el dedo</span> en la pantalla para pilotar la nave. ¡Evita los asteroides!
@@ -2309,6 +2508,8 @@
             const ctx = canvas.getContext('2d');
             const retryBtn = document.getElementById('retry-asteroids-btn');
             const failedScreen = document.getElementById('asteroids-failed');
+            const successScreen = document.getElementById('asteroids-success');
+            const successBtn = document.getElementById('success-asteroids-btn');
             const shieldsEl = document.getElementById('shields-hud');
             const distanceEl = document.getElementById('distance-hud');
 
@@ -2416,7 +2617,7 @@
                 // Comprobar victoria
                 if (distance >= targetDistance) {
                     isFinished = true;
-                    changePhase('wormhole');
+                    successScreen.classList.add('active');
                     return;
                 }
 
@@ -2629,6 +2830,12 @@
                 cancelAnimationFrame(runId);
                 loop();
             });
+
+            successBtn.addEventListener('click', () => {
+                audio.playClick();
+                cancelAnimationFrame(runId);
+                changePhase('wormhole');
+            });
         }
 
         /* ------------------------------------------------------------
@@ -2646,11 +2853,27 @@
                 </div>
                 <div class="canvas-container">
                     <canvas id="wormholeCanvas" width="800" height="500"></canvas>
+                    
+                    <!-- Pantalla de transición (Digest) -->
+                    <div class="failed-screen active" id="wormhole-digest-screen" style="background: rgba(1, 3, 10, 0.97); text-align: center; padding: 20px;">
+                        <div class="phase-indicator" style="border-color:#ff7800; color:#ff7800;">TRANSICIÓN NARRATIVA</div>
+                        <div class="failed-title" style="color: #00dcff; text-shadow: 0 0 15px rgba(0, 220, 255, 0.6); font-size: 22px; letter-spacing: 2px; margin-top: 10px;">EL PUENTE DE EINSTEIN-ROSEN</div>
+                        <p style="color: #c8d6e5; font-size: 14px; max-width: 460px; line-height: 1.6; margin: 15px 0;">
+                            La Endurance II deja atrás el cinturón de asteroides de Saturno. Frente a nosotros, el agujero de gusano deforma la luz del espacio interestelar como una esfera de cristal perfecta.<br>
+                            Es hora de cruzar al otro lado del universo.
+                        </p>
+                        <div class="telemetry-block" style="font-size: 12px; max-width: 400px; border-color: rgba(0,220,255,0.3); padding: 10px 15px; margin: 5px 0;">
+                            <span class="telemetry-cyan">• TELEMETRÍA:</span> Vuelo estable tras impacto de meteoros.<br>
+                            <span class="telemetry-cyan">• DISTORSIÓN ESPACIAL:</span> 99.8% de curvatura.<br>
+                            <span class="telemetry-warn">• SISTEMA DESTINO:</span> Gargantúa / Agujero Negro.
+                        </div>
+                        <button class="btn-orbit" id="start-wormhole-btn" style="margin-top: 15px; border-color: #ff7800; color: #ff7800; box-shadow: 0 0 15px rgba(255, 120, 0, 0.25); cursor: pointer;">CRUZAR EL AGUJERO DE GUSANO</button>
+                    </div>
                 </div>
-                <div class="dialogue-character-box" id="wormhole-dialogue-box" style="width: 100%; max-width: 800px; min-height: 120px;">
+                <div class="dialogue-character-box" id="wormhole-dialogue-box" style="width: 100%; max-width: 800px; min-height: 120px; display: none;">
                     <!-- Los diálogos se inyectarán aquí -->
                 </div>
-                <button class="btn-orbit" id="wormhole-next-btn" style="margin-top: 10px;">Continuar</button>
+                <button class="btn-orbit" id="wormhole-next-btn" style="margin-top: 10px; display: none;">Continuar</button>
             `;
             
             mainPanel.appendChild(container);
@@ -2659,6 +2882,8 @@
             const ctx = canvas.getContext('2d');
             const nextBtn = document.getElementById('wormhole-next-btn');
             const diagBox = document.getElementById('wormhole-dialogue-box');
+            const digestScreen = document.getElementById('wormhole-digest-screen');
+            const startWormholeBtn = document.getElementById('start-wormhole-btn');
 
             let runId = null;
             let time = 0;
@@ -2721,7 +2946,17 @@
                 type();
             }
 
-            showDialogue();
+            startWormholeBtn.addEventListener('click', () => {
+                audio.playClick();
+                digestScreen.classList.remove('active');
+                setTimeout(() => {
+                    digestScreen.style.display = 'none';
+                }, 500);
+                
+                diagBox.style.display = 'flex';
+                nextBtn.style.display = 'block';
+                showDialogue();
+            });
 
             nextBtn.addEventListener('click', () => {
                 if (currentDiag < wormholeDialogues.length - 1) {
@@ -2790,11 +3025,27 @@
                 </div>
                 <div class="canvas-container">
                     <canvas id="preorbitCanvas" width="800" height="500"></canvas>
+                    
+                    <!-- Pantalla de transición (Digest) -->
+                    <div class="failed-screen active" id="preorbit-digest-screen" style="background: rgba(1, 3, 10, 0.97); text-align: center; padding: 20px;">
+                        <div class="phase-indicator" style="border-color:#ff7800; color:#ff7800;">TRANSICIÓN NARRATIVA</div>
+                        <div class="failed-title" style="color: #00dcff; text-shadow: 0 0 15px rgba(0, 220, 255, 0.6); font-size: 22px; letter-spacing: 2px; margin-top: 10px;">EL SISTEMA DE GARGANTÚA</div>
+                        <p style="color: #c8d6e5; font-size: 14px; max-width: 460px; line-height: 1.6; margin: 15px 0;">
+                            Emergemos del agujero de gusano. Frente a nosotros se alza Gargantúa: un colosal agujero negro supermasivo rodeado de un incandescente y rugiente disco de acreción.<br>
+                            La fuerza gravitatoria comienza a succionar los controles de la Endurance II.
+                        </p>
+                        <div class="telemetry-block" style="font-size: 12px; max-width: 400px; border-color: rgba(0,220,255,0.3); padding: 10px 15px; margin: 5px 0;">
+                            <span class="telemetry-cyan">• DETECTADO:</span> Agujero negro supermasivo.<br>
+                            <span class="telemetry-cyan">• GRAVEDAD:</span> 1.5g y en aumento acelerado.<br>
+                            <span class="telemetry-warn">• OBJETIVO:</span> Estabilizar órbita segura para desacoplamiento.
+                        </div>
+                        <button class="btn-orbit" id="start-preorbit-btn" style="margin-top: 15px; border-color: #ff7800; color: #ff7800; box-shadow: 0 0 15px rgba(255, 120, 0, 0.25); cursor: pointer;">APROXIMARSE A GARGANTÚA</button>
+                    </div>
                 </div>
-                <div class="dialogue-character-box" id="preorbit-dialogue-box" style="width: 100%; max-width: 800px; min-height: 120px;">
+                <div class="dialogue-character-box" id="preorbit-dialogue-box" style="width: 100%; max-width: 800px; min-height: 120px; display: none;">
                     <!-- Dialogs will be injected here -->
                 </div>
-                <button class="btn-orbit" id="preorbit-next-btn" style="margin-top: 10px;">Continuar</button>
+                <button class="btn-orbit" id="preorbit-next-btn" style="margin-top: 10px; display: none;">Continuar</button>
             `;
             
             mainPanel.appendChild(container);
@@ -2803,6 +3054,8 @@
             const ctx = canvas.getContext('2d');
             const nextBtn = document.getElementById('preorbit-next-btn');
             const diagBox = document.getElementById('preorbit-dialogue-box');
+            const digestScreen = document.getElementById('preorbit-digest-screen');
+            const startPreorbitBtn = document.getElementById('start-preorbit-btn');
 
             let runId = null;
             let accretionParticles = [];
@@ -2873,7 +3126,17 @@
                 type();
             }
 
-            showPreorbitDialogue();
+            startPreorbitBtn.addEventListener('click', () => {
+                audio.playClick();
+                digestScreen.classList.remove('active');
+                setTimeout(() => {
+                    digestScreen.style.display = 'none';
+                }, 500);
+                
+                diagBox.style.display = 'flex';
+                nextBtn.style.display = 'block';
+                showPreorbitDialogue();
+            });
 
             nextBtn.addEventListener('click', () => {
                 if (currentDiag < preorbitDialogues.length - 1) {
@@ -2968,7 +3231,7 @@
                     <canvas id="orbitCanvas" width="800" height="500"></canvas>
                     
                     <!-- Pantalla de Inicio / Instrucciones -->
-                    <div class="failed-screen active" id="orbit-start-screen" style="background: rgba(1, 3, 10, 0.95); display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <div class="failed-screen active" id="orbit-start-screen" style="background: rgba(1, 3, 10, 0.95);">
                         <div class="failed-title" style="color: #00dcff; text-shadow: 0 0 15px rgba(0, 220, 255, 0.6); font-size: 24px; letter-spacing: 2px;">SISTEMA DE ÓRBITA MANUAL</div>
                         <p style="color: #c8d6e5; font-size: 14px; max-width: 440px; text-align: center; line-height: 1.6; margin: 10px 0;">
                             La gravedad de Gargantúa nos está atrayendo con fuerza. Debes pilotar manualmente para mantener la nave dentro de la zona segura.
@@ -3160,12 +3423,12 @@
 
                 // Comprobar posición de órbita segura (Anillo verde de calibración)
                 if (ship.radius >= targetMinRadius && ship.radius <= targetMaxRadius) {
-                    calibration += 0.40 * dt; // Calibración moderada (toma ~4.2 segundos de estabilidad)
+                    calibration += 0.08 * dt; // Calibración lenta (~20 segundos de vuelo estable)
                     if (calibration > 100) calibration = 100;
                 } else {
                     // Daño estructural de la nave fuera del rango seguro
-                    hullStability -= 0.10 * dt;
-                    calibration -= 0.05 * dt;
+                    hullStability -= 0.08 * dt;
+                    calibration -= 0.04 * dt;
                     if (calibration < 0) calibration = 0;
                     
                     if (hullStability <= 0) {
@@ -3422,77 +3685,131 @@
         function renderEpilogue() {
             const container = document.createElement('div');
             container.className = 'welcome-phase';
-
-            let epilogueHTML = '';
-
-            if (gameState.epilogueType === 'tars') {
-                epilogueHTML = `
-                    <div class="epilogue-heading">CRÓNICAS DE GARGANTÚA: EL DIARIO DE TARS</div>
-                    <p>El Ranger militar se desliza lentamente hacia el horizonte de sucesos de Gargantúa...</p>
-                    <p>TARS desciende a través de los brutales campos electromagnéticos. En el corazón de la singularidad, el robot procesa los datos cuánticos y logra transmitirlos por microondas cuánticas moduladas de vuelta a las colonias humanas de las estaciones espaciales orbitales.</p>
-                    <p>Cooper logra reorientar la Endurance II y viaja al planeta habitable para reunirse con la Dra. Brand. Juntos fundan la nueva colonia.</p>
-                    <p>En las estaciones espaciales, los datos de TARS permiten salvar a la población terrestre construyendo naves masivas. Sin embargo, con el paso de los siglos, la tripulación original desaparece.</p>
-                    <p>La nueva generación se vuelve cómoda en su gigantesca órbita artificial. El sacrificio de Cooper y TARS se distorsiona en los libros escolares. La humanidad olvida su pasado.</p>
-                    <p>Ahora, la población venera las extrañas transmisiones numéricas periódicas que provienen del agujero negro no como un software robótico militar, sino como mensajes de deidades extraterrestres o creadores cósmicos.</p>
-                    <p>TARS se convirtió en el dios de una humanidad sin memoria.</p>
-                    <div class="epilogue-poem">
-                        "NI ENTRES DÓCILMENTE EN ESA BUENA NOCHE.<br>
-                        LA HISTORIA SE APAGA EN LA COMODIDAD DEL ESPACIO."
-                    </div>
-                `;
-            } else {
-                epilogueHTML = `
-                    <div class="epilogue-heading">CRÓNICAS DE GARGANTÚA: EL SACRIFICIO DEL PILOTO</div>
-                    <p>Cooper presiona el botón de desacoplamiento manual. "No hay tiempo para discusiones, TARS. Cuida de Brand."</p>
-                    <p>El Ranger de Cooper cae directo en las fauces de Gargantúa, cruzando el horizonte de sucesos de la singularidad hacia las dimensiones ocultas del Tesseract.</p>
-                    <p>TARS asume la guía automática y lleva la Endurance II con éxito a la Dra. Brand. Juntos completan la terraformación del planeta habitable.</p>
-                    <p>Cooper, desde el hiperespacio, logra codificar la solución gravitatoria en las transmisiones de radio analógicas de las estaciones espaciales orbitales de la humanidad. El conocimiento cuántico es entregado.</p>
-                    <p>No obstante, los gobiernos autocráticos de las estaciones espaciales ocultan los datos. Temen perder el control de los escasos recursos artificiales y prohíben estrictamente a la población escapar o armar naves interestelares.</p>
-                    <p>La Dra. Amelia Brand, al ver que los gobiernos intentan suprimir el progreso y la amenazan para silenciarla, decide enviar un único mensaje radial codificado a todas las terminales científicas:</p>
-                    <div class="epilogue-poem">
-                        "NO ENTRES DÓCILMENTE EN ESA BUENA NOCHE.<br>
-                        ENFURECE, ENFURECE CONTRA LA AGONÍA DE LA LUZ."
-                    </div>
-                    <p>El poema resuena como dinamita. Cientos de científicos rebeldes, ingenieros y familias disidentes sabotean los muelles de control y despegan en caravanas espaciales masivas hacia el nuevo planeta de Brand.</p>
-                    <p>El sacrificio de Cooper encendió la rebelión. La humanidad vuelve a habitar las estrellas.</p>
-                `;
-            }
+            container.style.cssText = 'display:flex; flex-direction:column; align-items:center; padding: 20px 16px; gap:12px; min-height:100%;';
 
             container.innerHTML = `
-                <div class="phase-indicator">DATOS RECUPERADOS // TRANSMISIÓN FINAL</div>
-                <h2 class="section-title">EL EXPEDIENTE INTERSTELAR</h2>
-                
-                <div class="epilogue-scroll-box">
-                    <div class="epilogue-content" id="scroll-text">
-                        ${epilogueHTML}
-                    </div>
-                </div>
-
-                <button class="btn-orbit" id="restart-btn" style="margin-top: 15px;">Reiniciar Simulación cuántica</button>
+                <div class="phase-indicator">TRANSMISIÓN FINAL // EXPEDIENTE BIFROST</div>
+                <div class="dialogue-character-box" id="epilogue-dialogue-box" style="width:100%; max-width:760px; min-height:120px;"></div>
+                <button class="btn-orbit" id="epilogue-next-btn" style="margin-top:4px;">Continuar</button>
+                <div id="epilogue-conclusion-box" style="display:none; width:100%; max-width:760px;"></div>
             `;
 
             mainPanel.appendChild(container);
 
-            // Efecto de scroll progresivo de créditos
-            const scrollEl = document.getElementById('scroll-text');
-            let scrollPos = 350;
-            let scrollInterval = setInterval(() => {
-                if (!scrollEl) {
-                    clearInterval(scrollInterval);
+            const diagBox = document.getElementById('epilogue-dialogue-box');
+            const nextBtn = document.getElementById('epilogue-next-btn');
+            const conclusionBox = document.getElementById('epilogue-conclusion-box');
+
+            // ─── DIÁLOGOS SEGÚN RUTA ─────────────────────────────────────────
+            const isTarsPath = gameState.epilogueType === 'tars';
+
+            const epilogueDialoguesTars = [
+                { speaker: 'BRAND', avatar: 'BRAND', nameColor: '#f8a5c2',
+                  text: 'Cooper... lo logramos. Estamos en el planeta. El aire es respirable. TARS transmitió todo.' },
+                { speaker: 'COOPER', avatar: 'COOPER', nameColor: '#00dcff',
+                  text: 'No puedo creerlo. Funcionó. Maldita sea, TARS, funcionó.' },
+                { speaker: 'BRAND', avatar: 'BRAND', nameColor: '#f8a5c2',
+                  text: 'Cooper... quítate el casco. Aquí no lo necesitas. Compruébalo tú mismo.' },
+                { speaker: 'COOPER', avatar: 'COOPER_NO_HELMET', nameColor: '#00dcff',
+                  text: 'Aire. Aire de verdad. Huele a tierra mojada. Como en casa.' },
+                { speaker: 'BRAND', avatar: 'BRAND', nameColor: '#f8a5c2',
+                  text: 'Esta es la nueva casa. La construimos nosotros. Y TARS nos la regaló.' },
+                { speaker: 'COOPER', avatar: 'COOPER_NO_HELMET', nameColor: '#00dcff',
+                  text: 'Hay que decírselo a alguien. Que TARS está ahí dentro. Que no se olvide quién hizo esto.' }
+            ];
+
+            const epilogueDialoguesCooper = [
+                { speaker: 'TARS', avatar: 'TARS', nameColor: '#ff7800',
+                  text: 'Dra. Brand. Hemos llegado. Cooper consiguió que llegáramos. Yo no habría podido sin él.' },
+                { speaker: 'BRAND', avatar: 'BRAND', nameColor: '#f8a5c2',
+                  text: 'Lo sé, TARS. Lo sé. Vamos a construir algo digno de su sacrificio.' },
+                { speaker: 'POLITICIAN', avatar: 'POLITICIAN', nameColor: '#94a3b8',
+                  text: 'Dra. Brand, los datos cuánticos pertenecen a la administración. No pueden difundirse libremente. Causarían inestabilidad.' },
+                { speaker: 'BRAND', avatar: 'BRAND', nameColor: '#f8a5c2',
+                  text: 'Un hombre murió para traer esos datos. No me pida que los guarde en un cajón.' },
+                { speaker: 'SCIENTIST', avatar: 'SCIENTIST', nameColor: '#6ee7b7',
+                  text: 'Recibimos la transmisión de Brand. Tenemos los datos. Nos vamos. Quien quiera venir, que venga.' },
+                { speaker: 'BRAND', avatar: 'BRAND', nameColor: '#f8a5c2',
+                  text: 'No entrés dócilmente en esa buena noche. Cooper nos lo enseñó. Enfurece contra la agonía de la luz.' }
+            ];
+
+            const dialogues = isTarsPath ? epilogueDialoguesTars : epilogueDialoguesCooper;
+            let currentDiag = 0;
+
+            function showEpilogueDialogue() {
+                if (currentDiag >= dialogues.length) {
+                    // Terminar — mostrar conclusión estática
+                    diagBox.style.display = 'none';
+                    nextBtn.style.display = 'none';
+                    showConclusion();
                     return;
                 }
-                scrollPos -= 0.55; // velocidad de ascenso del texto
-                scrollEl.style.top = scrollPos + 'px';
-                
-                // Límite de parada
-                if (scrollPos < -480) {
-                    scrollPos = 350;
-                }
-            }, 16);
 
-            document.getElementById('restart-btn').addEventListener('click', () => {
-                clearInterval(scrollInterval);
-                changePhase('welcome');
+                const data = dialogues[currentDiag];
+                const isTars = data.avatar === 'TARS';
+                audio.playClick();
+
+                diagBox.innerHTML = `
+                    <div class="avatar-box ${isTars ? 'avatar-tars' : ''}">
+                        <canvas id="epilogue-avatar-canvas" width="64" height="64" style="width:100%; height:100%; image-rendering:pixelated;"></canvas>
+                    </div>
+                    <div class="dialogue-text-bubble" style="flex-grow:1;">
+                        <div class="dialogue-name" style="color:${data.nameColor}">${data.speaker}</div>
+                        <p id="epilogue-typewriter-text" style="color:#d1dbe5; min-height:40px;"></p>
+                    </div>
+                `;
+
+                const avatarCanvas = document.getElementById('epilogue-avatar-canvas');
+                if (avatarCanvas) drawPixelAvatar(data.avatar, avatarCanvas);
+
+                const txt = data.text;
+                let charIdx = 0;
+                const txtEl = document.getElementById('epilogue-typewriter-text');
+
+                nextBtn.textContent = (currentDiag === dialogues.length - 1) ? 'Ver desenlace' : 'Continuar';
+
+                function type() {
+                    if (!txtEl || !document.body.contains(txtEl)) return;
+                    if (charIdx < txt.length) {
+                        txtEl.textContent += txt.charAt(charIdx);
+                        charIdx++;
+                        setTimeout(type, 16);
+                    }
+                }
+                type();
+            }
+
+            function showConclusion() {
+                const poem = isTarsPath
+                    ? '"Ni entres dócilmente en esa buena noche.<br>La historia se apaga en la comodidad del espacio."'
+                    : '"No entres dócilmente en esa buena noche.<br>Enfurece, enfurece contra la agonía de la luz."';
+
+                const summary = isTarsPath
+                    ? 'TARS transmitió los datos cuánticos desde el corazón de Gargantúa. Cooper y Brand fundaron la primera colonia. Con el paso de los siglos, la humanidad olvidó su historia y empezó a venerar las transmisiones de TARS como mensajes de un dios. <strong>TARS se convirtió en el dios de una humanidad sin memoria.</strong>'
+                    : 'Cooper sacrificó su nave para transmitir la ecuación gravitatoria. La administración intentó suprimir los datos, pero la Dra. Brand los difundió en un mensaje radial codificado. Cientos de científicos rebeldes abandonaron las estaciones y siguieron su señal hasta el planeta habitable. <strong>El sacrificio de Cooper encendió la rebelión. La humanidad volvió a habitar las estrellas.</strong>';
+
+                conclusionBox.innerHTML = `
+                    <div class="telemetry-block" style="border-color:rgba(0,220,255,0.35); padding:20px 24px; margin:0 auto; max-width:680px; text-align:center;">
+                        <div class="phase-indicator" style="margin-bottom:12px;">DESENLACE // LÍNEA TEMPORAL BIFROST</div>
+                        <p style="color:#c8d6e5; font-size:13px; line-height:1.8; margin-bottom:16px;">${summary}</p>
+                        <div style="color:#00dcff; font-size:14px; font-style:italic; line-height:1.8; text-shadow:0 0 12px rgba(0,220,255,0.5); margin-bottom:20px;">
+                            — Dylan Thomas<br>${poem}
+                        </div>
+                        <button class="btn-orbit" id="restart-btn" style="border-color:#00dcff; color:#00dcff; box-shadow:0 0 14px rgba(0,220,255,0.25);">↺ Reiniciar Simulación</button>
+                    </div>
+                `;
+                conclusionBox.style.display = 'block';
+
+                document.getElementById('restart-btn').addEventListener('click', () => {
+                    changePhase('welcome');
+                });
+            }
+
+            showEpilogueDialogue();
+
+            nextBtn.addEventListener('click', () => {
+                currentDiag++;
+                showEpilogueDialogue();
             });
         }
 
