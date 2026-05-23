@@ -4359,7 +4359,7 @@
             const diagBox = document.getElementById('epilogue-dialogue-box');
             const nextBtn = document.getElementById('epilogue-next-btn');
             const conclusionBox = document.getElementById('epilogue-conclusion-box');
-            
+
             // epilogueCanvas drawing animation variables
             const epilogueCanvas = document.getElementById('epilogueCanvas');
             const epilogueCtx = epilogueCanvas.getContext('2d');
@@ -4372,15 +4372,21 @@
 
             const epilogueDialoguesTars = [
                 { speaker: 'TARS', avatar: 'TARS', nameColor: '#ff7800',
-                  text: 'Secuencia de desacople manual del Ranger lista. Cooper, ha sido un honor.' },
+                  text: 'Secuencia de desacople manual del Ranger lista. Cooper, ha sido un honor. Transmitiendo bitácora final a la Endurance.' },
                 { speaker: 'COOPER', avatar: 'COOPER', nameColor: '#00dcff',
                   text: 'TARS... acepto esto. Ese viejo robot fue lo más cercano que tuve a un amigo.' },
                 { speaker: 'TARS', avatar: 'TARS', nameColor: '#ff7800',
                   text: 'Nos vemos en el otro lado, Cooper. Desacoplándose en 3, 2, 1...' },
                 { speaker: 'BRAND', avatar: 'BRAND', nameColor: '#f8a5c2',
-                  text: 'Cooper... lo logramos. Estamos en el planeta. El aire es respirable. TARS transmitió todo.' },
+                  text: 'Cooper... lo logramos. Estamos en el planeta. El aire es respirable. TARS transmitió los datos cuánticos y dejó grabado un último registro de audio dirigido a mí.' },
                 { speaker: 'COOPER', avatar: 'COOPER', nameColor: '#00dcff',
-                  text: 'No puedo creerlo. Funcionó. Maldita sea, TARS, funcionó.' },
+                  text: '¿Un mensaje final de TARS?' },
+                { speaker: 'TARS', avatar: 'TARS', nameColor: '#ff7800',
+                  text: 'Dra. Brand. Mi honestidad está configurada al 90%. Mis circuitos no están programados para el afecto, pero tras calibrar todas las variables del espacio-tiempo, he determinado que no hay parámetros lógicos que expliquen mi deseo de que usted sobreviva. Si el amor es una dimensión cuantificable, considero que mi nivel de apego hacia usted alcanza el 100%. No entre dócilmente a esa buena noche. Viva.' },
+                { speaker: 'BRAND', avatar: 'BRAND', nameColor: '#f8a5c2',
+                  text: 'Una máquina estuvo más dispuesta a aprender sobre el amor que muchas personas en toda su vida...' },
+                { speaker: 'COOPER', avatar: 'COOPER', nameColor: '#00dcff',
+                  text: 'TARS siempre tuvo un porcentaje de sinceridad muy alto cuando importaba.' },
                 { speaker: 'BRAND', avatar: 'BRAND', nameColor: '#f8a5c2',
                   text: 'Cooper... quítate el casco. Aquí no lo necesitas. Compruébalo tú mismo.' },
                 { speaker: 'COOPER', avatar: 'COOPER_NO_HELMET', nameColor: '#00dcff',
@@ -4393,7 +4399,7 @@
 
             const epilogueDialoguesCooper = [
                 { speaker: 'COOPER', avatar: 'COOPER', nameColor: '#00dcff',
-                  text: 'Perdón, marine, pero no voy a permitir que te sacrifiques dos veces.' },
+                  text: 'Perdón, marine, pero no voy a permitir que te sacrifices dos veces.' },
                 { speaker: 'TARS', avatar: 'TARS', nameColor: '#ff7800',
                   text: 'Cooper, eso no es lógico. Mis circuitos son reemplazables. Tu vida no. Las directivas dicen que debes reunirte con Brand.' },
                 { speaker: 'COOPER', avatar: 'COOPER', nameColor: '#00dcff',
@@ -4423,7 +4429,7 @@
                 { speaker: 'BRAND', avatar: 'BRAND', nameColor: '#f8a5c2',
                   text: 'El mensaje que nos trajo aquí. La grabación de la ecuación cuántica... y una advertencia. Es hora de encender la llama.' },
                 { speaker: 'BRAND', avatar: 'BRAND', nameColor: '#f8a5c2',
-                  text: 'No entres dócilmente en esa buena noche. Enfurece, enfurece contra la agonía de la luz.' }
+                  text: 'No entres dócilmente a esa buena noche. Rabia, rabia contra la muerte de la luz.' }
             ];
 
             const dialogues = isTarsPath ? epilogueDialoguesTars : epilogueDialoguesCooper;
@@ -4616,9 +4622,22 @@
             }
 
             function showConclusion() {
-                const poem = isTarsPath
-                    ? '"No entres dócilmente en esa buena noche.<br>La historia se apaga en la comodidad del espacio."'
-                    : '"No entres dócilmente en esa buena noche.<br>Enfurece, enfurece contra la agonía de la luz."';
+                let quoteHtml = '';
+                if (isTarsPath) {
+                    quoteHtml = `
+                        <div style="color:#f8a5c2; font-size:13px; font-style:italic; line-height:1.8; text-shadow:0 0 12px rgba(248,165,194,0.4); margin-bottom:20px;">
+                            — Dra. Amelia Brand<br>
+                            "El amor es lo único que somos capaces de percibir que trasciende las dimensiones del tiempo y del espacio. Tal vez deberíamos confiar en eso, aunque aún no podamos entenderlo."
+                        </div>
+                    `;
+                } else {
+                    quoteHtml = `
+                        <div style="color:#00dcff; font-size:14px; font-style:italic; line-height:1.8; text-shadow:0 0 12px rgba(0,220,255,0.5); margin-bottom:20px;">
+                            — Dylan Thomas<br>
+                            "No entres dócilmente a esa buena noche.<br>Rabia, rabia contra la muerte de la luz."
+                        </div>
+                    `;
+                }
 
                 const summary = isTarsPath
                     ? 'TARS transmitió los datos cuánticos desde el corazón de Gargantúa. Cooper y Brand fundaron la primera colonia. Con el paso de los siglos, la humanidad olvidó su historia y empezó a venerar las transmisiones de TARS como mensajes de un dios. <strong>TARS se convirtió en el dios de una humanidad sin memoria.</strong>'
@@ -4628,9 +4647,7 @@
                     <div class="telemetry-block" style="border-color:rgba(0,220,255,0.35); padding:20px 24px; margin:0 auto; max-width:680px; text-align:center;">
                         <div class="phase-indicator" style="margin-bottom:12px;">DESENLACE // LÍNEA TEMPORAL BIFROST</div>
                         <p style="color:#c8d6e5; font-size:13px; line-height:1.8; margin-bottom:16px;">${summary}</p>
-                        <div style="color:#00dcff; font-size:14px; font-style:italic; line-height:1.8; text-shadow:0 0 12px rgba(0,220,255,0.5); margin-bottom:20px;">
-                            — Dylan Thomas<br>${poem}
-                        </div>
+                        ${quoteHtml}
                         <button class="btn-orbit" id="credits-btn" style="border-color:#00dcff; color:#00dcff; box-shadow:0 0 14px rgba(0,220,255,0.25);">Continuar</button>
                     </div>
                 `;
