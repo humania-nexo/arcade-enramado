@@ -3640,7 +3640,14 @@
                     if (hullStability <= 0) {
                         hullStability = 0;
                         isFailed = true;
-                              // Actualizar HUD con avisos dinámicos
+                        document.getElementById('orbit-fail-title').textContent = "HULL INTEGRITY COMPROMISED";
+                        document.getElementById('orbit-fail-desc').textContent = "Las brutales fuerzas de marea de Gargantúa aplastaron la Endurance II.";
+                        failedScreen.classList.add('active');
+                        audio.playAlarm();
+                    }
+                }
+
+                // Actualizar HUD con avisos dinámicos
                 if (ship.radius >= 380) {
                     gravityHud.textContent = `HULL STABILITY: ${Math.max(0, Math.floor(hullStability))}% [AVISO: ESCAPANDO]`;
                     gravityHud.style.color = '#ff3838';
@@ -3655,12 +3662,6 @@
  
                 // Condición de colisión directa en el horizonte de sucesos
                 if (ship.radius <= 60) {
-                    isFailed = true;
-                    document.getElementById('orbit-fail-title').textContent = "SINGULARIDAD ALCANZADA";
-                    document.getElementById('orbit-fail-desc').textContent = "La nave cruzó el horizonte de sucesos. No hay escape posible.";
-                    failedScreen.classList.add('active');
-                    audio.playAlarm();
-                } 40) {
                     isFailed = true;
                     document.getElementById('orbit-fail-title').textContent = "SINGULARIDAD ALCANZADA";
                     document.getElementById('orbit-fail-desc').textContent = "La nave cruzó el horizonte de sucesos. No hay escape posible.";
