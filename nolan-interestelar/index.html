@@ -1171,7 +1171,25 @@
             }, 350);
         }
 
-        function drawEnduranceV2(ctx, cx, cy, radius, rotation, propulsionActive, propulsionSide = 0) {
+        function drawEnduranceV2(ctx, cx, cy, radius, rotation, propulsionActive, propulsionSide = 0, stableFlameAngle = null) {
+            // Main engine thruster firing in a stable direction (independent of ship rotation)
+            if (propulsionActive && propulsionSide === 0 && stableFlameAngle !== null) {
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(stableFlameAngle);
+                ctx.shadowColor = '#ff7800';
+                ctx.shadowBlur = 10;
+                ctx.fillStyle = '#ff7800';
+                ctx.beginPath();
+                // Draw pointing along the POSITIVE X axis (direction of stableFlameAngle)
+                ctx.moveTo(radius * 1.15, -radius * 0.18);
+                ctx.lineTo(radius * 1.15 + (radius * 0.45 + Math.sin(Date.now() * 0.08) * radius * 0.12), 0);
+                ctx.lineTo(radius * 1.15, radius * 0.18);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            }
+
             ctx.save();
             ctx.translate(cx, cy);
             ctx.rotate(rotation);
@@ -1288,12 +1306,13 @@
             ctx.strokeStyle = '#ffffff';
             ctx.stroke();
 
-            // Propulsion fire
+            // Propulsion fire (maneuver thrusters, and main engine ONLY if stableFlameAngle is NOT specified)
             if (propulsionActive) {
                 ctx.shadowColor = '#ff7800';
                 ctx.shadowBlur = 10;
                 ctx.fillStyle = '#ff7800';
                 ctx.beginPath();
+                let shouldDraw = true;
                 if (propulsionSide === -1) {
                     // Left maneuver thruster firing rightwards (pushes ship left)
                     ctx.moveTo(0, radius + modH/2);
@@ -1306,14 +1325,18 @@
                     ctx.lineTo(-radius * 0.15, -radius - modH/2 - radius * 0.25);
                     ctx.lineTo(0, -radius - modH/2 - radius * 0.15);
                     ctx.lineTo(radius * 0.15, -radius - modH/2 - radius * 0.25);
-                } else {
+                } else if (stableFlameAngle === null) {
                     // Main engine thruster firing backwards
                     ctx.moveTo(-radius * 1.15, -radius * 0.18);
                     ctx.lineTo(-radius * 1.15 - (radius * 0.45 + Math.sin(Date.now() * 0.08) * radius * 0.12), 0);
                     ctx.lineTo(-radius * 1.15, radius * 0.18);
+                } else {
+                    shouldDraw = false;
                 }
-                ctx.closePath();
-                ctx.fill();
+                if (shouldDraw) {
+                    ctx.closePath();
+                    ctx.fill();
+                }
             }
 
             ctx.restore();
@@ -2450,7 +2473,8 @@
                 const cy = canvas.height / 2;
                 const time = Date.now() * 0.001;
 
-                drawEnduranceV2(ctx, cx - 50, cy, 36, time * 0.15, true, 0);
+                // Cruising in space, moving left to right. Thruster flame points backwards (to the left, Math.PI)
+                drawEnduranceV2(ctx, cx - 50, cy, 36, time * 0.15, true, 0, Math.PI);
 
                 // Flashing red warning if in alert mode
                 if (flightDialogues[currentDiag].isAlert && Math.floor(Date.now() / 200) % 2 === 0) {
@@ -2887,6 +2911,16 @@
 
             let runId = null;
             let time = 0;
+            let approaching = true;
+            let stars = [];
+            for (let i = 0; i < 60; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    speed: Math.random() * 3 + 1,
+                    size: Math.random() * 1.5 + 0.5
+                });
+            }
 
             const wormholeDialogues = [
                 { speaker: "COOPER", text: "¡Estamos dentro! El espacio se está plegando sobre sí mismo.", avatar: "COOPER" },
@@ -2948,6 +2982,7 @@
 
             startWormholeBtn.addEventListener('click', () => {
                 audio.playClick();
+                approaching = false; // Switch to warp effect
                 digestScreen.classList.remove('active');
                 setTimeout(() => {
                     digestScreen.style.display = 'none';
@@ -2969,40 +3004,93 @@
             });
 
             function drawWormholeScene() {
-                ctx.fillStyle = '#000003';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
                 time += 0.05;
-
                 const cx = canvas.width / 2;
                 const cy = canvas.height / 2;
 
-                // Draw a beautiful twisting vortex background
-                const grad = ctx.createRadialGradient(cx, cy, 5, cx, cy, 350);
-                grad.addColorStop(0, '#000000');
-                grad.addColorStop(0.15, '#050a1e');
-                grad.addColorStop(0.4, '#1b023a');
-                grad.addColorStop(0.7, '#007ca5');
-                grad.addColorStop(0.9, '#ff7800');
-                grad.addColorStop(1, '#000003');
-                ctx.fillStyle = grad;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                if (approaching) {
+                    // ─── ESCENA DE APROXIMACIÓN (Viaje de izquierda a derecha) ───
+                    ctx.fillStyle = '#000003';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                // Draw spiral vortex rings
-                ctx.strokeStyle = 'rgba(0, 220, 255, 0.2)';
-                ctx.lineWidth = 2;
-                for (let r = 50; r < 400; r += 40) {
+                    // Estrellas moviéndose de derecha a izquierda
+                    ctx.fillStyle = '#ffffff';
+                    for (let star of stars) {
+                        star.x -= star.speed;
+                        if (star.x < 0) {
+                            star.x = canvas.width;
+                            star.y = Math.random() * canvas.height;
+                        }
+                        ctx.fillRect(star.x, star.y, star.size, star.size);
+                    }
+
+                    // Dibujar la esfera del agujero de gusano (Ilustración en la derecha)
+                    const wx = cx + 185;
+                    const wy = cy;
+                    const wRadius = 90;
+
+                    // Lente gravitacional del agujero (glow y distorsión radial alrededor)
+                    const lensGrad = ctx.createRadialGradient(wx, wy, wRadius * 0.9, wx, wy, wRadius * 1.35);
+                    lensGrad.addColorStop(0, 'rgba(0, 220, 255, 0.4)');
+                    lensGrad.addColorStop(0.3, 'rgba(255, 120, 0, 0.25)');
+                    lensGrad.addColorStop(0.7, 'rgba(27, 2, 58, 0.15)');
+                    lensGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                    ctx.fillStyle = lensGrad;
                     ctx.beginPath();
-                    ctx.arc(cx, cy, r + Math.sin(time + r * 0.01) * 10, 0, Math.PI * 2);
+                    ctx.arc(wx, wy, wRadius * 1.4, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Halo circular brillante
+                    ctx.strokeStyle = 'rgba(0, 220, 255, 0.6)';
+                    ctx.lineWidth = 3;
+                    ctx.shadowColor = '#00dcff';
+                    ctx.shadowBlur = 15;
+                    ctx.beginPath();
+                    ctx.arc(wx, wy, wRadius, 0, Math.PI * 2);
                     ctx.stroke();
+                    ctx.shadowBlur = 0;
+
+                    // Esfera central negra que distorsiona las estrellas
+                    ctx.fillStyle = '#000000';
+                    ctx.beginPath();
+                    ctx.arc(wx, wy, wRadius - 1.5, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Dibujar Endurance V2 volando de izquierda a derecha
+                    // Flamita apuntando a la izquierda (Math.PI) de forma estable
+                    const shipX = cx - 180 + Math.sin(time * 0.25) * 15;
+                    const shipY = cy + Math.cos(time * 0.25) * 8;
+                    drawEnduranceV2(ctx, shipX, shipY, 32, time * 0.12, true, 0, Math.PI);
+
+                } else {
+                    // ─── ESCENA DE WARP (Dentro del agujero de gusano) ───
+                    // Sin propulsores activos (se desactivan por la gravedad/curvatura)
+                    const grad = ctx.createRadialGradient(cx, cy, 5, cx, cy, 350);
+                    grad.addColorStop(0, '#000000');
+                    grad.addColorStop(0.15, '#050a1e');
+                    grad.addColorStop(0.4, '#1b023a');
+                    grad.addColorStop(0.7, '#007ca5');
+                    grad.addColorStop(0.9, '#ff7800');
+                    grad.addColorStop(1, '#000003');
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    // Draw spiral vortex rings
+                    ctx.strokeStyle = 'rgba(0, 220, 255, 0.2)';
+                    ctx.lineWidth = 2;
+                    for (let r = 50; r < 400; r += 40) {
+                        ctx.beginPath();
+                        ctx.arc(cx, cy, r + Math.sin(time + r * 0.01) * 10, 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+
+                    // Shake effect on the ship to simulate turbulence
+                    const shakeX = (Math.random() - 0.5) * 5;
+                    const shakeY = (Math.random() - 0.5) * 5;
+
+                    // Draw Endurance V2 in the center, spinning (no engines active during warp)
+                    drawEnduranceV2(ctx, cx + shakeX, cy + shakeY, 32, time * 0.05, false, 0);
                 }
-
-                // Shake effect on the ship to simulate turbulence
-                const shakeX = (Math.random() - 0.5) * 5;
-                const shakeY = (Math.random() - 0.5) * 5;
-
-                // Draw Endurance V2 in the center, spinning
-                drawEnduranceV2(ctx, cx + shakeX, cy + shakeY, 32, time * 0.05, true, 0);
 
                 runId = requestAnimationFrame(drawWormholeScene);
             }
@@ -3057,7 +3145,20 @@
             const digestScreen = document.getElementById('preorbit-digest-screen');
             const startPreorbitBtn = document.getElementById('start-preorbit-btn');
 
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+
             let runId = null;
+            let approaching = true;
+            let stars = [];
+            for (let i = 0; i < 60; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    speed: Math.random() * 3 + 1,
+                    size: Math.random() * 1.5 + 0.5
+                });
+            }
             let accretionParticles = [];
             // Accretion disk particles for visual depth
             for (let i = 0; i < 150; i++) {
@@ -3128,6 +3229,7 @@
 
             startPreorbitBtn.addEventListener('click', () => {
                 audio.playClick();
+                approaching = false; // Switch to orbit scene
                 digestScreen.classList.remove('active');
                 setTimeout(() => {
                     digestScreen.style.display = 'none';
@@ -3150,63 +3252,119 @@
 
             // Singular approaching animation loop
             function drawPreorbit() {
-                ctx.fillStyle = '#000002';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
                 const singularityX = 400;
                 const singularityY = 250;
+                const animTime = Date.now() * 0.0005;
 
-                // Draw accretion disk
-                for (let p of accretionParticles) {
-                    p.angle += p.speed;
-                    const px = Math.cos(p.angle) * p.radius;
-                    const py = Math.sin(p.angle) * p.radius;
-                    let rx = singularityX + px;
-                    let ry = singularityY + py;
+                if (approaching) {
+                    // ─── ESCENA DE APROXIMACIÓN AL SISTEMA DE GARGANTÚA (Vuelo izquierda a derecha) ───
+                    ctx.fillStyle = '#000003';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                    if (py < 0) {
-                        const gravitationalWarp = (1 - (p.radius / 250)) * 45;
-                        ry -= gravitationalWarp;
+                    // Estrellas de derecha a izquierda
+                    ctx.fillStyle = '#ffffff';
+                    for (let star of stars) {
+                        star.x -= star.speed;
+                        if (star.x < 0) {
+                            star.x = canvas.width;
+                            star.y = Math.random() * canvas.height;
+                        }
+                        ctx.fillRect(star.x, star.y, star.size, star.size);
                     }
 
-                    ctx.fillStyle = p.color;
+                    // Dibujar Gargantúa y su disco de acreción de lejos en la derecha (x = 580, y = 250)
+                    const gx = 580;
+                    const gy = 250;
+                    const gRadius = 60;
+
+                    // Accretion disk particles drawn around (gx, gy)
+                    for (let i = 0; i < 80; i++) {
+                        const radius = (i * 0.8) + 40;
+                        const angle = (Date.now() * 0.0008 + i * 0.12);
+                        const px = Math.cos(angle) * radius;
+                        let py = Math.sin(angle) * radius;
+                        let ry = gy + py;
+                        if (py < 0) {
+                            ry -= (1 - (radius / 150)) * 20; // Lensing effect
+                        }
+                        ctx.fillStyle = `hsl(${20 + (i%5)}, 100%, 65%)`;
+                        ctx.beginPath();
+                        ctx.arc(gx + px, ry, 1, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+
+                    // Singularidad negra en el centro del disco
+                    ctx.fillStyle = '#000000';
+                    ctx.shadowColor = '#ff7800';
+                    ctx.shadowBlur = 15;
                     ctx.beginPath();
-                    ctx.arc(rx, ry, p.size, 0, Math.PI * 2);
+                    ctx.arc(gx, gy, 18, 0, Math.PI * 2);
                     ctx.fill();
+                    ctx.shadowBlur = 0;
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+
+                    // Dibujar Endurance V2 volando de izquierda a derecha
+                    // Flamita apuntando a la izquierda (Math.PI) de forma estable
+                    const timeVal = Date.now() * 0.001;
+                    const shipX = cx - 180 + Math.sin(timeVal * 0.2) * 10;
+                    const shipY = cy + Math.cos(timeVal * 0.2) * 6;
+                    drawEnduranceV2(ctx, shipX, shipY, 32, timeVal * 0.1, true, 0, Math.PI);
+
+                } else {
+                    // ─── ESCENA DE CAPTURA GRAVITATORIA (Órbita de Gargantúa) ───
+                    ctx.fillStyle = '#000002';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    // Dibujar disco de acreción en el centro
+                    for (let p of accretionParticles) {
+                        p.angle += p.speed;
+                        const px = Math.cos(p.angle) * p.radius;
+                        const py = Math.sin(p.angle) * p.radius;
+                        let rx = singularityX + px;
+                        let ry = singularityY + py;
+
+                        if (py < 0) {
+                            const gravitationalWarp = (1 - (p.radius / 250)) * 45;
+                            ry -= gravitationalWarp;
+                        }
+
+                        ctx.fillStyle = p.color;
+                        ctx.beginPath();
+                        ctx.arc(rx, ry, p.size, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+
+                    // Horizonte de sucesos negro
+                    ctx.fillStyle = '#000000';
+                    ctx.shadowColor = '#ff7800';
+                    ctx.shadowBlur = 25;
+                    ctx.beginPath();
+                    ctx.arc(singularityX, singularityY, 40, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                    
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    // Nave acercándose e insertándose en órbita
+                    const shipDist = 260 - Math.min(60, (animTime % 10) * 12);
+                    const shipAngle = animTime * 0.2;
+
+                    const sx = singularityX + Math.cos(shipAngle) * shipDist;
+                    const sy = singularityY + Math.sin(shipAngle) * shipDist;
+
+                    ctx.save();
+                    ctx.translate(sx, sy);
+                    ctx.rotate(shipAngle + Math.PI/2);
+                    
+                    // Dibujamos la Endurance V2 con su propulsor de maniobra activo para la inserción orbital
+                    drawEnduranceV2(ctx, 0, 0, 10, 0, true, 0);
+
+                    ctx.restore();
                 }
-
-                // Black hole core
-                ctx.fillStyle = '#000000';
-                ctx.shadowColor = '#ff7800';
-                ctx.shadowBlur = 25;
-                ctx.beginPath();
-                ctx.arc(singularityX, singularityY, 40, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.shadowBlur = 0;
-                
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-
-                // Approaching Endurance ship
-                const animTime = Date.now() * 0.0005;
-                const shipDist = 260 - Math.min(60, (animTime % 10) * 12);
-                const shipAngle = animTime * 0.2;
-
-                const sx = singularityX + Math.cos(shipAngle) * shipDist;
-                const sy = singularityY + Math.sin(shipAngle) * shipDist;
-
-                ctx.save();
-                ctx.translate(sx, sy);
-                ctx.rotate(shipAngle + Math.PI/2);
-                
-                ctx.strokeStyle = '#00dcff';
-                ctx.lineWidth = 1.5;
-                ctx.beginPath();
-                ctx.arc(0, 0, 7, 0, Math.PI * 2);
-                ctx.stroke();
-
-                ctx.restore();
 
                 runId = requestAnimationFrame(drawPreorbit);
             }
