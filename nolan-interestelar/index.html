@@ -1347,7 +1347,7 @@
            SISTEMA DE ESTADOS DE LA NARRATIVA Y JUEGO
            ============================================================ */
         const gameState = {
-            currentPhase: 'welcome', // welcome, intro, stealth, hangar, asteroids, orbit, choice, epilogue, credits
+            currentPhase: 'welcome', // welcome, intro, stealth, hangar, asteroids, orbit, choice, decouple, epilogue, credits
             epilogueType: 'tars', // tars, cooper
             stealthDeaths: 0,
             asteroidsShields: 3,
@@ -1380,7 +1380,7 @@
                 if (phaseName === 'wormhole') { mode = 'wormhole'; audio.setIntensity(true); }
                 if (phaseName === 'preorbit') { mode = 'stars'; audio.setIntensity(false); }
                 if (phaseName === 'orbit') { mode = 'stars'; audio.setIntensity(true); }
-                if (phaseName === 'choice' || phaseName === 'epilogue' || phaseName === 'credits') { mode = 'stars'; audio.setIntensity(false); }
+                if (phaseName === 'choice' || phaseName === 'decouple' || phaseName === 'epilogue' || phaseName === 'credits') { mode = 'stars'; audio.setIntensity(false); }
 
                 renderPhase();
                 
@@ -1421,6 +1421,9 @@
                     break;
                 case 'choice':
                     renderChoice();
+                    break;
+                case 'decouple':
+                    renderDecouple();
                     break;
                 case 'epilogue':
                     renderEpilogue();
@@ -3873,13 +3876,217 @@
 
             document.getElementById('opt-tars').addEventListener('click', () => {
                 gameState.epilogueType = 'tars';
-                changePhase('epilogue');
+                changePhase('decouple');
             });
 
             document.getElementById('opt-cooper').addEventListener('click', () => {
                 gameState.epilogueType = 'cooper';
-                changePhase('epilogue');
+                changePhase('decouple');
             });
+        }
+
+        /* ------------------------------------------------------------
+           FASE: ANIMACIÓN DE DESACOPLE (TRANSICIÓN DE GRAVEDAD)
+           ------------------------------------------------------------ */
+        function renderDecouple() {
+            const container = document.createElement('div');
+            container.className = 'game-canvas-wrapper';
+            
+            container.innerHTML = `
+                <div class="hud-overlay">
+                    <div>FASE DE TRANSPOSICIÓN: MANIOBRA CRÍTICA</div>
+                    <div style="color: #ff3838;" id="decouple-status">[ALERTA] SECUENCIA DE DESACOPLE MANUAL ACTIVA</div>
+                    <div style="color: #00dcff;" id="decouple-timer">T-MINUS 6.0s HASTA DESCONEXIÓN</div>
+                </div>
+                <div class="canvas-container">
+                    <canvas id="decoupleCanvas" width="800" height="500"></canvas>
+                </div>
+            `;
+            
+            mainPanel.appendChild(container);
+            
+            const canvas = document.getElementById('decoupleCanvas');
+            const ctx = canvas.getContext('2d');
+            const statusHud = document.getElementById('decouple-status');
+            const timerHud = document.getElementById('decouple-timer');
+            
+            let runId = null;
+            let startTime = performance.now();
+            const duration = 6000; // 6 seconds
+            
+            // Local starfield
+            let stars = [];
+            for (let i = 0; i < 100; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    speed: Math.random() * 2 + 0.5,
+                    size: Math.random() * 1.5 + 0.5
+                });
+            }
+
+            // Accretion disk particles for Gargantua
+            let accretionParticles = [];
+            const singularityX = 650;
+            const singularityY = 250;
+            for (let i = 0; i < 200; i++) {
+                accretionParticles.push({
+                    radius: Math.random() * 180 + 95,
+                    angle: Math.random() * Math.PI * 2,
+                    speed: Math.random() * 0.03 + 0.01,
+                    size: Math.random() * 1.8 + 0.4,
+                    color: `hsl(${Math.random() * 25 + 20}, 100%, ${Math.random() * 20 + 50}%)`
+                });
+            }
+            
+            let explosionFlash = 0;
+            let flashTriggered = false;
+            
+            function animate(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(1, elapsed / duration);
+                const remaining = ((duration - elapsed) / 1000).toFixed(1);
+                
+                timerHud.textContent = `T-MINUS ${Math.max(0, remaining)}s HASTA DESCONEXIÓN`;
+                
+                // Shake effect due to gravity shear
+                let shakeX = 0;
+                let shakeY = 0;
+                if (progress < 0.8) {
+                    const shakeMagnitude = (1 - progress) * 3;
+                    shakeX = (Math.random() - 0.5) * shakeMagnitude;
+                    shakeY = (Math.random() - 0.5) * shakeMagnitude;
+                }
+                
+                ctx.fillStyle = '#000002';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw stars
+                ctx.fillStyle = '#ffffff';
+                for (let star of stars) {
+                    star.x -= star.speed;
+                    if (star.x < 0) {
+                        star.x = canvas.width;
+                        star.y = Math.random() * canvas.height;
+                    }
+                    ctx.fillRect(star.x, star.y, star.size, star.size);
+                }
+                
+                // Draw accretion disk
+                for (let p of accretionParticles) {
+                    p.angle += p.speed;
+                    const px = Math.cos(p.angle) * p.radius;
+                    const py = Math.sin(p.angle) * p.radius;
+                    let rx = singularityX + px;
+                    let ry = singularityY + py;
+                    
+                    // Einstein light bending
+                    if (py < 0) {
+                        const gravitationalWarp = (1 - (p.radius / 280)) * 60;
+                        ry -= gravitationalWarp;
+                    }
+                    
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(rx, ry, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                // Draw Gargantua
+                ctx.fillStyle = '#000000';
+                ctx.shadowColor = '#ff7800';
+                ctx.shadowBlur = 40;
+                ctx.beginPath();
+                ctx.arc(singularityX, singularityY, 90, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+                
+                // Decouple triggers at progress 0.25 (1.5 seconds)
+                const decoupleProgress = 0.25;
+                let ex = 400; // Endurance X
+                let ey = 250; // Endurance Y
+                
+                if (progress > decoupleProgress) {
+                    if (!flashTriggered) {
+                        flashTriggered = true;
+                        explosionFlash = 1.0;
+                        audio.playClick();
+                    }
+                    // Endurance escapes to the left
+                    const escapeT = (progress - decoupleProgress) / (1 - decoupleProgress);
+                    ex = 400 - escapeT * 220 + shakeX;
+                    ey = 250 + shakeY;
+                    
+                    // Draw detaching Ranger falling into Gargantua
+                    const rangerT = escapeT;
+                    const rx = (400) + rangerT * (singularityX - 400);
+                    const ry = 250 + Math.sin(rangerT * Math.PI) * 40;
+                    const rangerScale = 1 - rangerT;
+                    
+                    if (rangerScale > 0.05) {
+                        ctx.save();
+                        ctx.translate(rx, ry);
+                        ctx.rotate(rangerT * Math.PI * 4); // spin
+                        ctx.scale(rangerScale, rangerScale);
+                        
+                        // Draw small Ranger shape
+                        ctx.shadowColor = gameState.epilogueType === 'tars' ? '#00dcff' : '#ff7800';
+                        ctx.shadowBlur = 10;
+                        ctx.fillStyle = '#010207';
+                        ctx.strokeStyle = gameState.epilogueType === 'tars' ? '#00dcff' : '#ff7800';
+                        ctx.lineWidth = 1.5;
+                        ctx.beginPath();
+                        ctx.moveTo(-10, -6);
+                        ctx.lineTo(12, 0);
+                        ctx.lineTo(-10, 6);
+                        ctx.lineTo(-6, 0);
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+                    
+                    statusHud.textContent = `[DESACOPLE] ${gameState.epilogueType === 'tars' ? 'RANGER DE TARS' : 'RANGER DE COOPER'} EN CAÍDA LIBRE`;
+                    statusHud.style.color = '#ff9f43';
+                } else {
+                    ex = 400 + shakeX;
+                    ey = 250 + shakeY;
+                    statusHud.textContent = `[ESTADO] ANCLAJE MANUAL EN PREPARACIÓN`;
+                    statusHud.style.color = '#ff3838';
+                }
+                
+                // Draw Endurance II with furious thrusters pushing it away (leftwards, so stableFlameAngle = 0 towards Gargantua)
+                const thrusterActive = progress < 0.9;
+                drawEnduranceV2(ctx, ex, ey, 24, Date.now() * 0.0003, thrusterActive, 0, 0);
+                
+                // Draw decoupling bolt flash
+                if (explosionFlash > 0.01) {
+                    ctx.fillStyle = `rgba(255, 255, 255, ${explosionFlash})`;
+                    ctx.beginPath();
+                    ctx.arc(400, 250, 40 * (2 - explosionFlash), 0, Math.PI * 2);
+                    ctx.fill();
+                    explosionFlash -= 0.05;
+                }
+                
+                // Fade out to black at the end
+                if (progress > 0.85) {
+                    const fadeOpacity = (progress - 0.85) / 0.15;
+                    ctx.fillStyle = `rgba(0,0,3, ${fadeOpacity})`;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+                
+                if (progress < 1) {
+                    runId = requestAnimationFrame(animate);
+                } else {
+                    cancelAnimationFrame(runId);
+                    changePhase('epilogue');
+                }
+            }
+            
+            runId = requestAnimationFrame(animate);
         }
 
         /* ------------------------------------------------------------
@@ -3892,6 +4099,9 @@
 
             container.innerHTML = `
                 <div class="phase-indicator">TRANSMISIÓN FINAL // EXPEDIENTE BIFROST</div>
+                <div style="width:100%; max-width:760px; height:180px; border:1px solid rgba(0,220,255,0.25); border-radius:6px; background:#010207; overflow:hidden; margin-bottom:4px; position:relative;">
+                    <canvas id="epilogueCanvas" width="760" height="180" style="width:100%; height:100%;"></canvas>
+                </div>
                 <div class="dialogue-character-box" id="epilogue-dialogue-box" style="width:100%; max-width:760px; min-height:120px;"></div>
                 <button class="btn-orbit" id="epilogue-next-btn" style="margin-top:4px;">Continuar</button>
                 <div id="epilogue-conclusion-box" style="display:none; width:100%; max-width:760px;"></div>
@@ -3902,6 +4112,12 @@
             const diagBox = document.getElementById('epilogue-dialogue-box');
             const nextBtn = document.getElementById('epilogue-next-btn');
             const conclusionBox = document.getElementById('epilogue-conclusion-box');
+            
+            // epilogueCanvas drawing animation variables
+            const epilogueCanvas = document.getElementById('epilogueCanvas');
+            const epilogueCtx = epilogueCanvas.getContext('2d');
+            let epilogueRunId = null;
+            let wavePulseRadius = 0;
 
             // ─── DIÁLOGOS SEGÚN RUTA ─────────────────────────────────────────
             const isTarsPath = gameState.epilogueType === 'tars';
@@ -4163,6 +4379,227 @@
 
             showEpilogueDialogue();
 
+            function drawEpilogueView() {
+                if (!epilogueCanvas || !document.body.contains(epilogueCanvas)) {
+                    cancelAnimationFrame(epilogueRunId);
+                    return;
+                }
+
+                const w = epilogueCanvas.width;
+                const h = epilogueCanvas.height;
+
+                epilogueCtx.clearRect(0, 0, w, h);
+
+                const transitionIndex = isTarsPath ? 3 : 4;
+
+                if (currentDiag < transitionIndex) {
+                    // Space decoupling visual
+                    epilogueCtx.fillStyle = '#000004';
+                    epilogueCtx.fillRect(0, 0, w, h);
+
+                    // Stars
+                    epilogueCtx.fillStyle = '#ffffff';
+                    for (let i = 0; i < 40; i++) {
+                        const sx = (Math.sin(i * 123.45) * 0.5 + 0.5) * w;
+                        const sy = (Math.cos(i * 543.21) * 0.5 + 0.5) * h;
+                        epilogueCtx.fillRect(sx, sy, 1, 1);
+                    }
+
+                    // Gargantua on the right
+                    const gX = w - 80;
+                    const gY = h / 2;
+                    epilogueCtx.fillStyle = '#000000';
+                    epilogueCtx.shadowColor = '#ff7800';
+                    epilogueCtx.shadowBlur = 20;
+                    epilogueCtx.beginPath();
+                    epilogueCtx.arc(gX, gY, 35, 0, Math.PI * 2);
+                    epilogueCtx.fill();
+                    epilogueCtx.shadowBlur = 0;
+                    epilogueCtx.strokeStyle = 'rgba(255,255,255,0.6)';
+                    epilogueCtx.lineWidth = 1.5;
+                    epilogueCtx.stroke();
+
+                    // Accretion glow arc
+                    epilogueCtx.strokeStyle = 'rgba(255, 120, 0, 0.4)';
+                    epilogueCtx.lineWidth = 10;
+                    epilogueCtx.beginPath();
+                    epilogueCtx.arc(gX, gY, 50, -Math.PI * 0.6, Math.PI * 0.6);
+                    epilogueCtx.stroke();
+
+                    // Endurance II escaping to the left
+                    const endX = 180;
+                    const endY = h / 2;
+                    drawEnduranceV2(epilogueCtx, endX, endY, 14, Date.now() * 0.0005, true, 0, 0);
+
+                    // Detaching Ranger pod drifting to the right
+                    const t = (Date.now() % 3000) / 3000;
+                    const rx = endX + 30 + t * (gX - endX - 60);
+                    const ry = endY + Math.sin(t * Math.PI) * 15;
+                    const rangerScale = 1 - t * 0.7;
+
+                    epilogueCtx.save();
+                    epilogueCtx.translate(rx, ry);
+                    epilogueCtx.rotate(t * Math.PI * 2);
+                    epilogueCtx.scale(rangerScale, rangerScale);
+                    epilogueCtx.shadowColor = isTarsPath ? '#00dcff' : '#ff7800';
+                    epilogueCtx.shadowBlur = 6;
+                    epilogueCtx.fillStyle = '#010207';
+                    epilogueCtx.strokeStyle = isTarsPath ? '#00dcff' : '#ff7800';
+                    epilogueCtx.lineWidth = 1;
+                    epilogueCtx.beginPath();
+                    epilogueCtx.moveTo(-6, -4);
+                    epilogueCtx.lineTo(8, 0);
+                    epilogueCtx.lineTo(-6, 4);
+                    epilogueCtx.lineTo(-4, 0);
+                    epilogueCtx.closePath();
+                    epilogueCtx.fill();
+                    epilogueCtx.stroke();
+                    epilogueCtx.restore();
+
+                    // Telemetry text
+                    epilogueCtx.fillStyle = 'rgba(255, 56, 56, 0.8)';
+                    epilogueCtx.font = '9px monospace';
+                    epilogueCtx.fillText('SECUENCIA DE INYECCIÓN DE EMPUJE', 15, 20);
+                    epilogueCtx.fillStyle = '#00dcff';
+                    epilogueCtx.fillText('RANGER DESACOPLADO EN RUTA DE CAÍDA', 15, 32);
+
+                } else {
+                    // Doctor Brand's Planet Visual (Edmund's Planet)
+                    // Sky gradient
+                    const skyGrad = epilogueCtx.createLinearGradient(0, 0, 0, h);
+                    skyGrad.addColorStop(0, '#040618');
+                    skyGrad.addColorStop(0.5, '#1e113a');
+                    skyGrad.addColorStop(1, '#412253');
+                    epilogueCtx.fillStyle = skyGrad;
+                    epilogueCtx.fillRect(0, 0, w, h);
+
+                    // Twinkling stars
+                    epilogueCtx.fillStyle = 'rgba(255,255,255,0.7)';
+                    for (let i = 0; i < 25; i++) {
+                        const sx = (Math.sin(i * 99) * 0.5 + 0.5) * w;
+                        const sy = (Math.cos(i * 33) * 0.5 + 0.5) * (h * 0.6);
+                        epilogueCtx.fillRect(sx, sy, 1, 1);
+                    }
+
+                    // Draw Gargantua Setting on the horizon (Large, glowing orange, setting)
+                    const gX = w * 0.75;
+                    const gY = h * 0.85;
+                    epilogueCtx.save();
+                    epilogueCtx.fillStyle = '#000000';
+                    epilogueCtx.shadowColor = '#ff7800';
+                    epilogueCtx.shadowBlur = 35;
+                    epilogueCtx.beginPath();
+                    epilogueCtx.arc(gX, gY, 65, 0, Math.PI * 2);
+                    epilogueCtx.fill();
+                    epilogueCtx.shadowBlur = 0;
+                    // Lensing accretion belt setting
+                    epilogueCtx.strokeStyle = 'rgba(255, 120, 0, 0.25)';
+                    epilogueCtx.lineWidth = 14;
+                    epilogueCtx.beginPath();
+                    epilogueCtx.arc(gX, gY, 80, -Math.PI * 0.85, Math.PI * 0.85);
+                    epilogueCtx.stroke();
+                    epilogueCtx.restore();
+
+                    // Distant Mountain Silhouettes (layered)
+                    epilogueCtx.fillStyle = '#1b1029';
+                    epilogueCtx.beginPath();
+                    epilogueCtx.moveTo(0, h);
+                    epilogueCtx.lineTo(80, h - 50);
+                    epilogueCtx.lineTo(200, h - 90);
+                    epilogueCtx.lineTo(340, h - 40);
+                    epilogueCtx.lineTo(480, h - 80);
+                    epilogueCtx.lineTo(600, h - 60);
+                    epilogueCtx.lineTo(700, h - 95);
+                    epilogueCtx.lineTo(w, h);
+                    epilogueCtx.closePath();
+                    epilogueCtx.fill();
+
+                    epilogueCtx.fillStyle = '#10081a';
+                    epilogueCtx.beginPath();
+                    epilogueCtx.moveTo(0, h);
+                    epilogueCtx.lineTo(120, h - 35);
+                    epilogueCtx.lineTo(260, h - 60);
+                    epilogueCtx.lineTo(400, h - 30);
+                    epilogueCtx.lineTo(520, h - 55);
+                    epilogueCtx.lineTo(w, h - 25);
+                    epilogueCtx.lineTo(w, h);
+                    epilogueCtx.closePath();
+                    epilogueCtx.fill();
+
+                    // Ground plane
+                    epilogueCtx.fillStyle = '#090410';
+                    epilogueCtx.fillRect(0, h - 20, w, 20);
+                    
+                    // Colony Dome outline
+                    epilogueCtx.strokeStyle = 'rgba(0, 220, 255, 0.6)';
+                    epilogueCtx.lineWidth = 2;
+                    epilogueCtx.beginPath();
+                    epilogueCtx.arc(100, h - 20, 30, Math.PI, 0);
+                    epilogueCtx.stroke();
+                    epilogueCtx.fillStyle = 'rgba(0, 220, 255, 0.05)';
+                    epilogueCtx.fill();
+
+                    // Tiny lights inside the dome
+                    epilogueCtx.fillStyle = '#00dcff';
+                    epilogueCtx.fillRect(90, h - 28, 4, 4);
+                    epilogueCtx.fillRect(105, h - 26, 3, 3);
+
+                    // Antenna mast and signal pulses for calibration (Cooper sacrificed path)
+                    if (!isTarsPath) {
+                        const antX = 220;
+                        const antY = h - 20;
+                        
+                        // Draw Antenna Mast
+                        epilogueCtx.strokeStyle = '#8fa0b3';
+                        epilogueCtx.lineWidth = 1.5;
+                        epilogueCtx.beginPath();
+                        epilogueCtx.moveTo(antX, antY);
+                        epilogueCtx.lineTo(antX, antY - 45);
+                        epilogueCtx.lineTo(antX - 8, antY - 20);
+                        epilogueCtx.moveTo(antX, antY - 30);
+                        epilogueCtx.lineTo(antX + 8, antY - 20);
+                        epilogueCtx.stroke();
+
+                        // Glowing signal node on top
+                        epilogueCtx.fillStyle = '#ff7800';
+                        epilogueCtx.beginPath();
+                        epilogueCtx.arc(antX, antY - 47, 3, 0, Math.PI * 2);
+                        epilogueCtx.fill();
+
+                        // Radiating signal pulses
+                        wavePulseRadius += 0.45;
+                        if (wavePulseRadius > 35) wavePulseRadius = 0;
+                        
+                        epilogueCtx.strokeStyle = `rgba(0, 220, 255, ${1 - wavePulseRadius/35})`;
+                        epilogueCtx.lineWidth = 1.5;
+                        epilogueCtx.beginPath();
+                        epilogueCtx.arc(antX, antY - 47, wavePulseRadius, -Math.PI, 0);
+                        epilogueCtx.stroke();
+                    } else {
+                        // TARS sacrificed path: show landing pad outline
+                        epilogueCtx.strokeStyle = 'rgba(0, 255, 100, 0.4)';
+                        epilogueCtx.lineWidth = 1;
+                        epilogueCtx.beginPath();
+                        epilogueCtx.moveTo(350, h - 20);
+                        epilogueCtx.lineTo(400, h - 28);
+                        epilogueCtx.lineTo(450, h - 20);
+                        epilogueCtx.stroke();
+                    }
+
+                    // HUD location coordinates text overlay
+                    epilogueCtx.fillStyle = '#a4b3c4';
+                    epilogueCtx.font = '9px monospace';
+                    epilogueCtx.fillText('ESTABLECIMIENTO BASE: PLANETA EDMUND // OXÍGENO: 19.8%', 15, 20);
+                    epilogueCtx.fillStyle = 'rgba(0, 255, 100, 0.8)';
+                    epilogueCtx.fillText('GRAVEDAD: 0.97g // RANGERS DISPONIBLES: 1', 15, 32);
+                }
+
+                epilogueRunId = requestAnimationFrame(drawEpilogueView);
+            }
+
+            drawEpilogueView();
+            showEpilogueDialogue();
+
             nextBtn.addEventListener('click', () => {
                 currentDiag++;
                 showEpilogueDialogue();
@@ -4222,7 +4659,7 @@
                     </p>
                     
                     <div style="font-size:11px; color:#5f758e; line-height:1.5; text-align:center; margin-top:4px;">
-                        Tributo diseñado con código puro y Web Audio API. Agradecimientos especiales a Christopher Nolan, Hans Zimmer y a todas las mentes brillantes que hicieron posible Interestelar.
+                        Tributo desarrollado por Antigravity (AI Assistant de Google DeepMind) en código puro y Web Audio API. Agradecimientos especiales a Christopher Nolan, Hans Zimmer y a todas las mentes brillantes que hicieron posible Interestelar.
                     </div>
                 </div>
 
