@@ -1,0 +1,2306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crónicas de la Selección Perdida — Homenaje a J.K. Rowling</title>
+  
+  <!-- Tipografías Medievales y Manuscritas -->
+  <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=Special+Elite&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      /* Colores Base Pergamino */
+      --parchment-bg: #f5e6c8;
+      --parchment-border: #8c7355;
+      --ink-color: #3b2e1a;
+      --gold-accent: #c9a84c;
+      
+      /* Colores de Casa (Modificables dinámicamente) */
+      --house-primary: #3b2e1a;
+      --house-secondary: #c9a84c;
+      --house-accent: rgba(201, 168, 76, 0.15);
+      --house-glow: #c9a84c;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #110c08;
+      background-image: radial-gradient(circle at center, #241a12 0%, #090604 100%);
+      color: var(--ink-color);
+      font-family: 'Crimson Pro', serif;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    /* Contenedor Principal (Aspecto de Libro/Grimorio) */
+    #grimoire-container {
+      position: relative;
+      width: 900px;
+      height: 600px;
+      box-shadow: 0 30px 70px rgba(0,0,0,0.9), 0 0 40px rgba(201, 168, 76, 0.1);
+      border: 12px double var(--parchment-border);
+      border-radius: 6px;
+      overflow: hidden;
+      background-color: var(--parchment-bg);
+      background-image: 
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.2) 0%, rgba(0,0,0,0.06) 100%),
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.045' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.5 0 0 0 0 0.4 0 0 0 0 0.3 0.1 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      background-blend-mode: multiply;
+      display: flex;
+      flex-direction: column;
+      z-index: 10;
+    }
+
+    /* Filtro de textura de tinta (Gooey Ink Bleed) */
+    .ink-text {
+      filter: url(#ink-bleed);
+    }
+
+    /* Velas Parpadeantes Ambientales */
+    .candle-holder {
+      position: fixed;
+      bottom: 5vh;
+      width: 60px;
+      height: 220px;
+      pointer-events: none;
+      z-index: 5;
+    }
+    .candle-left { left: 4vw; }
+    .candle-right { right: 4vw; }
+    
+    .candle-body {
+      position: absolute;
+      bottom: 0;
+      left: 15px;
+      width: 30px;
+      height: 140px;
+      background: linear-gradient(90deg, #d3c4a9, #ebdcb9, #b9a37c);
+      border-radius: 6px 6px 3px 3px;
+      box-shadow: inset 0 8px 10px rgba(0,0,0,0.15), 0 5px 15px rgba(0,0,0,0.4);
+    }
+    .candle-dripping {
+      position: absolute;
+      top: 15px;
+      left: 6px;
+      width: 8px;
+      height: 40px;
+      background-color: #ebdcb9;
+      border-radius: 4px;
+      box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+    }
+    .candle-wick {
+      position: absolute;
+      bottom: 140px;
+      left: 29px;
+      width: 2px;
+      height: 15px;
+      background: #2b1f13;
+    }
+    .candle-flame {
+      position: absolute;
+      bottom: 152px;
+      left: 30px;
+      transform: translateX(-50%);
+      width: 20px;
+      height: 55px;
+      transform-origin: center bottom;
+    }
+    .flame-part {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 50% 50% 20% 20% / 60% 60% 40% 40%;
+      transform-origin: center bottom;
+    }
+    .flame-outer {
+      width: 20px;
+      height: 50px;
+      background: rgba(255, 80, 0, 0.9);
+      box-shadow: 0 0 20px rgba(255, 80, 0, 0.6), 0 -5px 18px rgba(255, 140, 0, 0.4);
+      animation: flame-wag 0.18s infinite alternate;
+    }
+    .flame-inner {
+      width: 12px;
+      height: 35px;
+      background: rgba(255, 200, 0, 0.98);
+      box-shadow: 0 0 10px rgba(255, 200, 0, 0.8);
+      animation: flame-wag 0.12s infinite alternate-reverse;
+    }
+    .flame-core {
+      width: 6px;
+      height: 15px;
+      background: rgba(0, 180, 255, 0.85);
+      border-radius: 50%;
+      bottom: 0;
+    }
+    @keyframes flame-wag {
+      0% { transform: translateX(-50%) scale(0.93, 1.07) rotate(-1deg); }
+      100% { transform: translateX(-50%) scale(1.07, 0.93) rotate(1deg) skewX(1deg); }
+    }
+
+    /* Pantallas SPA */
+    .screen {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      box-sizing: border-box;
+      padding: 40px;
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+      opacity: 0;
+      transition: opacity 0.6s ease-in-out;
+    }
+    .screen.active {
+      display: flex;
+      opacity: 1;
+    }
+
+    /* Tipografías y Textos */
+    h1, h2, h3 {
+      font-family: 'MedievalSharp', serif;
+      text-align: center;
+      margin: 0;
+      color: var(--house-primary);
+      text-shadow: 0 1px 1px rgba(255,255,255,0.6);
+      letter-spacing: 1px;
+    }
+    h1 { font-size: 2.3rem; border-bottom: 2px double var(--parchment-border); padding-bottom: 10px; margin-bottom: 20px; }
+    h2 { font-size: 1.8rem; margin-bottom: 15px; }
+    h3 { font-size: 1.4rem; margin-bottom: 10px; }
+
+    p {
+      font-size: 1.15rem;
+      line-height: 1.6;
+      margin: 0 0 15px 0;
+      text-align: justify;
+    }
+
+    /* Botones Estilo Lacrado / Pergamino */
+    .btn-magic {
+      background-color: #ebdcb9;
+      background-image: linear-gradient(135deg, #ebdcb9 0%, #d8c39e 100%);
+      border: 2px solid var(--parchment-border);
+      color: var(--ink-color);
+      font-family: 'MedievalSharp', serif;
+      font-size: 1.1rem;
+      padding: 10px 24px;
+      cursor: pointer;
+      border-radius: 4px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.4);
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .btn-magic:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.25), 0 0 10px rgba(201, 168, 76, 0.4);
+      background-image: linear-gradient(135deg, #f3e6c9 0%, #dfcbab 100%);
+    }
+    .btn-magic:active {
+      transform: translateY(1px);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    }
+    .btn-magic:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Libro de Oro (Pantalla 1) */
+    .initial-form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 25px;
+      margin: 20px 0;
+    }
+    .input-spell {
+      background: rgba(255, 255, 255, 0.45);
+      border: 1px solid var(--parchment-border);
+      border-bottom: 2px solid var(--ink-color);
+      padding: 10px 15px;
+      font-family: 'Crimson Pro', serif;
+      font-size: 1.3rem;
+      width: 320px;
+      text-align: center;
+      color: var(--ink-color);
+      outline: none;
+      border-radius: 4px;
+      transition: all 0.3s;
+    }
+    .input-spell:focus {
+      background: rgba(255, 255, 255, 0.8);
+      box-shadow: 0 0 8px rgba(201, 168, 76, 0.5);
+    }
+    .input-spell::placeholder {
+      font-style: italic;
+      color: #7d6b53;
+      opacity: 0.7;
+    }
+
+    /* Radio Buttons de Lacre (Títulos) */
+    .seals-row {
+      display: flex;
+      gap: 25px;
+    }
+    .seal-label {
+      cursor: pointer;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      font-family: 'MedievalSharp', serif;
+      font-size: 1rem;
+    }
+    .seal-radio {
+      display: none;
+    }
+    .seal-visual {
+      width: 44px;
+      height: 44px;
+      background: radial-gradient(circle at 14px 14px, #9e2a2b 0%, #6e1a1b 100%);
+      border-radius: 50%;
+      border: 2px solid #5a1213;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+      position: relative;
+      transition: all 0.2s;
+    }
+    .seal-visual::after {
+      content: 'W';
+      font-family: 'MedievalSharp', serif;
+      color: #f5e6c8;
+      font-size: 1.1rem;
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .seal-radio:checked + .seal-visual {
+      background: radial-gradient(circle at 14px 14px, #c1121f 0%, #780000 100%);
+      transform: scale(1.1);
+      box-shadow: 0 0 10px rgba(193, 18, 31, 0.6), 0 4px 8px rgba(0,0,0,0.4);
+    }
+    .seal-radio:checked + .seal-visual::after {
+      content: '⚡';
+    }
+
+    /* Test de la Selección (Pantalla 2) */
+    #quiz-card {
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px dashed var(--parchment-border);
+      border-radius: 6px;
+      padding: 25px;
+      margin: 15px 0;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .quiz-progress {
+      font-family: 'MedievalSharp', serif;
+      font-size: 0.95rem;
+      color: #7d6b53;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .quiz-question {
+      font-size: 1.35rem;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .quiz-options-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .quiz-opt-btn {
+      background: rgba(255, 255, 255, 0.4);
+      border: 1px solid var(--parchment-border);
+      padding: 12px 18px;
+      font-family: 'Crimson Pro', serif;
+      font-size: 1.1rem;
+      color: var(--ink-color);
+      text-align: left;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+    .quiz-opt-btn:hover {
+      background: rgba(255, 255, 255, 0.85);
+      border-color: var(--ink-color);
+      padding-left: 24px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    /* Despertar del Avatar (Pantalla 3) */
+    .avatar-split {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      margin: 20px 0;
+      flex-grow: 1;
+    }
+    .avatar-box {
+      width: 250px;
+      height: 250px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 4px double var(--house-secondary);
+      border-radius: 50%;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2), 0 0 15px var(--house-glow);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      position: relative;
+    }
+    .avatar-details {
+      width: 440px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .details-box {
+      background: rgba(255, 255, 255, 0.3);
+      border: 1px solid var(--parchment-border);
+      border-radius: 4px;
+      padding: 15px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    /* Point & Click Aula Klein (Pantalla 4) */
+    .adventure-wrapper {
+      position: relative;
+      width: 100%;
+      height: 380px;
+      border: 3px double var(--parchment-border);
+      background-color: #0b0704;
+      overflow: hidden;
+    }
+    #pointClickCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: crosshair;
+    }
+    .adventure-hud {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.04);
+      padding: 8px 15px;
+      border-top: 1px solid var(--parchment-border);
+      font-size: 0.95rem;
+      font-family: 'MedievalSharp', serif;
+    }
+    .adventure-clues {
+      display: flex;
+      gap: 15px;
+    }
+    .clue-badge {
+      padding: 3px 8px;
+      border: 1px solid #7d6b53;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.2);
+      color: #7d6b53;
+    }
+    .clue-badge.found {
+      color: var(--house-primary);
+      border-color: var(--house-primary);
+      background: var(--house-accent);
+      font-weight: bold;
+    }
+
+    /* Modal de Acertijo Pizarrón */
+    .modal-overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 100;
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-card {
+      width: 420px;
+      background: var(--parchment-bg);
+      border: 6px double var(--parchment-border);
+      border-radius: 4px;
+      padding: 25px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    /* Diálogos Typewriter Inferior (Playa y Hangar) */
+    .dialogue-overlay {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 820px;
+      min-height: 150px;
+      background: var(--parchment-bg);
+      border: 4px double var(--parchment-border);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+      border-radius: 4px;
+      z-index: 10;
+      padding: 20px;
+      box-sizing: border-box;
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .dialogue-header {
+      font-family: 'MedievalSharp', serif;
+      font-size: 1.15rem;
+      font-weight: bold;
+      color: var(--house-primary);
+      border-bottom: 1px dashed var(--parchment-border);
+      padding-bottom: 4px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .dialogue-txt {
+      font-family: 'Special Elite', monospace;
+      font-size: 1rem;
+      line-height: 1.4;
+      min-height: 60px;
+      color: #1a1005;
+      text-shadow: 0 0.5px 0.5px rgba(255,255,255,0.7);
+    }
+    .dialogue-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 15px;
+      margin-top: 10px;
+    }
+
+    /* Pantalla de Éxito / Final (Pantalla 5) */
+    .final-scroll {
+      background: rgba(255, 255, 255, 0.25);
+      border: 1px dashed var(--parchment-border);
+      border-radius: 4px;
+      padding: 20px;
+      max-height: 380px;
+      overflow-y: auto;
+      margin: 15px 0;
+      box-shadow: inset 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .code-box {
+      font-family: 'Special Elite', monospace;
+      background: rgba(0,0,0,0.05);
+      border: 1px solid var(--parchment-border);
+      padding: 10px 15px;
+      font-size: 1.3rem;
+      letter-spacing: 2px;
+      font-weight: bold;
+      text-align: center;
+      border-radius: 4px;
+      margin: 15px 0;
+      color: var(--house-primary);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+    }
+
+    /* Efectos del Reloj del Sistema */
+    #ambient-music-btn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      z-index: 50;
+      background: rgba(0,0,0,0.15);
+      border: 1px solid var(--parchment-border);
+      border-radius: 30px;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      color: var(--ink-color);
+      transition: all 0.2s;
+    }
+    #ambient-music-btn:hover {
+      background: rgba(201, 168, 76, 0.2);
+    }
+
+    /* Adaptabilidad Móvil */
+    @media (max-width: 920px) {
+      #grimoire-container {
+        width: 95vw;
+        height: 80vh;
+        border-width: 6px;
+      }
+      .candle-holder { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Elemento SVG del efecto Gooey/Ink Bleed para textos typewriter -->
+  <svg style="position: absolute; width: 0; height: 0;" aria-hidden="true" focusable="false">
+    <defs>
+      <filter id="ink-bleed">
+        <feGaussianBlur stdDeviation="0.55" result="blur" />
+        <feColorMatrix type="matrix" values="1 0 0 0 0  
+                                             0 1 0 0 0  
+                                             0 0 1 0 0  
+                                             0 0 0 18 -6" result="contrast" />
+        <feBlend in="SourceGraphic" in2="contrast" />
+      </filter>
+    </defs>
+  </svg>
+
+  <!-- Vela Izquierda -->
+  <div class="candle-holder candle-left">
+    <div class="candle-body">
+      <div class="candle-dripping" style="height: 45px; left: 5px;"></div>
+      <div class="candle-dripping" style="height: 25px; left: 18px; top: 30px; width: 6px;"></div>
+    </div>
+    <div class="candle-wick"></div>
+    <div class="candle-flame">
+      <div class="flame-part flame-outer"></div>
+      <div class="flame-part flame-inner"></div>
+      <div class="flame-part flame-core"></div>
+    </div>
+  </div>
+
+  <!-- Vela Derecha -->
+  <div class="candle-holder candle-right">
+    <div class="candle-body" style="height: 110px;">
+      <div class="candle-dripping" style="height: 35px; left: 16px;"></div>
+    </div>
+    <div class="candle-wick" style="bottom: 110px;"></div>
+    <div class="candle-flame" style="bottom: 122px;">
+      <div class="flame-part flame-outer" style="animation-delay: 0.05s;"></div>
+      <div class="flame-part flame-inner" style="animation-delay: 0.03s;"></div>
+      <div class="flame-part flame-core"></div>
+    </div>
+  </div>
+
+  <!-- Contenedor Principal SPA -->
+  <div id="grimoire-container">
+    
+    <!-- Botón Música Web Audio API -->
+    <div id="ambient-music-btn" title="Iniciar/Pausar Arpa Mágica" onclick="toggleAudio()">🎵</div>
+
+    <!-- 1. PANTALLA: BIENVENIDA (LIBRO DE ORO) -->
+    <div class="screen active" id="screen-welcome">
+      <h1>CRÓNICAS DE LA SELECCIÓN PERDIDA</h1>
+      
+      <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+        <p style="text-align: center; max-width: 600px; font-style: italic;">
+          "Viajero que cruzas el umbral de esta Academia Olvidada: antes de que el Artefacto Selector pueda conocerte, debes inscribir tu nombre en el Libro de Oro. Solo entonces podrá la magia obrar en ti."
+        </p>
+
+        <div class="initial-form">
+          <div>
+            <label style="display: block; font-family: 'MedievalSharp', serif; text-align: center; margin-bottom: 8px;">Inscribe tu nombre verdadero:</label>
+            <input type="text" class="input-spell" id="spell-name" placeholder="Escribe aquí tu nombre..." maxlength="25">
+            <div id="welcome-error" style="color: #c1121f; font-size: 0.9rem; text-align: center; margin-top: 5px; height: 18px; font-weight: bold;"></div>
+          </div>
+
+          <div class="seals-row">
+            <label class="seal-label">
+              <input type="radio" name="title" class="seal-radio" value="Mago" checked>
+              <div class="seal-visual"></div>
+              <span>Mago</span>
+            </label>
+            <label class="seal-label">
+              <input type="radio" name="title" class="seal-radio" value="Hechicera">
+              <div class="seal-visual"></div>
+              <span>Hechicera</span>
+            </label>
+            <label class="seal-label">
+              <input type="radio" name="title" class="seal-radio" value="Iniciado">
+              <div class="seal-visual"></div>
+              <span>Iniciado/a</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <button class="btn-magic" style="background: rgba(0,0,0,0.05); border-color: #a28965;" onclick="triggerLoadSpellCode()">
+          📜 Cargar Código Hechizo
+        </button>
+        <button class="btn-magic" onclick="validateAndStart()">
+          Sellar mi Inscripción ✨
+        </button>
+      </div>
+    </div>
+
+    <!-- 2. PANTALLA: CUESTIONARIO (TEST DE CONTINGENCIA) -->
+    <div class="screen" id="screen-quiz">
+      <h1>EL TEST DE LA SELECCIÓN</h1>
+      <div id="quiz-card">
+        <div class="quiz-progress" id="quiz-progress-text">Pregunta 1 de 15</div>
+        <div class="quiz-question" id="quiz-question-text">Pregunta cargando...</div>
+        <div class="quiz-options-list" id="quiz-options-container">
+          <!-- Botones inyectados dinámicamente -->
+        </div>
+      </div>
+      <div style="text-align: center; font-size: 0.9rem; color: #7d6b53; font-style: italic;">
+        El libro registra tus impulsos naturales. Responde con presteza y honestidad.
+      </div>
+    </div>
+
+    <!-- 3. PANTALLA: REVELACIÓN (DESPERTAR DEL AVATAR) -->
+    <div class="screen" id="screen-avatar">
+      <h1>EL DESPERTAR DEL AVATAR</h1>
+      
+      <div class="avatar-split">
+        <div class="avatar-box">
+          <canvas id="emblemCanvas" width="240" height="240"></canvas>
+        </div>
+
+        <div class="avatar-details">
+          <h2 id="avatar-house-title">¡ERES DE LA CASA...!</h2>
+          <div class="details-box" id="avatar-house-desc" style="max-height: 120px; overflow-y: auto;">
+            Descripción de tu casa.
+          </div>
+          
+          <!-- Varita Mágica Procedimental -->
+          <div style="display: flex; gap: 15px; align-items: center; background: rgba(255,255,255,0.2); border: 1px solid var(--parchment-border); padding: 8px 12px; border-radius: 4px;">
+            <canvas id="wandCanvas" width="120" height="40" style="background: rgba(0,0,0,0.04); border-radius: 3px;"></canvas>
+            <div style="font-size: 0.85rem; line-height: 1.3;" id="avatar-wand-text">
+              Tu varita mágica...
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end;">
+        <button class="btn-magic" onclick="goToAdventure()">
+          Entrar al Hangar de Alquimia 🗝️
+        </button>
+      </div>
+    </div>
+
+    <!-- 4. PANTALLA: POINT & CLICK (AULA DE LA PROFESORA KLEIN) -->
+    <div class="screen" id="screen-adventure">
+      <h1>EL RASTRO DE LA ALQUIMIA MENTAL</h1>
+      
+      <p style="margin-bottom: 10px; font-size: 1rem; text-align: center;">
+        Explora la oficina de la Profesora Klein haciendo clic sobre los objetos. Encuentra la <b>Nota</b>, el <b>Mapa</b> y la <b>Contraseña</b> para conjurar el traslado en el caldero.
+      </p>
+
+      <div class="adventure-wrapper">
+        <canvas id="pointClickCanvas" width="820" height="300"></canvas>
+      </div>
+
+      <div class="adventure-hud">
+        <div id="adventure-status-text">Aula en silencio. Haz clic para inspeccionar.</div>
+        <div class="adventure-clues">
+          <span class="clue-badge" id="badge-note">📜 Nota</span>
+          <span class="clue-badge" id="badge-map">🗺️ Mapa</span>
+          <span class="clue-badge" id="badge-pass">🔑 Clave</span>
+        </div>
+      </div>
+
+      <!-- Diálogo Typewriter inferior -->
+      <div class="dialogue-overlay" id="adventure-dialogue">
+        <div class="dialogue-header">
+          <span id="adv-speaker">Portrato</span>
+          <span style="font-size: 0.8rem; color: #a28965;">Haga clic para cerrar</span>
+        </div>
+        <div class="dialogue-txt ink-text" id="adv-text">Mensaje...</div>
+      </div>
+    </div>
+
+    <!-- 5. PANTALLA: LA PLAYA (VACACIONES DEL SOMBRERO) -->
+    <div class="screen" id="screen-beach">
+      <h1>EL RESORT MÍSTICO DE LA PLAYA DE SUEÑOS</h1>
+      
+      <div style="flex-grow: 1; position: relative;">
+        <!-- Canvas para dibujar la playa y el Sombrero de forma vectorial -->
+        <canvas id="beachCanvas" width="820" height="300" style="border: 3px double var(--parchment-border);"></canvas>
+      </div>
+
+      <!-- Diálogo del Sombrero Selector -->
+      <div class="dialogue-overlay" id="beach-dialogue" style="display: flex; position: relative; width: 100%; bottom: 0; left: 0; transform: none; min-height: 180px;">
+        <div class="dialogue-header">
+          <span>El Artefacto Selector</span>
+          <span style="font-size: 0.85rem; color: #721c24;" id="beach-dialogue-hint">Negociación de Casa</span>
+        </div>
+        <div class="dialogue-txt ink-text" id="beach-text">...</div>
+        <div class="dialogue-actions" id="beach-options">
+          <!-- Opciones inyectadas -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. PANTALLA: CRÉDITOS Y CÓDIGO HECHIZO -->
+    <div class="screen" id="screen-credits">
+      <h1>CRÓNICAS COMPLETADAS</h1>
+      
+      <div class="final-scroll">
+        <h2 style="color: #721c24;">🧙‍♀️ En Homenaje a Joanne Kathleen Rowling</h2>
+        <p style="text-align: center; font-style: italic; font-size: 1.1rem; margin-top: 15px;">
+          Por crear un mundo donde los niños aprenden que la valentía no es la ausencia del miedo,<br>
+          que la lealtad vale más que la victoria,<br>
+          que la inteligencia es un regalo que se comparte,<br>
+          y que incluso la astucia, en las manos correctas, puede ser una forma de amor.
+        </p>
+        <p style="text-align: center; font-weight: bold; margin-bottom: 25px;">
+          Hogwarts no fue un castillo. Fue el primer lugar donde millones de personas sintieron que encajaban. Gracias por darnos eso.
+        </p>
+        
+        <hr style="border: 0; border-top: 1px dashed var(--parchment-border); margin: 15px 0;">
+        
+        <p style="font-size: 0.85rem; color: #7d6b53; line-height: 1.4; text-align: center;">
+          <b>J.K. Rowling</b> (n. 1965, Yate, Gloucestershire). Harry Potter y la Piedra Filosofal publicado en 1997. 7 novelas, más de 500 millones de ejemplares vendidos, traducidas a 80 idiomas.
+        </p>
+        
+        <div style="font-size: 0.75rem; color: #7d6b53; line-height: 1.3; background: rgba(0,0,0,0.03); padding: 10px; border-radius: 4px; margin-top: 15px;">
+          <b>Aviso Legal (Fan-Made):</b> Crónicas de la Selección Perdida es una obra de fans sin fines de lucro, creada con intenciones educativas y de homenaje cultural. Harry Potter, Hogwarts y nombres asociados son propiedad intelectual y marcas registradas de J.K. Rowling y Warner Bros. Entertainment Inc.
+        </div>
+      </div>
+
+      <div class="code-box">
+        <span id="final-spell-code">VALERIA-HECHICERA-AGUILA-80</span>
+        <button class="btn-magic" style="padding: 6px 12px; font-size: 0.85rem;" onclick="copySpellCode()">
+          📋 Copiar
+        </button>
+        <button class="btn-magic" style="padding: 6px 12px; font-size: 0.85rem;" onclick="downloadSpellCode()">
+          💾 Descargar
+        </button>
+      </div>
+
+      <div style="display: flex; justify-content: center;">
+        <button class="btn-magic" onclick="resetApp()">
+          Reiniciar Libro Mágico 🔄
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Modal para Acertijo de Pizarrón -->
+  <div class="modal-overlay" id="blackboard-modal">
+    <div class="modal-card">
+      <h3 style="margin-top:0;">Acertijo de Fórmulas Elementales</h3>
+      <p style="font-size: 0.95rem; line-height: 1.4;">
+        El pizarrón muestra la fórmula alquímica de transmutación de vapor:<br>
+        <b style="font-size:1.1rem; color: #721c24; display:block; text-align:center; margin: 10px 0;">Ignis (Fuego) + Aer (Aire) = ?</b>
+        Selecciona la emanación correcta para liberar el sello.
+      </p>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <button class="btn-magic" style="text-align: left; font-size: 0.95rem;" onclick="submitBlackboardAnswer('aqua')">Aqua (Agua)</button>
+        <button class="btn-magic" style="text-align: left; font-size: 0.95rem;" onclick="submitBlackboardAnswer('terra')">Terra (Tierra)</button>
+        <button class="btn-magic" style="text-align: left; font-size: 0.95rem;" onclick="submitBlackboardAnswer('tempestas')">Tempestas (Tormenta/Calor)</button>
+      </div>
+      <button class="btn-magic" style="background:#ddd; border-color:#999; margin-top: 10px;" onclick="closeModal()">
+        Cerrar Pizarrón
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // --- 1. SÍNTESIS DE AUDIO CON WEB AUDIO API ---
+    const audioCtx = {
+      ctx: null,
+      masterGain: null,
+      isPlaying: false,
+      sequencerTimer: null,
+      step: 0,
+      melody: [0, 2, 4, 3, 5, 4, 6, 7, 5, 3, 4, 2, 3, 1, 2, 0],
+      notes: [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25] // C4 a C5
+    };
+
+    function initAudio() {
+      if (audioCtx.ctx) return;
+      audioCtx.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      audioCtx.masterGain = audioCtx.ctx.createGain();
+      audioCtx.masterGain.gain.setValueAtTime(0.2, audioCtx.ctx.currentTime);
+      
+      // Delay Feedback
+      const delay = audioCtx.ctx.createDelay();
+      delay.delayTime.value = 0.55;
+      const delayGain = audioCtx.ctx.createGain();
+      delayGain.gain.value = 0.3;
+
+      audioCtx.masterGain.connect(delay);
+      delay.connect(delayGain);
+      delayGain.connect(audioCtx.masterGain);
+      audioCtx.masterGain.connect(audioCtx.ctx.destination);
+    }
+
+    function playPageTurnSound() {
+      if (!audioCtx.ctx) return;
+      const now = audioCtx.ctx.currentTime;
+      // Generar un barrido de ruido blanco filtrado para imitar papel
+      const bufferSize = audioCtx.ctx.sampleRate * 0.3; // 0.3 segundos
+      const buffer = audioCtx.ctx.createBuffer(1, bufferSize, audioCtx.ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+
+      const noise = audioCtx.ctx.createBufferSource();
+      noise.buffer = buffer;
+
+      const filter = audioCtx.ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(1200, now);
+      filter.frequency.exponentialRampToValueAtTime(150, now + 0.3);
+      filter.Q.setValueAtTime(3.0, now);
+
+      const gain = audioCtx.ctx.createGain();
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(audioCtx.ctx.destination);
+      noise.start(now);
+    }
+
+    function playWaxSealSound() {
+      if (!audioCtx.ctx) return;
+      const now = audioCtx.ctx.currentTime;
+      // Onda sinusoidal baja combinada con un pulso de ruido
+      const osc = audioCtx.ctx.createOscillator();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(75, now);
+      osc.frequency.exponentialRampToValueAtTime(10, now + 0.15);
+
+      const oscGain = audioCtx.ctx.createGain();
+      oscGain.gain.setValueAtTime(0.4, now);
+      oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+      osc.connect(oscGain);
+      oscGain.connect(audioCtx.ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.2);
+    }
+
+    function playSparkleSound() {
+      if (!audioCtx.ctx) return;
+      const now = audioCtx.ctx.currentTime;
+      // Serie rápida de armónicos agudos (tine chimes)
+      const baseFreq = 880 + Math.random() * 400;
+      for (let i = 0; i < 4; i++) {
+        const t = now + i * 0.05;
+        const osc = audioCtx.ctx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(baseFreq * (1 + i * 0.5), t);
+
+        const g = audioCtx.ctx.createGain();
+        g.gain.setValueAtTime(0.12 / (i + 1), t);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
+
+        osc.connect(g);
+        g.connect(audioCtx.ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.3);
+      }
+    }
+
+    function playHouseChord(houseName) {
+      if (!audioCtx.ctx) return;
+      const now = audioCtx.ctx.currentTime;
+      let freqs = [];
+
+      switch (houseName) {
+        case 'serpiente': // Menor místico (F#m - misterio, astucia)
+          freqs = [185.00, 220.00, 277.18, 369.99]; 
+          break;
+        case 'leon': // Mayor brillante (G - heroico, latón)
+          freqs = [196.00, 246.94, 293.66, 392.00]; 
+          break;
+        case 'aguila': // Mayor extendido etéreo (Am7 - sabiduría)
+          freqs = [220.00, 261.63, 329.63, 392.00]; 
+          break;
+        case 'tejon': // Acorde orgánico suave (C - empatía, calidez)
+          freqs = [130.81, 261.63, 329.63, 392.00]; 
+          break;
+      }
+
+      freqs.forEach(f => {
+        const osc = audioCtx.ctx.createOscillator();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(f, now);
+
+        const g = audioCtx.ctx.createGain();
+        g.gain.setValueAtTime(0, now);
+        g.gain.linearRampToValueAtTime(0.12, now + 1.2); // ataque lento
+        g.gain.exponentialRampToValueAtTime(0.0001, now + 5.0); // decaimiento largo
+
+        osc.connect(g);
+        g.connect(audioCtx.masterGain);
+        osc.start(now);
+        osc.stop(now + 5.2);
+      });
+    }
+
+    function playMusicBoxNote(freq) {
+      if (!audioCtx.ctx) return;
+      const now = audioCtx.ctx.currentTime;
+
+      // Oscilador de púa metálica (sine pura con vibrato leve)
+      const osc = audioCtx.ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now);
+
+      // Segundo armónico muy rápido metálico
+      const overtone = audioCtx.ctx.createOscillator();
+      overtone.type = 'sine';
+      overtone.frequency.setValueAtTime(freq * 3.0, now);
+
+      const overtoneGain = audioCtx.ctx.createGain();
+      overtoneGain.gain.setValueAtTime(0.2, now);
+      overtoneGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.15);
+
+      const g = audioCtx.ctx.createGain();
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(0.5, now + 0.003);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 1.8);
+
+      // Modulación LFO suave
+      const lfo = audioCtx.ctx.createOscillator();
+      lfo.frequency.setValueAtTime(6.2, now); // 6.2Hz warble
+      const lfoGain = audioCtx.ctx.createGain();
+      lfoGain.gain.setValueAtTime(freq * 0.012, now);
+
+      lfo.connect(lfoGain);
+      lfoGain.connect(osc.frequency);
+
+      overtone.connect(overtoneGain);
+      overtoneGain.connect(g);
+      osc.connect(g);
+      g.connect(audioCtx.masterGain);
+
+      lfo.start(now);
+      overtone.start(now);
+      osc.start(now);
+
+      lfo.stop(now + 1.8);
+      overtone.stop(now + 1.8);
+      osc.stop(now + 1.8);
+    }
+
+    function toggleAudio() {
+      initAudio();
+      if (audioCtx.ctx.state === 'suspended') {
+        audioCtx.ctx.resume();
+      }
+
+      if (audioCtx.isPlaying) {
+        audioCtx.isPlaying = false;
+        clearTimeout(audioCtx.sequencerTimer);
+        document.getElementById('ambient-music-btn').textContent = '🔇';
+      } else {
+        audioCtx.isPlaying = true;
+        document.getElementById('ambient-music-btn').textContent = '🎵';
+        runMelodyLoop();
+      }
+    }
+
+    function runMelodyLoop() {
+      if (!audioCtx.isPlaying) return;
+      const stepNote = audioCtx.melody[audioCtx.step % audioCtx.melody.length];
+      const frequency = audioCtx.notes[stepNote] * 1.5; // una octava y media más arriba
+      
+      // Pluck note
+      playMusicBoxNote(frequency);
+
+      audioCtx.step++;
+      audioCtx.sequencerTimer = setTimeout(runMelodyLoop, 420); // tempo de cajita musical
+    }
+
+
+    // --- 2. BASE DE DATOS Y LÓGICA DE JUEGO ---
+    const quizQuestions = [
+      {
+        q: "El Artefacto Selector ha desaparecido misteriosamente. ¿Cuál es tu primer instinto de búsqueda?",
+        a: [
+          "Busco aliados entre mis compañeros. Trabajar juntos nos dará la respuesta más rápido.",
+          "Analizo con rigor qué sucedió antes del suceso. Los registros de biblioteca primero.",
+          "Actuaré por mi propia cuenta. Soy más veloz e ingenioso sin el peso de otros.",
+          "Protejo a los iniciados más jóvenes de la academia. Su seguridad es mi prioridad."
+        ],
+        houses: ["tejon", "aguila", "serpiente", "leon"]
+      },
+      {
+        q: "La Profesora Klein ofrece un pergamino prohibido de transmutación alquímica peligrosa. ¿Lo aceptas?",
+        a: [
+          "Sí, por supuesto. El conocimiento no es inherentemente dañino, solo hay que comprenderlo.",
+          "Sí, pero en el más absoluto secreto. No hay necesidad de rendir cuentas a nadie.",
+          "No. Las normas de seguridad de la academia se construyeron por una sabia razón.",
+          "Solo si los secretos del pergamino me sirven para resguardar a mis seres queridos."
+        ],
+        houses: ["aguila", "serpiente", "tejon", "leon"]
+      },
+      {
+        q: "Encuentras un doblón de oro en un pasillo desierto. Nadie te observa. ¿Qué decides hacer?",
+        a: [
+          "Lo entrego a la oficina del Alguacil de inmediato. Alguien lo estará buscando.",
+          "Lo guardo. Quien lo haya perdido ha sido descuidado, y a mí me vendrá muy bien.",
+          "Pregunto con firmeza en el salón común si algún compañero ha extraviado su moneda.",
+          "Lo someto a análisis químico para comprender de qué mina y época proviene."
+        ],
+        houses: ["tejon", "serpiente", "leon", "aguila"]
+      },
+      {
+        q: "Tu grupo de estudio alquímico se ha atascado en un postulado erróneo. ¿Cómo actúas?",
+        a: [
+          "Los corrijo con asertividad. El tiempo no aguarda por las mentes lentas.",
+          "Les explico pacientemente el teorema hasta que cada uno comprenda el error.",
+          "Presento mi propia fórmula con pruebas claras y sigo adelante con mi estudio.",
+          "Los aliento a debatir y buscar por sí mismos la respuesta correcta."
+        ],
+        houses: ["serpiente", "tejon", "aguila", "leon"]
+      },
+      {
+        q: "Un contrincante deshonesto gana un duelo usando un truco tramposo. Solo tú lo sabes. ¿Actúas?",
+        a: [
+          "Lo expongo en el acto ante el jurado, sin temer los rencores que genere.",
+          "Me guardo la información con paciencia. Podría serme muy útil en el futuro.",
+          "Recopilo evidencias irrefutables antes de formular cualquier acusación formal.",
+          "Hablo con él a solas para convencerlo de confesar su trampa por sí mismo."
+        ],
+        houses: ["leon", "serpiente", "aguila", "tejon"]
+      },
+      {
+        q: "¿Cuál de estas disciplinas mágicas consideras que define mejor tu potencial?",
+        a: [
+          "Encantamientos complejos: doblegar las leyes físicas de la materia con la palabra.",
+          "Historia antigua de la magia: desenterrar las raíces de los antiguos sabios.",
+          "Alquimia y Pociones: precisión, paciencia y rigor transformando el caos.",
+          "Duelo y Defensa: escudo y fuego listos para repeler las sombras del umbral."
+        ],
+        houses: ["serpiente", "aguila", "tejon", "leon"]
+      },
+      {
+        q: "Un compañero te pide resguardar un paquete sumamente peligroso. ¿Qué le respondes?",
+        a: [
+          "Sí, lo haré. La lealtad a un amigo no se negocia bajo ninguna circunstancia.",
+          "Depende de qué contenga. No pienso involucrarme a ciegas en asuntos oscuros.",
+          "Lo examinaré y determinaré si constituye un peligro real para la academia.",
+          "Lo guardo, pero le exijo buscar una solución juntos antes del anochecer."
+        ],
+        houses: ["tejon", "serpiente", "aguila", "leon"]
+      },
+      {
+        q: "En el fondo de tu alma, ¿cuál es la chispa principal que te impulsa a levantarte?",
+        a: [
+          "Comprender el intrincado funcionamiento del cosmos y la magia.",
+          "Alcanzar la excelencia máxima y destacar por encima del promedio.",
+          "Asegurar el bienestar y armonía de mi comunidad y seres queridos.",
+          "Luchar por la justicia y el honor, cueste lo que me cueste."
+        ],
+        houses: ["aguila", "serpiente", "tejon", "leon"]
+      },
+      {
+        q: "El mensajero llega a medianoche alertando de un portal corrupto. ¿Qué es lo primero que dices?",
+        a: "¿Qué variables físicas y mágicas provocaron la inestabilidad?",
+        b: "¿Qué recompensa o prestigio se ofrece al que cierre la brecha?",
+        c: "Preparen las monturas. Salimos de inmediato.",
+        d: "¿Quiénes del escuadrón están listos para respaldarme en el viaje?"
+      },
+      {
+        q: "¿De qué manera prefieres zanjar una disputa personal importante?",
+        a: [
+          "Demostrando con hechos y lógica deductiva quién tiene la razón.",
+          "Negociando un acuerdo estratégico donde yo no resulte perjudicado.",
+          "Afrontando el conflicto cara a cara con honestidad directa.",
+          "Encontrando un terreno común donde todos sanemos y cedamos un poco."
+        ],
+        houses: ["aguila", "serpiente", "leon", "tejon"]
+      },
+      {
+        q: "Si pudieras adoptar a una criatura mágica como aliada, ¿cuál elegirías?",
+        a: [
+          "Un fénix majestuoso, cuya llama representa renacimiento, fuego y valor eterno.",
+          "Un escarbato leal e intuitivo, capaz de detectar gemas y metales nobles.",
+          "Una lechuza plateada, sabia, silenciosa y observadora en las alturas.",
+          "Un basilisco majestuoso y astuto que intimida a los rivales indignos."
+        ],
+        houses: ["leon", "tejon", "aguila", "serpiente"]
+      },
+      {
+        q: "Durante una evaluación secreta, observas que tu mayor rival está haciendo trampas. ¿Qué haces?",
+        a: [
+          "No es mi asunto; que cada alma cargue con la consecuencia de sus mentiras.",
+          "Le advierto sutilmente al terminar; la rivalidad debe ser justa y limpia.",
+          "Analizo su método de trampa para ver si tiene algún valor de ingenio técnico.",
+          "Lo reporto con discreción. La lealtad a la academia exige mantener la honestidad."
+        ],
+        houses: ["serpiente", "leon", "aguila", "tejon"]
+      },
+      {
+        q: "¿Cuál de estos santuarios de la academia te atrae con mayor fuerza?",
+        a: [
+          "La torre del planetario, rodeado de manuscritos y la brisa helada nocturna.",
+          "Los invernaderos subterráneos, oliendo a tierra fértil, raíces y poción herbácea.",
+          "El gran salón de escudos frente a la fogata, riendo de hazañas legendarias.",
+          "La biblioteca de textos raros, descifrando runas en la esquina sombría."
+        ],
+        houses: ["aguila", "tejon", "leon", "serpiente"]
+      },
+      {
+        q: "Un conjuro tuyo descontrolado daña el retrato del fundador de la academia. ¿Qué haces?",
+        a: [
+          "Busco a un restaurador experto de confianza para arreglarlo antes de que lo noten.",
+          "Informo inmediatamente a la Profesora Klein y asumo el castigo que corresponda.",
+          "Estudio la distorsión del hechizo para comprender qué alteración física lo causó.",
+          "Con convicción y esfuerzo intento repararlo por mí mismo, con paciencia."
+        ],
+        houses: ["serpiente", "leon", "aguila", "tejon"]
+      },
+      {
+        q: "Si te pararas frente al legendario Espejo de los Deseos, ¿qué verías reflejado?",
+        a: [
+          "A mí mismo investido con la corona de logros máximos, respetado y poderoso.",
+          "Un hogar pacífico y cálido con todos mis amigos de la academia a salvo.",
+          "Descifrando el enigma primordial del universo, con la mente en calma.",
+          "Liderando un escuadrón victorioso que salvó al reino de la penumbra."
+        ],
+        houses: ["serpiente", "tejon", "aguila", "leon"]
+      }
+    ];
+
+    // Pregunta 9 tiene mapeo manual por conveniencia de formato
+    const q9Houses = ["aguila", "serpiente", "leon", "tejon"];
+
+    // --- VARIABLES DE ESTADO ---
+    let userName = "";
+    let userTitle = "";
+    let userHouse = "";
+    let totalScore = 0;
+    let scores = { serpiente: 0, leon: 0, aguila: 0, tejon: 0 };
+    let currentQuestion = 0;
+
+    // --- ELEMENTOS HTML ---
+    const screens = {
+      welcome: document.getElementById('screen-welcome'),
+      quiz: document.getElementById('screen-quiz'),
+      avatar: document.getElementById('screen-avatar'),
+      adventure: document.getElementById('screen-adventure'),
+      beach: document.getElementById('screen-beach'),
+      credits: document.getElementById('screen-credits')
+    };
+
+    function showScreen(screenId) {
+      Object.keys(screens).forEach(key => {
+        screens[key].classList.remove('active');
+      });
+      screens[screenId].classList.add('active');
+      if (audioCtx.ctx) {
+        playPageTurnSound();
+      }
+    }
+
+    // --- INICIALIZACIÓN: LIBRO DE ORO ---
+    function validateAndStart() {
+      initAudio();
+      const nameInput = document.getElementById('spell-name').value.trim();
+      const errorDiv = document.getElementById('welcome-error');
+      
+      const letterRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
+      if (nameInput.length < 2 || nameInput.length > 25 || !letterRegex.test(nameInput)) {
+        errorDiv.textContent = "El libro no reconoce ese nombre. Usa solo letras.";
+        // Pequeño temblor en el input
+        const inputEl = document.getElementById('spell-name');
+        inputEl.style.transform = "translateX(5px)";
+        setTimeout(() => inputEl.style.transform = "translateX(-5px)", 60);
+        setTimeout(() => inputEl.style.transform = "translateX(0)", 120);
+        return;
+      }
+      errorDiv.textContent = "";
+      
+      userName = nameInput;
+      userTitle = document.querySelector('input[name="title"]:checked').value;
+      
+      playWaxSealSound();
+      playSparkleSound();
+      
+      // Iniciar Quiz
+      currentQuestion = 0;
+      scores = { serpiente: 0, leon: 0, aguila: 0, tejon: 0 };
+      showScreen('quiz');
+      loadQuizQuestion();
+    }
+
+    // --- CUESTIONARIO ---
+    function loadQuizQuestion() {
+      const qText = document.getElementById('quiz-question-text');
+      const qProgress = document.getElementById('quiz-progress-text');
+      const optContainer = document.getElementById('quiz-options-container');
+      
+      qProgress.textContent = `Pregunta ${currentQuestion + 1} de 15`;
+      const data = quizQuestions[currentQuestion];
+      qText.textContent = data.q;
+      
+      optContainer.innerHTML = '';
+      
+      // Manejar la pregunta 9 que tiene respuestas en formato de string directo
+      const answers = Array.isArray(data.a) ? data.a : [data.a, data.b, data.c, data.d];
+      const houses = data.houses || q9Houses;
+      
+      answers.forEach((ans, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'quiz-opt-btn';
+        btn.textContent = ans;
+        btn.onclick = () => selectAnswer(houses[idx]);
+        optContainer.appendChild(btn);
+      });
+    }
+
+    function selectAnswer(house) {
+      scores[house] += 3;
+      currentQuestion++;
+      
+      if (currentQuestion < quizQuestions.length) {
+        loadQuizQuestion();
+      } else {
+        calculateHouseResult();
+      }
+    }
+
+    function calculateHouseResult() {
+      // Encontrar la casa con mayor puntaje
+      let maxScore = -1;
+      let winningHouse = 'tejon';
+      
+      Object.keys(scores).forEach(house => {
+        if (scores[house] > maxScore) {
+          maxScore = scores[house];
+          winningHouse = house;
+        }
+      });
+      
+      userHouse = winningHouse;
+      totalScore = scores.serpiente + scores.leon + scores.aguila + scores.tejon;
+      
+      // Guardar en localStorage
+      localStorage.setItem('user_name', userName);
+      localStorage.setItem('user_title', userTitle);
+      localStorage.setItem('user_house', userHouse);
+      localStorage.setItem('total_score', totalScore);
+
+      // Despertar del Avatar
+      triggerAvatarRevelation();
+    }
+
+    // --- REVELACIÓN DE AVATAR (CASA Y VARITA) ---
+    function triggerAvatarRevelation() {
+      // Cambiar variables CSS de tema según casa
+      const root = document.documentElement;
+      let houseNameES = "";
+      let houseDesc = "";
+      
+      if (userHouse === 'serpiente') {
+        root.style.setProperty('--house-primary', '#0a5c36');
+        root.style.setProperty('--house-secondary', '#c0c0c0');
+        root.style.setProperty('--house-glow', 'rgba(10,92,54,0.4)');
+        root.style.setProperty('--house-accent', 'rgba(10,92,54,0.15)');
+        houseNameES = "La Sagaz Serpiente";
+        houseDesc = `"${userTitle} ${userName}, el Artefacto Selector no se equivoca. Eres de La Sagaz Serpiente.\n\nNo eres el villano que los cuentos antiguos temían — eres el estratega que la academia necesitaba. Tu mente calcula donde otros solo sienten. Tu ambición no es codicia, es visión. Llévalo con orgullo. No pidas perdón por saber lo que deseas."`;
+      } else if (userHouse === 'leon') {
+        root.style.setProperty('--house-primary', '#740001');
+        root.style.setProperty('--house-secondary', '#d3a625');
+        root.style.setProperty('--house-glow', 'rgba(116,0,1,0.4)');
+        root.style.setProperty('--house-accent', 'rgba(116,0,1,0.15)');
+        houseNameES = "El Orgulloso León";
+        houseDesc = `"${userTitle} ${userName}, el Artefacto Selector reconoce en ti el fuego del León.\n\nCorres hacia el peligro cuando todos huyen. No porque no sientas temor — sino porque decides actuar a pesar de él. El carmesí de tu escudo es el color de la sangre que se derrama por los que amas, del atardecer victorioso. Llevas la antorcha. No la sueltes."`;
+      } else if (userHouse === 'aguila') {
+        root.style.setProperty('--house-primary', '#0e1a40');
+        root.style.setProperty('--house-secondary', '#946b2d');
+        root.style.setProperty('--house-glow', 'rgba(14,26,64,0.4)');
+        root.style.setProperty('--house-accent', 'rgba(14,26,64,0.15)');
+        houseNameES = "La Sabia Águila";
+        houseDesc = `"${userTitle} ${userName}, La Sabia Águila te abre sus puertas con reverencia.\n\nTu mente no descansa. Cada respuesta te guía a tres nuevas interrogantes, y eso te deleita. Ves belleza en la geometría y poesía en las fórmulas. El universo es para ti un texto que leer, no un obstáculo que superar. Eres promesa en movimiento."`;
+      } else { // tejon
+        root.style.setProperty('--house-primary', '#ecb939');
+        root.style.setProperty('--house-secondary', '#1a1a1a');
+        root.style.setProperty('--house-glow', 'rgba(236,185,57,0.4)');
+        root.style.setProperty('--house-accent', 'rgba(236,185,57,0.15)');
+        houseNameES = "El Tenaz Tejón";
+        houseDesc = `"${userTitle} ${userName}, El Tenaz Tejón te abraza como a uno de los suyos.\n\nNo buscas el aplauso. Buscas que al final del día, las personas que amas duerman tranquilas sabiendo que tú estás ahí. Eres la piedra sobre la que otros construyen. El ámbar de tu casa es el color del trigo maduro, del trabajo honesto bien hecho."`;
+      }
+
+      document.getElementById('avatar-house-title').textContent = houseNameES;
+      document.getElementById('avatar-house-desc').textContent = houseDesc;
+      
+      // Tocar acordes de la casa
+      playHouseChord(userHouse);
+      
+      // Dibujar Escudo en el Canvas
+      drawHouseEmblem();
+      
+      // Generar y Dibujar Varita Mágica Procedimental
+      generateWand(userName);
+
+      showScreen('avatar');
+    }
+
+    // --- DIBUJO PROCEDIMENTAL DE EMBLEMAS (CANVAS 2D) ---
+    function drawHouseEmblem() {
+      const canvasEm = document.getElementById('emblemCanvas');
+      const ctxEm = canvasEm.getContext('2d');
+      ctxEm.clearRect(0,0,240,240);
+      
+      const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--house-primary').trim();
+      const secondaryColor = getComputedStyle(document.documentElement).getPropertyValue('--house-secondary').trim();
+
+      // 1. Dibujar el Escudo Heater Base
+      ctxEm.save();
+      ctxEm.translate(40, 20); // centrar
+      
+      ctxEm.fillStyle = primaryColor;
+      ctxEm.strokeStyle = secondaryColor;
+      ctxEm.lineWidth = 4;
+      
+      // heater shield path (160x200 px)
+      function pathShield(ctx, x, y, w, h) {
+        ctx.beginPath();
+        ctx.moveTo(x + w * 0.5, y);
+        ctx.lineTo(x + w, y);
+        ctx.bezierCurveTo(x + w, y + h * 0.4, x + w * 0.95, y + h * 0.85, x + w * 0.5, y + h);
+        ctx.bezierCurveTo(x + w * 0.05, y + h * 0.85, x, y + h * 0.4, x, y);
+        ctx.closePath();
+      }
+      
+      pathShield(ctxEm, 0, 0, 160, 200);
+      ctxEm.fill();
+      ctxEm.stroke();
+      
+      // Dibujar doble línea interna de alta calidad
+      ctxEm.strokeStyle = 'rgba(255,255,255,0.2)';
+      ctxEm.lineWidth = 1;
+      pathShield(ctxEm, 4, 4, 152, 192);
+      ctxEm.stroke();
+
+      // Recortar y dibujar divisiones (Ordinarios de Casa)
+      ctxEm.save();
+      pathShield(ctxEm, 0, 0, 160, 200);
+      ctxEm.clip();
+      
+      ctxEm.fillStyle = secondaryColor;
+      
+      // Cada casa tiene una división por defecto en su escudo
+      if (userHouse === 'serpiente') {
+        // Franja diagonal plata
+        ctxEm.beginPath();
+        ctxEm.moveTo(0,0);
+        ctxEm.lineTo(160,160);
+        ctxEm.lineTo(160,200);
+        ctxEm.lineTo(0,40);
+        ctxEm.closePath();
+        ctxEm.fill();
+      } else if (userHouse === 'leon') {
+        // Bordura ajedrezada carmesí y oro en el fondo
+        ctxEm.strokeStyle = secondaryColor;
+        ctxEm.lineWidth = 14;
+        pathShield(ctxEm, 0, 0, 160, 200);
+        ctxEm.stroke();
+      } else if (userHouse === 'aguila') {
+        // Jefe de bronce con estrellas
+        ctxEm.fillRect(0,0,160,50);
+        ctxEm.fillStyle = primaryColor;
+        ctxEm.beginPath();
+        ctxEm.arc(40, 25, 2, 0, Math.PI*2);
+        ctxEm.arc(80, 25, 2, 0, Math.PI*2);
+        ctxEm.arc(120, 25, 2, 0, Math.PI*2);
+        ctxEm.fill();
+      } else { // tejon
+        // Banda de rayas negras verticales
+        ctxEm.fillStyle = '#1a1a1a';
+        ctxEm.fillRect(45,0,20,200);
+        ctxEm.fillRect(95,0,20,200);
+      }
+      ctxEm.restore();
+
+      // 2. Dibujar el Animal en el centro del escudo
+      ctxEm.save();
+      ctxEm.translate(80, 100); // centro del escudo
+      
+      if (userHouse === 'serpiente') {
+        drawCoiledSnakeEmblem(ctxEm, 55);
+      } else if (userHouse === 'leon') {
+        drawRampantLionEmblem(ctxEm, 65);
+      } else if (userHouse === 'aguila') {
+        drawEagleEmblem(ctxEm, 65);
+      } else { // tejon
+        drawBadgerEmblem(ctxEm, 60);
+      }
+      ctxEm.restore();
+      ctxEm.restore();
+    }
+
+    // --- ALGORITMOS PROCEDIMENTALES VECTORIALES ---
+
+    function drawCoiledSnakeEmblem(c, maxRadius) {
+      const numPoints = 120;
+      const maxTheta = 4.2 * Math.PI; 
+      
+      c.fillStyle = '#1e4620';
+      c.strokeStyle = '#c0c0c0'; // contorno plata
+      c.lineWidth = 1;
+
+      for (let i = 0; i <= numPoints; i++) {
+        const theta = (i / numPoints) * maxTheta;
+        const r = (theta / maxTheta) * maxRadius;
+        const x = r * Math.cos(theta);
+        const y = r * Math.sin(theta);
+        
+        let thickness = 8 * Math.sin((i / numPoints) * Math.PI);
+        if (i < 15) thickness = 1.5 + (i / 15) * 4.5;
+        
+        c.beginPath();
+        c.arc(x, y, thickness, 0, Math.PI * 2);
+        c.fill();
+        c.stroke();
+      }
+
+      // Snout
+      const hx = maxRadius * Math.cos(maxTheta);
+      const hy = maxRadius * Math.sin(maxTheta);
+      c.save();
+      c.translate(hx, hy);
+      c.rotate(maxTheta + Math.PI / 2);
+      c.fillStyle = '#133318';
+      c.beginPath();
+      c.moveTo(0, -9);
+      c.lineTo(6, -1);
+      c.lineTo(0, 5);
+      c.lineTo(-6, -1);
+      c.closePath();
+      c.fill();
+      c.stroke();
+      c.restore();
+    }
+
+    function drawRampantLionEmblem(c, height) {
+      c.fillStyle = '#fcbf49'; // oro
+      c.strokeStyle = '#222';
+      c.lineWidth = 1.5;
+      
+      // Torso
+      c.beginPath();
+      c.moveTo(-5, -height * 0.2);
+      c.bezierCurveTo(7, -height * 0.25, 10, height * 0.1, 2, height * 0.22);
+      c.lineTo(-7, height * 0.25);
+      c.bezierCurveTo(-2, height * 0.1, -12, -height * 0.1, -5, -height * 0.2);
+      c.closePath();
+      c.fill();
+      c.stroke();
+      
+      // Mane (Melena)
+      c.fillStyle = '#740001'; // granate
+      for (let i = 0; i < 5; i++) {
+        const angle = (i / 5) * Math.PI * 2;
+        const mx = -4 + Math.cos(angle) * 8;
+        const my = -height * 0.25 + Math.sin(angle) * 8;
+        c.beginPath();
+        c.arc(mx, my, 5, 0, Math.PI * 2);
+        c.fill();
+        c.stroke();
+      }
+      
+      c.fillStyle = '#fcbf49';
+      c.beginPath();
+      c.arc(-4, -height * 0.25, 6, 0, Math.PI * 2);
+      c.fill();
+      c.stroke();
+
+      // Tail
+      c.beginPath();
+      c.moveTo(0, height * 0.1);
+      c.bezierCurveTo(12, height * 0.02, 6, -height * 0.12, 16, -height * 0.15);
+      c.bezierCurveTo(17, -height * 0.12, 10, height * 0.05, 0, height * 0.15);
+      c.closePath();
+      c.fill();
+      c.stroke();
+
+      // Extremidad
+      function drawLimb(c, sx, sy, angle, length) {
+        c.save();
+        c.translate(sx, sy);
+        c.rotate((angle * Math.PI) / 180);
+        c.fillStyle = '#fcbf49';
+        c.beginPath();
+        c.rect(0, -2.5, length, 5);
+        c.fill();
+        c.stroke();
+        c.restore();
+      }
+      
+      drawLimb(c, -5, -height * 0.15, -45, 18);
+      drawLimb(c, -6, -height * 0.1, -15, 15);
+      drawLimb(c, -2, height * 0.15, 45, 16);
+    }
+
+    function drawEagleEmblem(c, height) {
+      c.fillStyle = '#946b2d'; // bronce
+      c.strokeStyle = '#0e1a40';
+      c.lineWidth = 1;
+
+      // Alas extendidas simétricas
+      function wing(side) {
+        c.save();
+        c.scale(side, 1);
+        for (let i = 0; i < 6; i++) {
+          const angle = -0.2 - (i / 6) * 1.1;
+          const length = 25 + (6 - i) * 4;
+          c.save();
+          c.translate(6, -height * 0.1);
+          c.rotate(angle);
+          c.beginPath();
+          c.ellipse(length * 0.5, 0, length * 0.5, 3.5, 0, 0, Math.PI * 2);
+          c.fill();
+          c.stroke();
+          c.restore();
+        }
+        c.restore();
+      }
+
+      wing(1);
+      wing(-1);
+
+      // Torso
+      c.fillStyle = '#ebdcb9';
+      c.beginPath();
+      c.moveTo(0, -height * 0.2);
+      c.bezierCurveTo(12, -height * 0.2, 9, height * 0.1, 0, height * 0.2);
+      c.bezierCurveTo(-9, height * 0.1, -12, -height * 0.2, 0, -height * 0.2);
+      c.closePath();
+      c.fill();
+      c.stroke();
+
+      // Cabeza blanca y pico
+      c.fillStyle = '#fff';
+      c.beginPath();
+      c.arc(0, -height * 0.28, 7, 0, Math.PI*2);
+      c.fill();
+      c.stroke();
+      
+      c.fillStyle = '#946b2d';
+      c.beginPath();
+      c.moveTo(-5, -height * 0.28 - 2);
+      c.bezierCurveTo(-11, -height * 0.28, -9, -height * 0.28 + 4, -5, -height * 0.28 + 2);
+      c.closePath();
+      c.fill();
+    }
+
+    function drawBadgerEmblem(c, height) {
+      c.fillStyle = '#1a1a1a'; // tejón oscuro
+      c.strokeStyle = '#ecb939'; // contorno ámbar
+      c.lineWidth = 1.2;
+
+      // Cuerpo
+      c.beginPath();
+      c.ellipse(6, 6, height * 0.45, height * 0.25, 0.05, 0, Math.PI * 2);
+      c.fill();
+      c.stroke();
+
+      // Patas
+      c.beginPath(); c.ellipse(-10, height * 0.18, 4, 7, -0.1, 0, Math.PI*2); c.fill(); c.stroke();
+      c.beginPath(); c.ellipse(15, height * 0.18, 5, 8, 0.1, 0, Math.PI*2); c.fill(); c.stroke();
+
+      // Cabeza
+      c.save();
+      c.translate(-16, -2);
+      c.fillStyle = '#ffffff';
+      c.beginPath();
+      c.moveTo(8, -8);
+      c.lineTo(-12, 1);
+      c.lineTo(8, 10);
+      c.closePath();
+      c.fill();
+      c.stroke();
+      
+      // Raya del ojo negra
+      c.fillStyle = '#1a1a1a';
+      c.beginPath();
+      c.moveTo(6, -4);
+      c.lineTo(-8, 1);
+      c.lineTo(8, 3);
+      c.closePath();
+      c.fill();
+      c.restore();
+    }
+
+    // --- PROCEDURAL GENERATION: VARITAS MÁGICAS ---
+    function generateWand(name) {
+      // Generar semilla a partir del nombre
+      let seed = 0;
+      for (let i = 0; i < name.length; i++) {
+        seed += name.charCodeAt(i);
+      }
+      
+      const woods = ["Roble", "Sauce", "Acebo", "Olmo", "Cerezo"];
+      const cores = ["Pluma de Fénix", "Pelo de Unicornio", "Cuerda de Corazón de Dragón"];
+      const flexibilities = ["Rígida", "Ligeramente flexible", "Muy flexible", "Sorprendentemente flexible"];
+      
+      const wood = woods[seed % woods.length];
+      const core = cores[(seed + 2) % cores.length];
+      const length = 26 + (seed % 9); // 26 a 34 cm
+      const flex = flexibilities[(seed + 1) % flexibilities.length];
+      
+      const wandDesc = `Madera de <b>${wood}</b>, núcleo de <b>${core}</b>, <b>${length} cm</b>, de flexibilidad <b>${flex}</b>. Tiene opiniones propias, <i>${userName}</i>. Trátala con respeto.`;
+      document.getElementById('avatar-wand-text').innerHTML = wandDesc;
+      
+      // Guardar en localStorage
+      localStorage.setItem('wand_desc', `${wood}-${core}-${length}-${flex}`);
+
+      // Dibujar Varita en el Canvas
+      drawWandCanvas(seed);
+    }
+
+    function drawWandCanvas(seed) {
+      const canvasW = document.getElementById('wandCanvas');
+      const ctxW = canvasW.getContext('2d');
+      ctxW.clearRect(0,0,120,40);
+      
+      // Colores de madera basados en la semilla
+      const woodHue = (seed * 45) % 360;
+      const woodColor = `hsl(${woodHue}, 40%, 30%)`;
+      const woodHighlight = `hsl(${woodHue}, 50%, 45%)`;
+      
+      // Gradiente del cilindro de la varita
+      const grad = ctxW.createLinearGradient(0, 15, 0, 25);
+      grad.addColorStop(0, '#110c08');
+      grad.addColorStop(0.3, woodHighlight);
+      grad.addColorStop(0.8, woodColor);
+      grad.addColorStop(1, '#000000');
+      
+      ctxW.fillStyle = grad;
+      // Dibujar cuerpo de varita cónica
+      ctxW.beginPath();
+      ctxW.moveTo(10, 16);
+      ctxW.lineTo(100, 18);
+      ctxW.lineTo(100, 22);
+      ctxW.lineTo(10, 24);
+      ctxW.closePath();
+      ctxW.fill();
+      
+      // Dibujar mango
+      ctxW.fillStyle = '#0f0a07';
+      ctxW.fillRect(10, 14, 25, 12);
+      
+      // Núcleo brillante en la punta
+      let coreColor = "#fcbf49"; // fénix (oro)
+      if (seed % 3 === 1) coreColor = "#00b4d8"; // unicornio (plata/azul)
+      if (seed % 3 === 2) coreColor = "#d62828"; // dragón (carmesí)
+      
+      ctxW.shadowColor = coreColor;
+      ctxW.shadowBlur = 8;
+      ctxW.fillStyle = '#ffffff';
+      ctxW.beginPath();
+      ctxW.arc(101, 20, 2.5, 0, Math.PI*2);
+      ctxW.fill();
+      ctxW.shadowBlur = 0;
+    }
+
+
+    // --- 5. POINT & CLICK: AULA DE LA PROFESORA KLEIN ---
+    const clickPositions = {
+      window:    { x: 50,  y: 35,  w: 120, h: 140 },
+      portrait:  { x: 230, y: 40,  w: 80,  h: 100 },
+      blackboard:{ x: 380, y: 50,  w: 130, h: 90  },
+      bookshelf: { x: 580, y: 30,  w: 130, h: 220 },
+      desk:      { x: 180, y: 190, w: 260, h: 100 },
+      cauldron:  { x: 45,  y: 190, w: 90,  h: 100 }
+    };
+
+    let cluesFound = { note: false, map: false, pass: false };
+
+    function goToAdventure() {
+      // Iniciar point and click
+      cluesFound = { note: false, map: false, pass: false };
+      updateClueBadges();
+      drawKleinRoom();
+      showScreen('adventure');
+      
+      // Diálogo de bienvenida del retrato
+      triggerAdvDialogue("Retrato Parlante", `¡Vaya, ${userTitle} ${userName}! Bienvenidos al Hangar de Alquimia de la Profesora Klein. El Artefacto Selector se marchó enfadado hace horas... Busca en el librero, en el escritorio y examina el pizarrón. Necesito tu ayuda.`);
+    }
+
+    function updateClueBadges() {
+      document.getElementById('badge-note').className = cluesFound.note ? 'clue-badge found' : 'clue-badge';
+      document.getElementById('badge-map').className = cluesFound.map ? 'clue-badge found' : 'clue-badge';
+      document.getElementById('badge-pass').className = cluesFound.pass ? 'clue-badge found' : 'clue-badge';
+    }
+
+    function drawKleinRoom() {
+      const cv = document.getElementById('pointClickCanvas');
+      const c = cv.getContext('2d');
+      c.clearRect(0,0,820,300);
+      
+      // 1. Pared de piedra y suelo de madera
+      c.fillStyle = '#211a15';
+      c.fillRect(0,0,820,300);
+      c.fillStyle = '#130e0a';
+      c.fillRect(0, 220, 820, 80); // suelo
+      
+      // Líneas de suelo
+      c.strokeStyle = '#2b1f16';
+      c.lineWidth = 2;
+      for (let i = 0; i < 820; i += 80) {
+        c.beginPath();
+        c.moveTo(i, 220);
+        c.lineTo(i - 40, 300);
+        c.stroke();
+      }
+
+      // 2. Ventana Gótica (Arqueada)
+      c.fillStyle = '#060a17'; // noche estrellada
+      c.beginPath();
+      c.moveTo(clickPositions.window.x, clickPositions.window.y + 40);
+      c.lineTo(clickPositions.window.x + clickPositions.window.w, clickPositions.window.y + 40);
+      c.bezierCurveTo(
+        clickPositions.window.x + clickPositions.window.w, clickPositions.window.y,
+        clickPositions.window.x, clickPositions.window.y,
+        clickPositions.window.x, clickPositions.window.y + 40
+      );
+      c.closePath();
+      c.fillRect(clickPositions.window.x, clickPositions.window.y, clickPositions.window.w, clickPositions.window.h);
+      
+      // Dibujar reja de la ventana
+      c.strokeStyle = '#2e2115';
+      c.lineWidth = 3;
+      c.strokeRect(clickPositions.window.x, clickPositions.window.y + 40, clickPositions.window.w, clickPositions.window.h - 40);
+      // Estrellitas
+      c.fillStyle = '#ffffff';
+      c.fillRect(clickPositions.window.x + 30, clickPositions.window.y + 20, 2, 2);
+      c.fillRect(clickPositions.window.x + 80, clickPositions.window.y + 15, 1.5, 1.5);
+      c.fillRect(clickPositions.window.x + 50, clickPositions.window.y + 35, 2, 2);
+
+      // 3. Cuadro del Director
+      c.fillStyle = '#2e1909'; // marco
+      c.fillRect(clickPositions.portrait.x, clickPositions.portrait.y, clickPositions.portrait.w, clickPositions.portrait.h);
+      c.fillStyle = '#4c392b'; // pintura
+      c.fillRect(clickPositions.portrait.x + 6, clickPositions.portrait.y + 6, clickPositions.portrait.w - 12, clickPositions.portrait.h - 12);
+      // Dibujo esquemático de un mago con barba
+      c.fillStyle = '#d7c0a7'; // cara
+      c.beginPath(); c.arc(clickPositions.portrait.x + 40, clickPositions.portrait.y + 35, 14, 0, Math.PI*2); c.fill();
+      c.fillStyle = '#ffffff'; // barba y pelo
+      c.fillRect(clickPositions.portrait.x + 28, clickPositions.portrait.y + 42, 24, 35);
+      c.fillStyle = '#7a2223'; // túnica
+      c.fillRect(clickPositions.portrait.x + 20, clickPositions.portrait.y + 70, 40, 20);
+
+      // 4. Pizarrón de Alquimia
+      c.fillStyle = '#1c221c'; // pizarra
+      c.fillRect(clickPositions.blackboard.x, clickPositions.blackboard.y, clickPositions.blackboard.w, clickPositions.blackboard.h);
+      c.strokeStyle = '#3e2a1e'; // marco madera
+      c.lineWidth = 4;
+      c.strokeRect(clickPositions.blackboard.x, clickPositions.blackboard.y, clickPositions.blackboard.w, clickPositions.blackboard.h);
+      // Letras de tiza blanca
+      c.fillStyle = 'rgba(255,255,255,0.7)';
+      c.font = '12px "MedievalSharp"';
+      c.fillText("Ignis + Aer = ?", clickPositions.blackboard.x + 25, clickPositions.blackboard.y + 40);
+      c.font = '9px "Special Elite"';
+      c.fillText("Ecuación Elemental II", clickPositions.blackboard.x + 15, clickPositions.blackboard.y + 70);
+
+      // 5. Estantería de Libros
+      c.fillStyle = '#4a3424'; // estante
+      c.fillRect(clickPositions.bookshelf.x, clickPositions.bookshelf.y, clickPositions.bookshelf.w, clickPositions.bookshelf.h);
+      c.fillStyle = '#1b120c'; // fondo huecos
+      c.fillRect(clickPositions.bookshelf.x + 8, clickPositions.bookshelf.y + 8, clickPositions.bookshelf.w - 16, clickPositions.bookshelf.h - 16);
+      
+      // Dibujar hileras de libros coloridos procedimentales
+      const bookColors = ['#a52a2a', '#2e8b57', '#4682b4', '#d2b48c', '#556b2f', '#8b008b'];
+      for (let row = 0; row < 3; row++) {
+        const ry = clickPositions.bookshelf.y + 12 + row * 70;
+        // Dividir repisa
+        c.fillStyle = '#4a3424';
+        c.fillRect(clickPositions.bookshelf.x + 8, ry + 55, clickPositions.bookshelf.w - 16, 6);
+        
+        let rx = clickPositions.bookshelf.x + 15;
+        while (rx < clickPositions.bookshelf.x + clickPositions.bookshelf.w - 25) {
+          const w = 6 + Math.random() * 8;
+          const h = 35 + Math.random() * 15;
+          c.fillStyle = bookColors[Math.floor(Math.random() * bookColors.length)];
+          c.fillRect(rx, ry + (55 - h), w, h);
+          c.strokeStyle = '#000000';
+          c.lineWidth = 1;
+          c.strokeRect(rx, ry + (55 - h), w, h);
+          rx += w + 2;
+        }
+      }
+
+      // 6. Escritorio Principal de Klein
+      c.fillStyle = '#563e2d'; // base mesa
+      c.fillRect(clickPositions.desk.x, clickPositions.desk.y, clickPositions.desk.w, clickPositions.desk.h);
+      // Patas
+      c.fillRect(clickPositions.desk.x + 10, clickPositions.desk.y + clickPositions.desk.h, 15, 60);
+      c.fillRect(clickPositions.desk.x + clickPositions.desk.w - 25, clickPositions.desk.y + clickPositions.desk.h, 15, 60);
+      
+      // Frascos y pergaminos sobre el escritorio
+      c.fillStyle = '#ebdcb9'; // pergamino
+      c.fillRect(clickPositions.desk.x + 40, clickPositions.desk.y + 10, 45, 12);
+      c.fillStyle = '#a8e6cf'; // matraz de poción
+      c.beginPath();
+      c.arc(clickPositions.desk.x + 130, clickPositions.desk.y + 12, 10, 0, Math.PI*2);
+      c.fill();
+      c.fillRect(clickPositions.desk.x + 127, clickPositions.desk.y + 2, 6, 10);
+
+      // 7. Caldero Humeante
+      c.fillStyle = '#1c1c1c'; // metal caldero
+      c.beginPath();
+      c.arc(clickPositions.cauldron.x + 45, clickPositions.cauldron.y + 50, 40, 0, Math.PI*2);
+      c.fill();
+      // Borde superior
+      c.fillRect(clickPositions.cauldron.x + 15, clickPositions.cauldron.y + 15, 60, 10);
+      // Patas caldero
+      c.fillRect(clickPositions.cauldron.x + 15, clickPositions.cauldron.y + 85, 10, 15);
+      c.fillRect(clickPositions.cauldron.x + 65, clickPositions.cauldron.y + 85, 10, 15);
+      
+      // Vapor de burbujas en Canvas animado
+      c.fillStyle = 'rgba(0, 220, 255, 0.2)';
+      for (let i = 0; i < 4; i++) {
+        const bx = clickPositions.cauldron.x + 25 + Math.random() * 40;
+        const by = clickPositions.cauldron.y + 5 - Math.random() * 20;
+        c.beginPath();
+        c.arc(bx, by, 6 + Math.random() * 8, 0, Math.PI * 2);
+        c.fill();
+      }
+    }
+
+    // Manejar Clics del Point & Click
+    document.getElementById('pointClickCanvas').addEventListener('click', (e) => {
+      const rect = e.target.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      let clickedItem = null;
+      Object.keys(clickPositions).forEach(key => {
+        const pos = clickPositions[key];
+        if (x >= pos.x && x <= pos.x + pos.w && y >= pos.y && y <= pos.y + pos.h) {
+          clickedItem = key;
+        }
+      });
+      
+      if (clickedItem) {
+        handleAdventureInteraction(clickedItem);
+      }
+    });
+
+    function handleAdventureInteraction(item) {
+      if (audioCtx.ctx) {
+        playSparkleSound();
+      }
+      
+      const statusEl = document.getElementById('adventure-status-text');
+
+      switch (item) {
+        case 'window':
+          triggerAdvDialogue("Ventana del Aula", "Miras al patio exterior. Se observan pequeñas huellas brillantes del Artefacto Selector dirigiéndose hacia el portal de traslado en los límites de la playa mística.");
+          break;
+          
+        case 'portrait':
+          let portraitQuote = "";
+          if (userHouse === 'serpiente') {
+            portraitQuote = `¡Ah, Valeria de La Serpiente! Bien. El Artefacto no se perdió por accidente, se fue por su propia voluntad al Resort Místico de la Playa de los Sueños. Encontrarás la carta de traslado en el escritorio. Úsala a tu favor. No dejes que los Leones se enteren.`;
+          } else if (userHouse === 'leon') {
+            portraitQuote = `¡Valiente León! El Artefacto Selector está de vacaciones en la Playa de los Sueños. El caldero te enviará allí si consigues el mapa. No temas tocar el líquido hirviendo, tu coraje abrirá el camino.`;
+          } else if (userHouse === 'aguila') {
+            portraitQuote = `¡Intelecto del Águila! Excelente. El Sombrero Selector dejó rastros lógicos. Resuelve el problema del pizarrón de fórmulas elementales para obtener la contraseña rúnica del traslado. El conocimiento es la llave.`;
+          } else { // tejon
+            portraitQuote = `¡Mi querido Tejón! El Sombrero Selector te echa de menos. Siempre dijo que los Tejones eran los más honestos del colegio. Consigue las pistas y habla con él directamente en la playa. Tu empatía le convencerá de volver.`;
+          }
+          triggerAdvDialogue("Retrato del Director", portraitQuote);
+          break;
+          
+        case 'bookshelf':
+          if (!cluesFound.map) {
+            cluesFound.map = true;
+            updateClueBadges();
+            statusEl.textContent = "¡Has recuperado el Mapa de traslado a la Playa de los Sueños!";
+            triggerAdvDialogue("Estantería de Libros", "Al mover el ejemplar pesado de 'Teoría Avanzada de Escobas', se abre un compartimento oculto. Encuentras el Mapa Alquímico.");
+          } else {
+            triggerAdvDialogue("Estantería de Libros", "Solo encuentras libros antiguos llenos de polvo de hadas. Ya has obtenido el Mapa de este lugar.");
+          }
+          break;
+          
+        case 'desk':
+          if (!cluesFound.note) {
+            cluesFound.note = true;
+            updateClueBadges();
+            statusEl.textContent = "¡Has encontrado la Nota de la Profesora Klein!";
+            triggerAdvDialogue("Escritorio de Pociones", "Encuentras un trozo de pergamino con la caligrafía de la Profesora Klein: 'El Artefacto se sentía hastiado del peso de clasificar tantas almas... ha ido a la Playa de los Sueños.'");
+          } else {
+            triggerAdvDialogue("Escritorio de Pociones", "Hay matraces vacíos y restos de azufre alquímico. No queda nada más de valor.");
+          }
+          break;
+          
+        case 'blackboard':
+          if (!cluesFound.pass) {
+            document.getElementById('blackboard-modal').style.display = 'flex';
+          } else {
+            triggerAdvDialogue("Pizarrón del Aula", "El pizarrón muestra la palabra mágica 'REVELIO' escrita en tiza brillante. Ya has liberado la contraseña.");
+          }
+          break;
+          
+        case 'cauldron':
+          if (cluesFound.note && cluesFound.map && cluesFound.pass) {
+            statusEl.textContent = "¡Portal de Alquimia activado! Trasladándote...";
+            triggerAdvDialogue("El Caldero Burbujeante", "¡Las tres pistas se disuelven en el brebaje! El humo azul se vuelve dorado y te envuelve por completo. Sientes cómo el espacio se curva. ¡Traslado iniciado!");
+            setTimeout(() => {
+              goToBeach();
+            }, 3000);
+          } else {
+            triggerAdvDialogue("El Caldero Burbujeante", "El caldero exhala vapor frío. Necesitas colocar el Mapa (Librero), la Nota (Escritorio) y la Contraseña (Pizarrón) para encender el portal de traslado.");
+          }
+          break;
+      }
+    }
+
+    // Diálogos Typewriter en aventura
+    let advTypewriterTimer = null;
+    function triggerAdvDialogue(speaker, text) {
+      const advOverlay = document.getElementById('adventure-dialogue');
+      advOverlay.style.display = 'block';
+      document.getElementById('adv-speaker').textContent = speaker;
+      
+      const txtEl = document.getElementById('adv-text');
+      txtEl.textContent = "";
+      
+      let index = 0;
+      clearInterval(advTypewriterTimer);
+      
+      advTypewriterTimer = setInterval(() => {
+        if (index < text.length) {
+          txtEl.textContent += text[index];
+          index++;
+        } else {
+          clearInterval(advTypewriterTimer);
+        }
+      }, 25);
+      
+      // Cerrar al hacer clic en el diálogo
+      advOverlay.onclick = () => {
+        advOverlay.style.display = 'none';
+      };
+    }
+
+    // Acertijo Pizarrón Modal
+    function closeModal() {
+      document.getElementById('blackboard-modal').style.display = 'none';
+    }
+
+    function submitBlackboardAnswer(answer) {
+      if (answer === 'tempestas') {
+        cluesFound.pass = true;
+        updateClueBadges();
+        closeModal();
+        triggerAdvDialogue("Pizarrón de Klein", "¡Correcto! Ignis y Aer se fusionan creando Tempestas (Tormenta/Calor). La pizarra brilla y revela la palabra clave: 'REVELIO'. Pista añadida a tu inventario.");
+        document.getElementById('adventure-status-text').textContent = "¡Contraseña REVELIO desbloqueada!";
+        drawKleinRoom(); // Redibujar con cambios
+      } else {
+        playWaxSealSound(); // Tocar tono bajo de fallo
+        alert("La fórmula chispea con humo negro. Respuesta incorrecta.");
+      }
+    }
+
+
+    // --- 6. LAS VACACIONES MÁGICAS (PLAYA Y SOMBRERO) ---
+    function goToBeach() {
+      showScreen('beach');
+      drawBeachScene();
+      initBeachDialogue();
+    }
+
+    function drawBeachScene() {
+      const cv = document.getElementById('beachCanvas');
+      const c = cv.getContext('2d');
+      c.clearRect(0,0,820,300);
+
+      // 1. Cielo de atardecer
+      const skyGrad = c.createLinearGradient(0,0,0,200);
+      skyGrad.addColorStop(0, '#f77f00'); // naranja
+      skyGrad.addColorStop(0.5, '#fcbf49'); // amarillo
+      skyGrad.addColorStop(1, '#eae2b7'); // crema
+      c.fillStyle = skyGrad;
+      c.fillRect(0,0,820,200);
+
+      // Sol poniente
+      c.fillStyle = '#ff7700';
+      c.beginPath(); c.arc(410, 160, 35, 0, Math.PI, true); c.fill();
+
+      // 2. Mar
+      c.fillStyle = '#003049';
+      c.fillRect(0, 160, 820, 40);
+      
+      // 3. Arena de playa
+      c.fillStyle = '#e9d8a6';
+      c.fillRect(0, 200, 820, 100);
+
+      // Palmera procedimental
+      c.fillStyle = '#6f1d1b'; // tronco
+      c.beginPath();
+      c.moveTo(680, 240);
+      c.quadraticCurveTo(670, 150, 640, 80);
+      c.lineTo(650, 80);
+      c.quadraticCurveTo(680, 150, 690, 240);
+      c.closePath();
+      c.fill();
+      
+      // Hojas palmera
+      c.fillStyle = '#386641';
+      for (let i = 0; i < 5; i++) {
+        c.save();
+        c.translate(645, 80);
+        c.rotate(i * 0.7 - 1.2);
+        c.beginPath();
+        c.ellipse(25, 0, 25, 6, 0, 0, Math.PI*2);
+        c.fill();
+        c.restore();
+      }
+
+      // 4. Sombrero Selector en Silla de Playa
+      c.save();
+      c.translate(350, 150);
+      
+      // Silla de playa (Tumbona)
+      c.strokeStyle = '#d62828';
+      c.lineWidth = 4;
+      c.beginPath();
+      c.moveTo(0, 50);
+      c.lineTo(50, 30);
+      c.lineTo(90, 50);
+      c.stroke();
+      
+      c.strokeStyle = '#ffffff';
+      c.lineWidth = 2;
+      c.beginPath();
+      c.moveTo(10, 45);
+      c.lineTo(45, 32);
+      c.lineTo(80, 46);
+      c.stroke();
+
+      // El Sombrero Selector
+      c.fillStyle = '#3a271d'; // color cuero viejo
+      c.strokeStyle = '#1d120a';
+      c.lineWidth = 2;
+      
+      // Ala del sombrero
+      c.beginPath();
+      c.ellipse(40, 28, 25, 6, -0.05, 0, Math.PI*2);
+      c.fill();
+      c.stroke();
+      
+      // Copa puntiaguda y arrugada (ojos y boca arrugados)
+      c.beginPath();
+      c.moveTo(25, 25);
+      c.quadraticCurveTo(28, 5, 38, -10); // arruga superior
+      c.quadraticCurveTo(45, 5, 52, 25);
+      c.closePath();
+      c.fill();
+      c.stroke();
+      
+      // Gafas de sol en el sombrero (Anacrónico y humorístico)
+      c.fillStyle = '#000000';
+      c.fillRect(30, 8, 10, 6);
+      c.fillRect(44, 8, 10, 6);
+      c.strokeStyle = '#fff';
+      c.lineWidth = 1;
+      c.beginPath();
+      c.moveTo(40, 11); c.lineTo(44, 11);
+      c.stroke();
+
+      c.restore();
+    }
+
+    // Diálogos del Sombrero
+    let beachTypewriterTimer = null;
+    function printBeachDialogue(text, callback) {
+      const txtEl = document.getElementById('beach-text');
+      txtEl.textContent = "";
+      let index = 0;
+      clearInterval(beachTypewriterTimer);
+      
+      beachTypewriterTimer = setInterval(() => {
+        if (index < text.length) {
+          txtEl.textContent += text[index];
+          index++;
+        } else {
+          clearInterval(beachTypewriterTimer);
+          if (callback) callback();
+        }
+      }, 25);
+    }
+
+    function initBeachDialogue() {
+      const hintEl = document.getElementById('beach-dialogue-hint');
+      
+      // Poner pistas/indicador de casa en el diálogo
+      if (userHouse === 'serpiente') hintEl.textContent = "Estrategia: Negociación y Presión de Reputación";
+      if (userHouse === 'leon') hintEl.textContent = "Estrategia: Desafío de Orgullo e Ímpetu";
+      if (userHouse === 'aguila') hintEl.textContent = "Estrategia: Argumento de Rotación y Planificación";
+      if (userHouse === 'tejon') hintEl.textContent = "Estrategia: Sinceridad y Lealtad Afectiva";
+
+      printBeachDialogue("...Ah. Me encontraron. Claro que sí. Siempre me encuentran. ¿Saben cuántos siglos llevo catalogando almas sin que nadie me pregunte cómo me siento? Muchos. Así que no. No regresaré. Estoy de vacaciones y nadie me obligará...", () => {
+        showBeachOptions();
+      });
+    }
+
+    function showBeachOptions() {
+      const container = document.getElementById('beach-options');
+      container.innerHTML = '';
+
+      const btn = document.createElement('button');
+      btn.className = 'btn-magic';
+      
+      if (userHouse === 'serpiente') {
+        btn.textContent = "Presionar al Sombrero Selector (Estrategia Serpiente)";
+        btn.onclick = () => runBeachResolutionSerpiente();
+      } else if (userHouse === 'leon') {
+        btn.textContent = "Desafiar su estatus de Leyenda (Estrategia León)";
+        btn.onclick = () => runBeachResolutionLeon();
+      } else if (userHouse === 'aguila') {
+        btn.textContent = "Ofrecer un Plan de Rotación (Estrategia Águila)";
+        btn.onclick = () => runBeachResolutionAguila();
+      } else { // tejon
+        btn.textContent = "Expresar cariño sincero (Estrategia Tejón)";
+        btn.onclick = () => runBeachResolutionTejon();
+      }
+      container.appendChild(btn);
+    }
+
+    // Resoluciones por casa
+    function runBeachResolutionSerpiente() {
+      printBeachDialogue(`[Tú]: "Entiendo tu cansancio. Tienes el poder aquí. Pero considera esto: los alumnos nuevos se están asignando las casas solos en la academia. Y ya hay tres Serpientes que dicen ser Leones... La reputación del sistema entero caerá en picado."\n\n[Artefacto Selector]: "...¿Qué? ¡No! Eso es inaceptable. No pueden auto-clasificarse. El balance de la magia se rompería... Está bien, regreso inmediatamente. Pero quiero los viernes libres."`, () => {
+        concludeAdventure();
+      });
+    }
+
+    function runBeachResolutionLeon() {
+      printBeachDialogue(`[Tú]: "¿Vacaciones? Los artefactos legendarios no huyen de su puesto. Los que lo hacen son simples sombreros viejos con pretensiones. Si no regresas, no eres el Sombrero Selector... eres solo ropa tirada en la playa."\n\n[Artefacto Selector]: "¡¿Ropa tirada?! ¡¿Sombrero viejo?! ¡Nadie insulta mi linaje de esa forma! Empaco mis cosas de inmediato. ¡Te demostraré quién es el Sombrero Selector principal!"`, () => {
+        concludeAdventure();
+      });
+    }
+
+    function runBeachResolutionAguila() {
+      printBeachDialogue(`[Tú]: "Tu fatiga cognitiva es comprensible tras siglos de categorización sin descanso. Pero la solución no es la deserción, sino un calendario de rotación. He calculado una distribución: tres semanas de labor, una de vacaciones. Aquí está el modelo."\n\n[Artefacto Selector]: "¿Lo... lo calculaste en un pergamino? Nadie nunca se había tomado la molestia de planificar mis descansos... Regreso de inmediato. Pero este contrato de rotación es vinculante."`, () => {
+        concludeAdventure();
+      });
+    }
+
+    function runBeachResolutionTejon() {
+      printBeachDialogue(`[Tú]: "No vine con trucos ni planes. Solo queríamos decirte que te extrañamos. No por tu función al asignar casas, sino porque sin ti, el banquete de bienvenida no tiene alma. Eres la primera puerta del colegio. Mereces estar allí."\n\n[Artefacto Selector]: "*sniff*... Nadie me había dicho eso antes... Solo me ven como una herramienta de clasificación... Está bien, empaco mis cosas. Regreso a casa. Pero este año cantaré una balada de lealtad."`, () => {
+        concludeAdventure();
+      });
+    }
+
+    function concludeAdventure() {
+      const container = document.getElementById('beach-options');
+      container.innerHTML = '';
+      
+      const btn = document.createElement('button');
+      btn.className = 'btn-magic';
+      btn.textContent = "Volver a la Academia y Obtener Código de Hechizo 📜";
+      btn.onclick = () => {
+        playSparkleSound();
+        generateFinalSpellCode();
+        showScreen('credits');
+      };
+      container.appendChild(btn);
+    }
+
+
+    // --- 7. CÓDIGO HECHIZO (RESPALDO Y RECONSTRUCCIÓN) ---
+    function generateFinalSpellCode() {
+      const nameEnc = userName.toUpperCase().replace(/\s+/g, "_");
+      const titleEnc = userTitle.toUpperCase();
+      const houseEnc = userHouse.toUpperCase();
+      const code = `${nameEnc}-${titleEnc}-${houseEnc}-${totalScore}`;
+      document.getElementById('final-spell-code').textContent = code;
+    }
+
+    function copySpellCode() {
+      const code = document.getElementById('final-spell-code').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        playSparkleSound();
+        alert("¡Código de Hechizo copiado al portapapeles!");
+      });
+    }
+
+    function downloadSpellCode() {
+      const code = document.getElementById('final-spell-code').textContent;
+      const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `hechizo_${userName.replace(/\s+/g, "_")}.txt`;
+      link.click();
+      playSparkleSound();
+    }
+
+    function triggerLoadSpellCode() {
+      const code = prompt("Introduce tu Código de Hechizo de respaldo (ej. VALERIA-HECHICERA-AGUILA-80):");
+      if (!code) return;
+      
+      try {
+        const parts = code.trim().split('-');
+        if (parts.length !== 4) {
+          alert("El código de hechizo no es válido. Comprueba el formato.");
+          return;
+        }
+        
+        userName = parts[0].replace(/_/g, " ");
+        userTitle = parts[1].charAt(0) + parts[1].slice(1).toLowerCase();
+        userHouse = parts[2].toLowerCase();
+        totalScore = parseInt(parts[3], 10);
+        
+        // Guardar reconstruido en localStorage
+        localStorage.setItem('user_name', userName);
+        localStorage.setItem('user_title', userTitle);
+        localStorage.setItem('user_house', userHouse);
+        localStorage.setItem('total_score', totalScore);
+
+        playWaxSealSound();
+        playSparkleSound();
+        
+        // Cargar revelación directamente
+        triggerAvatarRevelation();
+      } catch (err) {
+        alert("Error al descifrar el conjuro.");
+      }
+    }
+
+    function resetApp() {
+      localStorage.clear();
+      document.getElementById('spell-name').value = "";
+      showScreen('welcome');
+    }
+
+    // Comprobar si hay sesión previa guardada
+    window.addEventListener('load', () => {
+      const savedName = localStorage.getItem('user_name');
+      if (savedName) {
+        userName = savedName;
+        userTitle = localStorage.getItem('user_title');
+        userHouse = localStorage.getItem('user_house');
+        totalScore = parseInt(localStorage.getItem('total_score') || "0", 10);
+        
+        // Saltarse bienvenida si ya tiene casa clasificada
+        triggerAvatarRevelation();
+      }
+    });
+  </script>
+
+</body>
+</html>
