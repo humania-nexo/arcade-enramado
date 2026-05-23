@@ -1861,25 +1861,39 @@
                         const ty = rIdx * cellSize;
 
                         if (tile === 1) { // Pared
-                            // Degradados para dar aspecto de metal industrial profundo
-                            const metalGrad = ctx.createLinearGradient(tx, ty, tx + cellSize, ty + cellSize);
-                            metalGrad.addColorStop(0, '#0c1528');
-                            metalGrad.addColorStop(1, '#050a14');
-                            ctx.fillStyle = metalGrad;
+                            // Dibujar estilo vector blueprint de alta tecnología
+                            ctx.fillStyle = 'rgba(2, 10, 22, 0.85)';
                             ctx.fillRect(tx, ty, cellSize, cellSize);
                             
-                            ctx.strokeStyle = 'rgba(0, 220, 255, 0.1)';
+                            // Bordes vectoriales brillantes (doble línea)
+                            ctx.strokeStyle = 'rgba(0, 220, 255, 0.2)';
+                            ctx.lineWidth = 1;
+                            ctx.strokeRect(tx + 2, ty + 2, cellSize - 4, cellSize - 4);
+                            
+                            ctx.strokeStyle = 'rgba(0, 220, 255, 0.5)';
+                            ctx.shadowColor = '#00dcff';
+                            ctx.shadowBlur = 4;
+                            ctx.lineWidth = 1.5;
                             ctx.strokeRect(tx, ty, cellSize, cellSize);
+                            ctx.shadowBlur = 0;
+
+                            // Detalles cruzados técnicos internos
+                            ctx.strokeStyle = 'rgba(0, 220, 255, 0.15)';
+                            ctx.beginPath();
+                            ctx.moveTo(tx + 4, ty + 4);
+                            ctx.lineTo(tx + cellSize - 4, ty + cellSize - 4);
+                            ctx.stroke();
                         } else if (tile === 3) { // Hangar Endurance II (Verde)
-                            ctx.fillStyle = 'rgba(0, 255, 100, 0.08)';
+                            // Zona de inserción verde brillante vectorial
+                            ctx.fillStyle = 'rgba(0, 255, 100, 0.12)';
                             ctx.fillRect(tx, ty, cellSize, cellSize);
-                            ctx.strokeStyle = 'rgba(0, 255, 100, 0.3)';
-                            ctx.strokeRect(tx, ty, cellSize, cellSize);
                             
-                            // Letrero Hangar
-                            ctx.fillStyle = 'rgba(0, 255, 100, 0.7)';
-                            ctx.font = '10px Orbitron';
-                            ctx.fillText("ENDURANCE II", tx + 4, ty + 25);
+                            ctx.strokeStyle = 'rgba(0, 255, 100, 0.6)';
+                            ctx.shadowColor = '#00ff66';
+                            ctx.shadowBlur = 8;
+                            ctx.lineWidth = 2;
+                            ctx.strokeRect(tx, ty, cellSize, cellSize);
+                            ctx.shadowBlur = 0;
                         }
                     }
                 }
@@ -1913,11 +1927,11 @@
                         currentAngle = 0;
                     }
 
-                    // Cono visual con degradado radial
+                    // Cono visual con degradado radial (Rojo de alerta radar)
                     const lightGrad = ctx.createRadialGradient(0, 0, 10, 0, 0, g.radius);
-                    lightGrad.addColorStop(0, 'rgba(255, 180, 0, 0.4)');
-                    lightGrad.addColorStop(0.3, 'rgba(255, 180, 0, 0.25)');
-                    lightGrad.addColorStop(1, 'rgba(255, 180, 0, 0)');
+                    lightGrad.addColorStop(0, 'rgba(255, 56, 56, 0.45)');
+                    lightGrad.addColorStop(0.3, 'rgba(255, 120, 0, 0.25)');
+                    lightGrad.addColorStop(1, 'rgba(255, 56, 56, 0)');
 
                     ctx.fillStyle = lightGrad;
                     ctx.beginPath();
@@ -1933,31 +1947,66 @@
 
                     ctx.restore();
 
-                    // Cuerpo del guardia (Cámara o Centinela)
-                    ctx.fillStyle = '#ff7800';
-                    ctx.shadowColor = '#ff7800';
-                    ctx.shadowBlur = 6;
+                    // Cuerpo del guardia (Cámara o Centinela de seguridad, rojo/naranja vectorial)
+                    ctx.fillStyle = '#ff3838';
+                    ctx.shadowColor = '#ff3838';
+                    ctx.shadowBlur = 8;
                     ctx.beginPath();
-                    ctx.arc(g.x, g.y, 6, 0, Math.PI * 2);
+                    ctx.arc(g.x, g.y, 5, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.shadowBlur = 0;
                     
-                    ctx.strokeStyle = '#ffffff';
+                    // Retícula cuadrada de seguridad alrededor del centinela
+                    ctx.strokeStyle = '#ff7800';
                     ctx.lineWidth = 1.5;
                     ctx.strokeRect(g.x - 7, g.y - 7, 14, 14);
+                    
+                    // Pequeñas esquinas de mira roja
+                    ctx.strokeStyle = '#ff3838';
+                    ctx.beginPath();
+                    ctx.moveTo(g.x - 10, g.y - 4); ctx.lineTo(g.x - 10, g.y - 10); ctx.lineTo(g.x - 4, g.y - 10);
+                    ctx.moveTo(g.x + 4, g.y - 10); ctx.lineTo(g.x + 10, g.y - 10); ctx.lineTo(g.x + 10, g.y - 4);
+                    ctx.moveTo(g.x + 10, g.y + 4); ctx.lineTo(g.x + 10, g.y + 10); ctx.lineTo(g.x + 4, g.y + 10);
+                    ctx.moveTo(g.x - 4, g.y + 10); ctx.lineTo(g.x - 10, g.y + 10); ctx.lineTo(g.x - 10, g.y + 4);
+                    ctx.stroke();
                 }
 
-                // Dibujar Cooper (Punto azul con estela de partículas y dirección)
+                // Dibujar Cooper (Blip de Radar Vectorial Hacking)
                 ctx.save();
                 ctx.translate(player.x, player.y);
                 
-                // Sombra de luz cian
+                // Círculos concéntricos de radar
+                ctx.strokeStyle = 'rgba(0, 220, 255, 0.8)';
                 ctx.shadowColor = '#00dcff';
-                ctx.shadowBlur = 10;
-                ctx.fillStyle = '#00dcff';
+                ctx.shadowBlur = 8;
+                ctx.lineWidth = 2;
                 ctx.beginPath();
                 ctx.arc(0, 0, player.r, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                // Círculo interno más pequeño
+                ctx.strokeStyle = 'rgba(0, 220, 255, 0.4)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(0, 0, player.r * 0.5, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Punto central brillante
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(0, 0, 2, 0, Math.PI * 2);
                 ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // Retícula de mira (líneas cortas arriba, abajo, izq, der)
+                ctx.strokeStyle = 'rgba(0, 220, 255, 0.9)';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(0, -player.r - 3); ctx.lineTo(0, -player.r + 1);
+                ctx.moveTo(0, player.r - 1); ctx.lineTo(0, player.r + 3);
+                ctx.moveTo(-player.r - 3, 0); ctx.lineTo(-player.r + 1, 0);
+                ctx.moveTo(player.r - 1, 0); ctx.lineTo(player.r + 3, 0);
+                ctx.stroke();
                 ctx.shadowBlur = 0;
                 
                 ctx.strokeStyle = '#ffffff';
@@ -2319,7 +2368,6 @@
                 ctx.font = '12px Orbitron';
                 ctx.fillText("ESCANEO DE VECTORES COOPER_STATION", 25, 45);
                 ctx.fillText(`Y-POS: ${Math.floor(scanLineY)}m`, 25, 65);
-                ctx.fillText("TASA DE HUMOR REQUERIDA: 60%", 25, 85);
 
                 runId = requestAnimationFrame(drawHangarBlueprint);
             }
@@ -3298,7 +3346,7 @@
                     ctx.shadowColor = '#ff7800';
                     ctx.shadowBlur = 15;
                     ctx.beginPath();
-                    ctx.arc(gx, gy, 18, 0, Math.PI * 2);
+                    ctx.arc(gx, gy, 28, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.shadowBlur = 0;
                     ctx.strokeStyle = '#ffffff';
@@ -3341,7 +3389,7 @@
                     ctx.shadowColor = '#ff7800';
                     ctx.shadowBlur = 25;
                     ctx.beginPath();
-                    ctx.arc(singularityX, singularityY, 40, 0, Math.PI * 2);
+                    ctx.arc(singularityX, singularityY, 60, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.shadowBlur = 0;
                     
@@ -3460,7 +3508,7 @@
             let accretionParticles = [];
             for (let i = 0; i < 300; i++) {
                 accretionParticles.push({
-                    radius: Math.random() * 190 + 45,
+                    radius: Math.random() * 175 + 65,
                     angle: Math.random() * Math.PI * 2,
                     speed: Math.random() * 0.04 + 0.015,
                     size: Math.random() * 2 + 0.5,
@@ -3592,18 +3640,11 @@
                     if (hullStability <= 0) {
                         hullStability = 0;
                         isFailed = true;
-                        document.getElementById('orbit-fail-title').textContent = "HULL INTEGRITY COMPROMISED";
-                        document.getElementById('orbit-fail-desc').textContent = "Las brutales fuerzas de marea de Gargantúa aplastaron la Endurance II.";
-                        failedScreen.classList.add('active');
-                        audio.playAlarm();
-                    }
-                }
-
-                // Actualizar HUD con avisos dinámicos
+                              // Actualizar HUD con avisos dinámicos
                 if (ship.radius >= 380) {
                     gravityHud.textContent = `HULL STABILITY: ${Math.max(0, Math.floor(hullStability))}% [AVISO: ESCAPANDO]`;
                     gravityHud.style.color = '#ff3838';
-                } else if (ship.radius <= 40 + 40) {
+                } else if (ship.radius <= 60 + 40) {
                     gravityHud.textContent = `HULL STABILITY: ${Math.max(0, Math.floor(hullStability))}% [AVISO: COLAPSO GRAVITATORIO]`;
                     gravityHud.style.color = '#ff3838';
                 } else {
@@ -3611,9 +3652,15 @@
                     gravityHud.style.color = hullStability < 40 ? '#ff3838' : '#ff7800';
                 }
                 calibHud.textContent = `CALIBRACIÓN VECTORIAL: ${Math.floor(calibration)}%`;
-
+ 
                 // Condición de colisión directa en el horizonte de sucesos
-                if (ship.radius <= 40) {
+                if (ship.radius <= 60) {
+                    isFailed = true;
+                    document.getElementById('orbit-fail-title').textContent = "SINGULARIDAD ALCANZADA";
+                    document.getElementById('orbit-fail-desc').textContent = "La nave cruzó el horizonte de sucesos. No hay escape posible.";
+                    failedScreen.classList.add('active');
+                    audio.playAlarm();
+                } 40) {
                     isFailed = true;
                     document.getElementById('orbit-fail-title').textContent = "SINGULARIDAD ALCANZADA";
                     document.getElementById('orbit-fail-desc').textContent = "La nave cruzó el horizonte de sucesos. No hay escape posible.";
@@ -3694,12 +3741,12 @@
                     ctx.fill();
                 }
 
-                // Dibujar Gargantúa (Event Horizon - Singularidad)
+                // Dibujar Gargantúa (Event Horizon - Singularidad más colosal)
                 ctx.fillStyle = '#000000';
                 ctx.shadowColor = '#ff7800';
-                ctx.shadowBlur = 20;
+                ctx.shadowBlur = 30;
                 ctx.beginPath();
-                ctx.arc(singularityX, singularityY, 40, 0, Math.PI * 2);
+                ctx.arc(singularityX, singularityY, 60, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.shadowBlur = 0;
 
@@ -3860,6 +3907,7 @@
 
             // ─── DIÁLOGOS SEGÚN RUTA ─────────────────────────────────────────
             const isTarsPath = gameState.epilogueType === 'tars';
+            let probeCalibrated = false;
 
             const epilogueDialoguesTars = [
                 { speaker: 'BRAND', avatar: 'BRAND', nameColor: '#f8a5c2',
@@ -3878,28 +3926,166 @@
 
             const epilogueDialoguesCooper = [
                 { speaker: 'TARS', avatar: 'TARS', nameColor: '#ff7800',
-                  text: 'Dra. Brand. Hemos llegado. Cooper consiguió que llegáramos. Yo no habría podido sin él.' },
+                  text: 'Dra. Brand. Hemos establecido la base temporal. Pero la antena principal de la Endurance II está dañada. Necesitamos calibrar una sonda de comunicación de emergencia si queremos enviar los datos cuánticos a las estaciones espaciales.' },
                 { speaker: 'BRAND', avatar: 'BRAND', nameColor: '#f8a5c2',
-                  text: 'Lo sé, TARS. Lo sé. Vamos a construir algo digno de su sacrificio.' },
+                  text: 'Es nuestra única oportunidad de salvarlos. Cooper dio su vida para que obtuviéramos estos datos. Calibremos la sonda.' },
+                { speaker: 'TARS', avatar: 'TARS', nameColor: '#ff7800', // Sonda Calibrada (índice 2)
+                  text: 'Sonda calibrada y datos transmitidos. La señal ha llegado a las estaciones espaciales de la NASA... Recibiendo respuesta de las terminales gubernamentales.' },
                 { speaker: 'POLITICIAN', avatar: 'POLITICIAN', nameColor: '#94a3b8',
-                  text: 'Dra. Brand, los datos cuánticos pertenecen a la administración. No pueden difundirse libremente. Causarían inestabilidad.' },
+                  text: 'Dra. Brand, confirmamos recepción de los datos cuánticos. Sin embargo, estos archivos no serán publicados. La gravedad controlada permitiría una evacuación, pero alteraría el orden establecido y la distribución de recursos en las estaciones orbitales.' },
                 { speaker: 'BRAND', avatar: 'BRAND', nameColor: '#f8a5c2',
-                  text: 'Un hombre murió para traer esos datos. No me pida que los guarde en un cajón.' },
-                { speaker: 'SCIENTIST', avatar: 'SCIENTIST', nameColor: '#6ee7b7',
-                  text: 'Recibimos la transmisión de Brand. Tenemos los datos. Nos vamos. Quien quiera venir, que venga.' },
+                  text: '¿Qué? ¡La gente en las colonias tiene derecho a saber que la salvación es real! ¡No pueden mantenerlos encerrados en latas de metal!' },
+                { speaker: 'POLITICIAN', avatar: 'POLITICIAN', nameColor: '#94a3b8',
+                  text: 'Es una medida de estabilidad. No permitiremos una migración masiva descontrolada. Por cierto... acabamos de enviar un comando de desactivación de frecuencia. Su sonda ha sido destruida. Manténganse en silencio.' },
                 { speaker: 'BRAND', avatar: 'BRAND', nameColor: '#f8a5c2',
-                  text: 'No entrés dócilmente en esa buena noche. Cooper nos lo enseñó. Enfurece contra la agonía de la luz.' }
+                  text: '¡Malditos burócratas! Destruyeron la sonda. Prefieren gobernar en la escasez del espacio artificial que dejar a la humanidad habitar las estrellas.' },
+                { speaker: 'TARS', avatar: 'TARS', nameColor: '#ff7800',
+                  text: 'Brand. Mientras estaba en la estación con Cooper, obtuve registros gubernamentales ocultos. Los ciudadanos viven en una pasividad pasmosa bajo políticas estrictas de recursos. La tasa de natalidad ha caído drásticamente y la de suicidios va en aumento. La población se está extinguiendo en silencio.' },
+                { speaker: 'BRAND', avatar: 'BRAND', nameColor: '#f8a5c2',
+                  text: 'Están muriendo lentamente de desesperanza... TARS, tenemos que fabricar otra sonda. Pero esta vez, usaremos la frecuencia cuántica de emergencia de la Endurance. Una señal irrastreable que se emita directamente a todas las pantallas científicas y terminales públicas de las estaciones.' },
+                { speaker: 'TARS', avatar: 'TARS', nameColor: '#ff7800',
+                  text: 'Esa frecuencia es inmune a sus bloqueos. Emitirá de forma masiva y continua. ¿Qué mensaje transmitimos, doctora?' },
+                { speaker: 'BRAND', avatar: 'BRAND', nameColor: '#f8a5c2',
+                  text: 'El mensaje que nos trajo aquí. La grabación de la ecuación cuántica... y una advertencia. Es hora de encender la llama.' },
+                { speaker: 'BRAND', avatar: 'BRAND', nameColor: '#f8a5c2',
+                  text: 'No entres dócilmente en esa buena noche. Enfurece, enfurece contra la agonía de la luz.' }
             ];
 
             const dialogues = isTarsPath ? epilogueDialoguesTars : epilogueDialoguesCooper;
             let currentDiag = 0;
 
+            function startProbeGame(callback) {
+                const canvas = document.getElementById('probe-wave-canvas');
+                const ctx = canvas.getContext('2d');
+                const slider = document.getElementById('freq-slider');
+                const freqTxt = document.getElementById('current-freq-txt');
+                const sendBtn = document.getElementById('send-probe-btn');
+
+                let freqVal = parseFloat(slider.value);
+                let wavePhase = 0;
+                let animationId = null;
+
+                slider.addEventListener('input', (e) => {
+                    freqVal = parseFloat(e.target.value);
+                    freqTxt.textContent = `FRECUENCIA ACTUAL: ${freqVal.toFixed(1)} Hz`;
+                    
+                    if (Math.abs(freqVal - 45.0) < 1.5) {
+                        sendBtn.style.borderColor = '#00ff66';
+                        sendBtn.style.color = '#00ff66';
+                        sendBtn.style.opacity = '1';
+                        sendBtn.style.pointerEvents = 'auto';
+                        sendBtn.style.boxShadow = '0 0 15px rgba(0,255,102,0.4)';
+                        sendBtn.textContent = 'TRANSMITIR DATOS';
+                    } else {
+                        sendBtn.style.borderColor = '#8fa0b3';
+                        sendBtn.style.color = '#8fa0b3';
+                        sendBtn.style.opacity = '0.6';
+                        sendBtn.style.pointerEvents = 'none';
+                        sendBtn.style.boxShadow = 'none';
+                        sendBtn.textContent = 'CALIBRAR SEÑAL';
+                    }
+                });
+
+                function renderWave() {
+                    if (!canvas || !document.body.contains(canvas)) {
+                        cancelAnimationFrame(animationId);
+                        return;
+                    }
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    wavePhase += 0.1;
+
+                    const targetFreq = 45.0;
+                    
+                    // Grid background
+                    ctx.strokeStyle = 'rgba(0, 220, 255, 0.04)';
+                    ctx.lineWidth = 1;
+                    for (let x = 0; x < canvas.width; x += 20) {
+                        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+                    }
+
+                    // Target Wave (Orange, static structure but animated phase)
+                    ctx.strokeStyle = 'rgba(255, 120, 0, 0.25)';
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    for (let x = 0; x < canvas.width; x++) {
+                        const y = canvas.height / 2 + Math.sin(x * 0.08 + wavePhase) * 20;
+                        if (x === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                    ctx.stroke();
+
+                    // User Wave (Cyan, frequency controlled)
+                    ctx.strokeStyle = 'rgba(0, 220, 255, 0.85)';
+                    ctx.shadowColor = '#00dcff';
+                    ctx.shadowBlur = Math.abs(freqVal - targetFreq) < 1.5 ? 8 : 0;
+                    ctx.lineWidth = 2.5;
+                    ctx.beginPath();
+                    for (let x = 0; x < canvas.width; x++) {
+                        const userScale = freqVal * 0.0018;
+                        const y = canvas.height / 2 + Math.sin(x * userScale + wavePhase) * 20;
+                        if (x === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+
+                    animationId = requestAnimationFrame(renderWave);
+                }
+
+                renderWave();
+
+                sendBtn.addEventListener('click', () => {
+                    cancelAnimationFrame(animationId);
+                    audio.playClick();
+                    callback();
+                });
+            }
+
             function showEpilogueDialogue() {
                 if (currentDiag >= dialogues.length) {
-                    // Terminar — mostrar conclusión estática
                     diagBox.style.display = 'none';
                     nextBtn.style.display = 'none';
                     showConclusion();
+                    return;
+                }
+
+                // Si Cooper fue sacrificado y llegamos al diálogo de transmisión por sonda (índice 2)
+                if (!isTarsPath && currentDiag === 2 && !probeCalibrated) {
+                    diagBox.style.display = 'none';
+                    nextBtn.style.display = 'none';
+
+                    const probeGameDiv = document.createElement('div');
+                    probeGameDiv.id = 'probe-game-container';
+                    probeGameDiv.style.width = '100%';
+                    probeGameDiv.style.maxWidth = '760px';
+                    probeGameDiv.innerHTML = `
+                        <div class="telemetry-block" id="probe-game" style="border-color:#ff7800; padding:20px; text-align:center; display:flex; flex-direction:column; gap:15px; margin: 0 auto;">
+                            <div class="phase-indicator" style="border-color:#ff7800; color:#ff7800;">MANIOBRA: CONEXIÓN CUÁNTICA</div>
+                            <div style="font-size:14px; color:#c8d6e5;">AJUSTA LA FRECUENCIA PARA SINTONIZAR LAS ESTACIONES</div>
+                            
+                            <div style="background:#010207; height:80px; border:1px solid rgba(0,220,255,0.3); border-radius:4px; position:relative; overflow:hidden;">
+                                <canvas id="probe-wave-canvas" width="400" height="80" style="width:100%; height:100%;"></canvas>
+                            </div>
+                            
+                            <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; color:#00dcff;">
+                                <span>FRECUENCIA OBJETIVO: 45.0 Hz</span>
+                                <span id="current-freq-txt">FRECUENCIA ACTUAL: 20.0 Hz</span>
+                            </div>
+                            
+                            <input type="range" id="freq-slider" min="10" max="80" step="0.5" value="20" style="width:100%; accent-color:#ff7800; cursor:pointer;">
+                            
+                            <button class="btn-orbit" id="send-probe-btn" style="margin-top:5px; border-color:#8fa0b3; color:#8fa0b3; opacity:0.6; pointer-events:none; width:100%;">CALIBRAR SEÑAL</button>
+                        </div>
+                    `;
+                    container.insertBefore(probeGameDiv, conclusionBox);
+
+                    startProbeGame(() => {
+                        probeCalibrated = true;
+                        probeGameDiv.remove();
+                        diagBox.style.display = 'flex';
+                        nextBtn.style.display = 'block';
+                        showEpilogueDialogue();
+                    });
                     return;
                 }
 
@@ -3939,12 +4125,12 @@
 
             function showConclusion() {
                 const poem = isTarsPath
-                    ? '"Ni entres dócilmente en esa buena noche.<br>La historia se apaga en la comodidad del espacio."'
+                    ? '"No entres dócilmente en esa buena noche.<br>La historia se apaga en la comodidad del espacio."'
                     : '"No entres dócilmente en esa buena noche.<br>Enfurece, enfurece contra la agonía de la luz."';
 
                 const summary = isTarsPath
                     ? 'TARS transmitió los datos cuánticos desde el corazón de Gargantúa. Cooper y Brand fundaron la primera colonia. Con el paso de los siglos, la humanidad olvidó su historia y empezó a venerar las transmisiones de TARS como mensajes de un dios. <strong>TARS se convirtió en el dios de una humanidad sin memoria.</strong>'
-                    : 'Cooper sacrificó su nave para transmitir la ecuación gravitatoria. La administración intentó suprimir los datos, pero la Dra. Brand los difundió en un mensaje radial codificado. Cientos de científicos rebeldes abandonaron las estaciones y siguieron su señal hasta el planeta habitable. <strong>El sacrificio de Cooper encendió la rebelión. La humanidad volvió a habitar las estrellas.</strong>';
+                    : 'Cooper sacrificó su nave para transmitir la ecuación gravitatoria. Los burócratas de las estaciones destruyeron la sonda e intentaron suprimir los datos. Sin embargo, la Dra. Brand y TARS sintonizaron la frecuencia cuántica de emergencia de la Endurance. Una señal irrastreable que transmitió el mensaje a toda la población espacial, revelando los datos y encendiendo una rebelión silenciosa contra el control totalitario. Cientos de disidentes robaron caravanas espaciales y despegaron hacia el planeta habitable. <strong>El sacrificio de Cooper encendió la rebelión. La humanidad volvió a habitar las estrellas.</strong>';
 
                 conclusionBox.innerHTML = `
                     <div class="telemetry-block" style="border-color:rgba(0,220,255,0.35); padding:20px 24px; margin:0 auto; max-width:680px; text-align:center;">
