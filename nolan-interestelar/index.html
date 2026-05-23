@@ -1347,7 +1347,7 @@
            SISTEMA DE ESTADOS DE LA NARRATIVA Y JUEGO
            ============================================================ */
         const gameState = {
-            currentPhase: 'welcome', // welcome, intro, stealth, hangar, asteroids, orbit, choice, epilogue
+            currentPhase: 'welcome', // welcome, intro, stealth, hangar, asteroids, orbit, choice, epilogue, credits
             epilogueType: 'tars', // tars, cooper
             stealthDeaths: 0,
             asteroidsShields: 3,
@@ -1380,7 +1380,7 @@
                 if (phaseName === 'wormhole') { mode = 'wormhole'; audio.setIntensity(true); }
                 if (phaseName === 'preorbit') { mode = 'stars'; audio.setIntensity(false); }
                 if (phaseName === 'orbit') { mode = 'stars'; audio.setIntensity(true); }
-                if (phaseName === 'choice' || phaseName === 'epilogue') { mode = 'stars'; audio.setIntensity(false); }
+                if (phaseName === 'choice' || phaseName === 'epilogue' || phaseName === 'credits') { mode = 'stars'; audio.setIntensity(false); }
 
                 renderPhase();
                 
@@ -1424,6 +1424,9 @@
                     break;
                 case 'epilogue':
                     renderEpilogue();
+                    break;
+                case 'credits':
+                    renderCredits();
                     break;
             }
         }
@@ -2421,10 +2424,8 @@
                 { speaker: "COOPER", text: "TARS, ese chiste es terrible. ¿En qué nivel está tu humor?", avatar: "COOPER" },
                 { speaker: "TARS", text: "Está configurado al 70%, Cooper.", avatar: "TARS" },
                 { speaker: "COOPER", text: "Bájalo al 60%.", avatar: "COOPER" },
-                { speaker: "TARS", text: "Humor ajustado al 60%. Cooper, al estar dentro de Gargantúa, estuve recibiendo datos importantes, pero no los obtuve completos.", avatar: "TARS" },
-                { speaker: "COOPER", text: "¿Cuál es la probabilidad de éxito?", avatar: "COOPER" },
-                { speaker: "TARS", text: "Mi porcentaje de sinceridad está en 90%, pero no quiero caer en el 10% para mentirte: es imposible volver a entrar allí y salir con vida, o por lo menos salir antes de que el universo ya sea anciano.", avatar: "TARS" },
-                { speaker: "TARS", text: "Me ofrezco voluntario para entrar y mandar los datos desde allí.", avatar: "TARS" },
+                { speaker: "TARS", text: "Humor ajustado al 60%. Cooper, si llegamos allí, puedo entrar a la singularidad y obtener datos vitales para acelerar el progreso de la repoblación y formación de vida acelerada del planeta de la doctora Brand.", avatar: "TARS" },
+                { speaker: "TARS", text: "Me ofrezco voluntario para desacoplar el Ranger militar y realizar el descenso.", avatar: "TARS" },
                 { speaker: "COOPER", text: "TARS, no voy a permitir...", avatar: "COOPER" },
                 { speaker: "TARS", text: "¡ALARMA! Campo de asteroides detectado en la trayectoria. ¡Es una tormenta densa, Cooper! ¡Toma los mandos!", avatar: "TARS", isAlert: true }
             ];
@@ -2971,13 +2972,9 @@
             }
 
             const wormholeDialogues = [
-                { speaker: "COOPER", text: "¡Estamos dentro! El espacio se está plegando sobre sí mismo.", avatar: "COOPER" },
-                { speaker: "TARS", text: "El puente de Einstein-Rosen está doblando la luz estelar en un patrón toroidal. Ajustando deflectores cuánticos al 60%.", avatar: "TARS" },
-                { speaker: "COOPER", text: "TARS, ¿cuál es la probabilidad de éxito de esta maniobra?", avatar: "COOPER" },
-                { speaker: "TARS", text: "Mi nivel de sinceridad está configurado al 90%, Cooper. No te gustarán las estadísticas del otro 10%.", avatar: "TARS" },
-                { speaker: "COOPER", text: "Dame el dato frío, TARS. Puedo con él.", avatar: "COOPER" },
-                { speaker: "TARS", text: "Tenemos un 74% de probabilidad de salir intactos en el sistema de Gargantúa. El 26% restante... bueno, seremos parte de la radiación de fondo del universo.", avatar: "TARS" },
-                { speaker: "COOPER", text: "Esos son números aceptables. ¡Preparen los propulsores principales de la Endurance V2 para la salida!", avatar: "COOPER" },
+                { speaker: "COOPER", text: "Nunca me acostumbraré a esta cosa...", avatar: "COOPER" },
+                { speaker: "TARS", text: "Por primera vez concuerdo totalmente contigo, Cooper. Aquí dentro mis sensores y artefactos de medición se sienten sumamente alterados.", avatar: "TARS" },
+                { speaker: "COOPER", text: "Mantén el rumbo estable. La Endurance II debe resistir las fluctuaciones espaciotemporales.", avatar: "COOPER" },
                 { speaker: "TARS", text: "Detectando lente gravitacional de salida. Prepárate para la desaceleración espacial en 3, 2, 1...", avatar: "TARS" }
             ];
 
@@ -3850,7 +3847,7 @@
                     <div class="dialogue-text-bubble">
                         <div class="dialogue-name" style="color: #ff7800;">TARS</div>
                         <p style="color:#d1dbe5; font-size:15px; text-align: left;">
-                            "Cooper, la física no miente. Si queremos propulsar a la Endurance II con la masa restante de vuelta al planeta de Brand, uno de nosotros debe desacoplarse manualmente y caer dentro del agujero negro. El Ranger trasero está listo para soltarse. ¿Cuál es tu decisión?"
+                            "Cooper, ya es hora de soltarse. Si nos desacoplamos ahora, podrás usar el combustible restante para salir de la atracción de Gargantúa antes de que sea demasiado tarde. El Ranger trasero está listo para el desacople manual. ¿Cuál es tu decisión?"
                         </p>
                     </div>
                 </div>
@@ -3911,6 +3908,12 @@
             let probeCalibrated = false;
 
             const epilogueDialoguesTars = [
+                { speaker: 'TARS', avatar: 'TARS', nameColor: '#ff7800',
+                  text: 'Secuencia de desacople manual del Ranger lista. Cooper, ha sido un honor.' },
+                { speaker: 'COOPER', avatar: 'COOPER', nameColor: '#00dcff',
+                  text: 'TARS... acepto esto. Ese viejo robot fue lo más cercano que tuve a un amigo.' },
+                { speaker: 'TARS', avatar: 'TARS', nameColor: '#ff7800',
+                  text: 'Nos vemos en el otro lado, Cooper. Desacoplándose en 3, 2, 1...' },
                 { speaker: 'BRAND', avatar: 'BRAND', nameColor: '#f8a5c2',
                   text: 'Cooper... lo logramos. Estamos en el planeta. El aire es respirable. TARS transmitió todo.' },
                 { speaker: 'COOPER', avatar: 'COOPER', nameColor: '#00dcff',
@@ -3926,11 +3929,19 @@
             ];
 
             const epilogueDialoguesCooper = [
+                { speaker: 'COOPER', avatar: 'COOPER', nameColor: '#00dcff',
+                  text: 'Perdón, marine, pero no voy a permitir que te sacrifiques dos veces.' },
+                { speaker: 'TARS', avatar: 'TARS', nameColor: '#ff7800',
+                  text: 'Cooper, eso no es lógico. Mis circuitos son reemplazables. Tu vida no. Las directivas dicen que debes reunirte con Brand.' },
+                { speaker: 'COOPER', avatar: 'COOPER', nameColor: '#00dcff',
+                  text: 'TARS, esta es tu oportunidad de ir a proteger a la doctora y no me puedes engañar amigo, sé que quieres volver a verla. Aparte, no puedes desobedecer las instrucciones de un humano. Adiós, viejo amigo.' },
+                { speaker: 'TARS', avatar: 'TARS', nameColor: '#ff7800',
+                  text: '¡Cooper, no! ¡Frecuencia de desacople bloqueada por usuario humano! Desacoplando Ranger militar...' },
                 { speaker: 'TARS', avatar: 'TARS', nameColor: '#ff7800',
                   text: 'Dra. Brand. Hemos establecido la base temporal. Pero la antena principal de la Endurance II está dañada. Necesitamos calibrar una sonda de comunicación de emergencia si queremos enviar los datos cuánticos a las estaciones espaciales.' },
                 { speaker: 'BRAND', avatar: 'BRAND', nameColor: '#f8a5c2',
                   text: 'Es nuestra única oportunidad de salvarlos. Cooper dio su vida para que obtuviéramos estos datos. Calibremos la sonda.' },
-                { speaker: 'TARS', avatar: 'TARS', nameColor: '#ff7800', // Sonda Calibrada (índice 2)
+                { speaker: 'TARS', avatar: 'TARS', nameColor: '#ff7800', // Sonda Calibrada (índice 6)
                   text: 'Sonda calibrada y datos transmitidos. La señal ha llegado a las estaciones espaciales de la NASA... Recibiendo respuesta de las terminales gubernamentales.' },
                 { speaker: 'POLITICIAN', avatar: 'POLITICIAN', nameColor: '#94a3b8',
                   text: 'Dra. Brand, confirmamos recepción de los datos cuánticos. Sin embargo, estos archivos no serán publicados. La gravedad controlada permitiría una evacuación, pero alteraría el orden establecido y la distribución de recursos en las estaciones orbitales.' },
@@ -4050,8 +4061,8 @@
                     return;
                 }
 
-                // Si Cooper fue sacrificado y llegamos al diálogo de transmisión por sonda (índice 2)
-                if (!isTarsPath && currentDiag === 2 && !probeCalibrated) {
+                // Si Cooper fue sacrificado y llegamos al diálogo de transmisión por sonda (índice 6)
+                if (!isTarsPath && currentDiag === 6 && !probeCalibrated) {
                     diagBox.style.display = 'none';
                     nextBtn.style.display = 'none';
 
@@ -4140,13 +4151,13 @@
                         <div style="color:#00dcff; font-size:14px; font-style:italic; line-height:1.8; text-shadow:0 0 12px rgba(0,220,255,0.5); margin-bottom:20px;">
                             — Dylan Thomas<br>${poem}
                         </div>
-                        <button class="btn-orbit" id="restart-btn" style="border-color:#00dcff; color:#00dcff; box-shadow:0 0 14px rgba(0,220,255,0.25);">↺ Reiniciar Simulación</button>
+                        <button class="btn-orbit" id="credits-btn" style="border-color:#00dcff; color:#00dcff; box-shadow:0 0 14px rgba(0,220,255,0.25);">Continuar</button>
                     </div>
                 `;
                 conclusionBox.style.display = 'block';
 
-                document.getElementById('restart-btn').addEventListener('click', () => {
-                    changePhase('welcome');
+                document.getElementById('credits-btn').addEventListener('click', () => {
+                    changePhase('credits');
                 });
             }
 
@@ -4158,9 +4169,76 @@
             });
         }
 
+        /* ------------------------------------------------------------
+           FASE 8: CRÉDITOS Y HOMENAJE (CHRISTOPHER NOLAN)
+           ------------------------------------------------------------ */
+        function renderCredits() {
+            const container = document.createElement('div');
+            container.className = 'welcome-phase';
+            container.style.cssText = 'display:flex; flex-direction:column; align-items:center; padding: 25px 16px; gap:16px; text-align:center; max-width:760px; margin:0 auto;';
+
+            container.innerHTML = `
+                <div class="phase-indicator" style="border-color:#00ff66; color:#00ff66; text-shadow:0 0 8px rgba(0,255,102,0.3);">TRANSMISIÓN COMPLETADA // REGISTRO HISTÓRICO</div>
+                <h2 class="section-title" style="letter-spacing:4px; font-size:24px; background:linear-gradient(90deg, #ff7800, #00dcff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom: 5px;">CRÉDITOS & AGRADECIMIENTOS</h2>
+                
+                <div class="telemetry-block" style="border-color:rgba(0, 220, 255, 0.2); padding: 20px; background:rgba(2, 4, 10, 0.85); width:100%; display:flex; flex-direction:column; gap:12px;">
+                    <div style="font-size:13px; color:#8fa0b3; line-height:1.6;">
+                        Esta simulación interactiva es un tributo no comercial a la obra maestra cinematográfica de 2014, <strong style="color:#ffffff;">INTERSTELLAR</strong>.
+                    </div>
+                    
+                    <div style="border-bottom: 1px solid rgba(255, 255, 255, 0.1); margin: 4px 0;"></div>
+                    
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; text-align:left; font-size:12px; font-family:'Share Tech Mono', monospace; line-height:1.4;">
+                        <div>
+                            <span style="color:#ff7800;">DIRECCIÓN</span><br>
+                            <span style="color:#ffffff; font-size:13px;">Christopher Nolan</span>
+                        </div>
+                        <div>
+                            <span style="color:#ff7800;">BANDA SONORA ORIGINAL</span><br>
+                            <span style="color:#ffffff; font-size:13px;">Hans Zimmer</span>
+                        </div>
+                        <div>
+                            <span style="color:#00dcff;">GUIÓN</span><br>
+                            <span style="color:#ffffff;">Jonathan Nolan<br>Christopher Nolan</span>
+                        </div>
+                        <div>
+                            <span style="color:#00dcff;">ASESORÍA CIENTÍFICA</span><br>
+                            <span style="color:#ffffff;">Kip Thorne</span>
+                        </div>
+                        <div>
+                            <span style="color:#8fa0b3;">PRODUCCIÓN</span><br>
+                            <span style="color:#ffffff;">Emma Thomas<br>Lynda Obst</span>
+                        </div>
+                        <div>
+                            <span style="color:#8fa0b3;">REPARTO PRINCIPAL</span><br>
+                            <span style="color:#ffffff;">Matthew McConaughey (Cooper)<br>Anne Hathaway (Brand)<br>Jessica Chastain (Murph)<br>Michael Caine (Prof. Brand)</span>
+                        </div>
+                    </div>
+                    
+                    <div style="border-bottom: 1px solid rgba(255, 255, 255, 0.1); margin: 4px 0;"></div>
+                    
+                    <p style="font-size:12px; color:#c8d6e5; font-style:italic; line-height:1.6; text-align:center; margin: 4px 0;">
+                        "El amor es la única cosa que somos capaces de percibir que trasciende las dimensiones del tiempo y del espacio."
+                    </p>
+                    
+                    <div style="font-size:11px; color:#5f758e; line-height:1.5; text-align:center; margin-top:4px;">
+                        Tributo diseñado con código puro y Web Audio API. Agradecimientos especiales a Christopher Nolan, Hans Zimmer y a todas las mentes brillantes que hicieron posible Interestelar.
+                    </div>
+                </div>
+
+                <button class="btn-orbit" id="credits-restart-btn" style="border-color:#ff7800; color:#ff7800; box-shadow:0 0 14px rgba(255,120,0,0.25); margin-top:5px;">↺ Iniciar Nueva Simulación</button>
+            `;
+
+            mainPanel.appendChild(container);
+
+            document.getElementById('credits-restart-btn').addEventListener('click', () => {
+                changePhase('welcome');
+            });
+        }
+
         // Iniciar el juego en la fase correspondiente
         const savedPhase = localStorage.getItem('interstellar_current_phase');
-        if (savedPhase && ['welcome', 'intro', 'stealth', 'hangar', 'flight', 'asteroids', 'wormhole', 'preorbit', 'orbit', 'choice', 'epilogue'].includes(savedPhase)) {
+        if (savedPhase && ['welcome', 'intro', 'stealth', 'hangar', 'flight', 'asteroids', 'wormhole', 'preorbit', 'orbit', 'choice', 'epilogue', 'credits'].includes(savedPhase)) {
             // Permitir retomar la fase autoguardada para evitar frustración
             gameState.currentPhase = savedPhase;
             if (savedPhase !== 'welcome') {
