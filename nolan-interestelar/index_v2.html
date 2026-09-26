@@ -2443,16 +2443,21 @@
 
                 // Endurance II y Escudo Burst
                 if (ship.shieldBurstActive > 0) {
-                    ctx.strokeStyle = 'rgba(0, 220, 255, 0.85)';
-                    ctx.fillStyle = 'rgba(0, 220, 255, 0.18)';
-                    ctx.lineWidth = 3;
+                    const burstProg = Math.max(0, Math.min(1, 1 - (ship.shieldBurstActive / 0.60)));
+                    const burstRadius = Math.max(8, 140 * burstProg);
+                    const burstAlpha = Math.max(0, ship.shieldBurstActive / 0.60);
+
+                    ctx.save();
+                    ctx.strokeStyle = `rgba(0, 220, 255, ${0.9 * burstAlpha})`;
+                    ctx.fillStyle = `rgba(0, 220, 255, ${0.22 * burstAlpha})`;
+                    ctx.lineWidth = 3.5;
                     ctx.shadowColor = '#00dcff';
-                    ctx.shadowBlur = 15;
+                    ctx.shadowBlur = 20;
                     ctx.beginPath();
-                    ctx.arc(ship.x, ship.y, 85 * (1 - ship.shieldBurstActive / 0.55), 0, Math.PI * 2);
+                    ctx.arc(ship.x, ship.y, burstRadius, 0, Math.PI * 2);
                     ctx.stroke();
                     ctx.fill();
-                    ctx.shadowBlur = 0;
+                    ctx.restore();
                 }
 
                 const propulsionActive = keys['arrowleft'] || keys['a'] || keys['arrowright'] || keys['d'] || Math.abs(ship.speedX) > 0.1;
@@ -2481,14 +2486,20 @@
                 isFailed = false;
                 isFinished = false;
                 shields = 3;
+                shieldCharges = 2;
+                cannonHeat = 0;
+                isOverheated = false;
                 distance = 0;
+                ship.shieldBurstActive = 0;
+                ship.shieldBurstCooldown = 0;
+                ship.pdcCooldown = 0;
                 asteroids = [];
                 projectiles = [];
                 debrisParticles = [];
                 ship.x = 400;
                 ship.speedX = 0;
                 shieldsEl.textContent = "ESCUDOS: ███ 100%";
-                shieldsEl.style.color = "#ff7800";
+                shieldsEl.style.color = "#00ff66";
                 failedScreen.classList.remove('active');
                 startScreen.classList.add('active');
                 gameStarted = false;

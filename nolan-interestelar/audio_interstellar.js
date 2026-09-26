@@ -535,6 +535,87 @@ class InterstellarAudioEngine {
     osc.onended = () => { osc.disconnect(); filter.disconnect(); gain.disconnect(); };
   }
 
+  playShieldBurst() {
+    if (this.isMuted || !this.ctx) return;
+    try {
+      const t = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const filter = this.ctx.createBiquadFilter();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(140, t);
+      osc.frequency.exponentialRampToValueAtTime(880, t + 0.12);
+      osc.frequency.exponentialRampToValueAtTime(110, t + 0.45);
+
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(1800, t);
+
+      gain.gain.setValueAtTime(0.001, t);
+      gain.gain.linearRampToValueAtTime(0.24, t + 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.50);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.sfxGain);
+
+      osc.start(t);
+      osc.stop(t + 0.52);
+      osc.onended = () => { osc.disconnect(); filter.disconnect(); gain.disconnect(); };
+    } catch (e) {}
+  }
+
+  playPDCBolt() {
+    if (this.isMuted || !this.ctx) return;
+    try {
+      const t = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const filter = this.ctx.createBiquadFilter();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(680, t);
+      osc.frequency.exponentialRampToValueAtTime(120, t + 0.08);
+
+      filter.type = 'highpass';
+      filter.frequency.setValueAtTime(250, t);
+
+      gain.gain.setValueAtTime(0.14, t);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.sfxGain);
+
+      osc.start(t);
+      osc.stop(t + 0.10);
+      osc.onended = () => { osc.disconnect(); filter.disconnect(); gain.disconnect(); };
+    } catch (e) {}
+  }
+
+  playAsteroidHit() {
+    if (this.isMuted || !this.ctx) return;
+    try {
+      const t = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(160, t);
+      osc.frequency.exponentialRampToValueAtTime(40, t + 0.18);
+
+      gain.gain.setValueAtTime(0.22, t);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.20);
+
+      osc.connect(gain);
+      gain.connect(this.sfxGain);
+
+      osc.start(t);
+      osc.stop(t + 0.22);
+      osc.onended = () => { osc.disconnect(); gain.disconnect(); };
+    } catch (e) {}
+  }
+
   playWormholeTurbulence() {
     if (this.isMuted || !this.ctx) return;
     const t = this.ctx.currentTime;
