@@ -684,40 +684,87 @@
         });
 
         /* ============================================================
-           CREADOR DE AVATARES PROCEDURALES EN PIXEL ART
+           CARGA Y CACHÉ DE SPRITES PIXEL ART (PIX ENGINE)
+           ============================================================ */
+        const spriteCache = {
+            avatar_cooper: new Image(),
+            avatar_cooper_no_helmet: new Image(),
+            avatar_tars: new Image(),
+            avatar_brand: new Image(),
+            avatar_politician: new Image(),
+            sprite_cooper_stealth: new Image(),
+            sprite_guard_security: new Image(),
+            sprite_tars_monolith: new Image(),
+            sprite_ranger_ship: new Image()
+        };
+        spriteCache.avatar_cooper.src = 'assets/sprites/avatar_cooper.png';
+        spriteCache.avatar_cooper_no_helmet.src = 'assets/sprites/avatar_cooper_no_helmet.png';
+        spriteCache.avatar_tars.src = 'assets/sprites/avatar_tars.png';
+        spriteCache.avatar_brand.src = 'assets/sprites/avatar_brand.png';
+        spriteCache.avatar_politician.src = 'assets/sprites/avatar_politician.png';
+        spriteCache.sprite_cooper_stealth.src = 'assets/sprites/sprite_cooper_stealth.png';
+        spriteCache.sprite_guard_security.src = 'assets/sprites/sprite_guard_security.png';
+        spriteCache.sprite_tars_monolith.src = 'assets/sprites/sprite_tars_monolith.png';
+        spriteCache.sprite_ranger_ship.src = 'assets/sprites/sprite_ranger_ship.png';
+
+        /* ============================================================
+           CREADOR DE AVATARES PROCEDURALES / SPRITE EN PIXEL ART
            ============================================================ */
         function drawPixelAvatar(speaker, canvas) {
             const ctx = canvas.getContext('2d');
-            const pixelSize = Math.max(1, Math.floor(canvas.width / 16));
+            const spriteKey = 'avatar_' + speaker.toLowerCase();
+            const spriteImg = spriteCache[spriteKey];
             
             function drawFrame(isLightOn) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.imageSmoothingEnabled = false;
                 
+                if (spriteImg && spriteImg.complete && spriteImg.naturalWidth !== 0) {
+                    ctx.drawImage(spriteImg, 0, 0, canvas.width, canvas.height);
+                    
+                    // Efectos de escaneo y sensores ópticos dinámicos
+                    if (speaker === 'TARS') {
+                        // Sensor óptico rojo parpadeante
+                        ctx.fillStyle = isLightOn ? '#ff3838' : '#7f1d1d';
+                        ctx.fillRect(canvas.width * (23/64), canvas.height * (17/64), canvas.width * (3/64), canvas.height * (3/64));
+                        
+                        // Terminal de estado cian
+                        ctx.fillStyle = isLightOn ? '#00dcff' : '#007799';
+                        ctx.fillRect(canvas.width * (38/64), canvas.height * (17/64), canvas.width * (3/64), canvas.height * (3/64));
+                    } else if (speaker === 'COOPER') {
+                        // Reflejo dinámico del HUD dentro del visor ámbar
+                        ctx.fillStyle = isLightOn ? 'rgba(0, 220, 255, 0.45)' : 'rgba(0, 220, 255, 0.2)';
+                        ctx.fillRect(canvas.width * (20/64), canvas.height * (24/64), canvas.width * (8/64), canvas.height * (2/64));
+                    }
+                    
+                    // Scanline sutil de CRT espacial
+                    ctx.fillStyle = 'rgba(0, 220, 255, 0.04)';
+                    for (let y = 0; y < canvas.height; y += 4) {
+                        ctx.fillRect(0, y, canvas.width, 1);
+                    }
+                    return;
+                }
+                
+                // Fallback procedural si el PNG aún no cargó
+                const pixelSize = Math.max(1, Math.floor(canvas.width / 16));
                 if (speaker === 'COOPER') {
                     ctx.fillStyle = '#4b6584';
                     ctx.fillRect(3 * pixelSize, 13 * pixelSize, 10 * pixelSize, 3 * pixelSize);
                     ctx.fillStyle = '#ff7800';
                     ctx.fillRect(7 * pixelSize, 14 * pixelSize, 2 * pixelSize, 1 * pixelSize);
-                    
                     ctx.fillStyle = '#d1dbe5';
                     ctx.fillRect(3 * pixelSize, 3 * pixelSize, 10 * pixelSize, 10 * pixelSize);
                     ctx.fillRect(4 * pixelSize, 2 * pixelSize, 8 * pixelSize, 12 * pixelSize);
                     ctx.fillRect(2 * pixelSize, 4 * pixelSize, 12 * pixelSize, 8 * pixelSize);
-                    
                     ctx.fillStyle = '#a4b3c4';
                     ctx.fillRect(3 * pixelSize, 11 * pixelSize, 10 * pixelSize, 1 * pixelSize);
                     ctx.fillRect(11 * pixelSize, 4 * pixelSize, 1 * pixelSize, 8 * pixelSize);
-                    
                     ctx.fillStyle = '#1e272e';
                     ctx.fillRect(3 * pixelSize, 4 * pixelSize, 10 * pixelSize, 7 * pixelSize);
-                    
                     ctx.fillStyle = '#0f172a';
                     ctx.fillRect(4 * pixelSize, 5 * pixelSize, 8 * pixelSize, 5 * pixelSize);
-                    
                     ctx.fillStyle = isLightOn ? '#00dcff' : '#00a8cc';
                     ctx.fillRect(5 * pixelSize, 6 * pixelSize, 6 * pixelSize, 3 * pixelSize);
-                    
                     ctx.fillStyle = '#ffffff';
                     ctx.fillRect(5 * pixelSize, 6 * pixelSize, 1 * pixelSize, 1 * pixelSize);
                     ctx.fillRect(6 * pixelSize, 7 * pixelSize, 1 * pixelSize, 1 * pixelSize);
@@ -729,29 +776,23 @@
                     ctx.fillRect(6 * pixelSize, 12 * pixelSize, 4 * pixelSize, 2 * pixelSize);
                     ctx.fillStyle = '#ff7800';
                     ctx.fillRect(4 * pixelSize, 13 * pixelSize, 1 * pixelSize, 2 * pixelSize);
-                    
                     ctx.fillStyle = '#eab087';
                     ctx.fillRect(6 * pixelSize, 10 * pixelSize, 4 * pixelSize, 2 * pixelSize);
-                    
                     ctx.fillStyle = '#fed7aa';
                     ctx.fillRect(4 * pixelSize, 3 * pixelSize, 8 * pixelSize, 7 * pixelSize);
                     ctx.fillRect(5 * pixelSize, 2 * pixelSize, 6 * pixelSize, 1 * pixelSize);
-                    
                     ctx.fillStyle = '#4a2c11';
                     ctx.fillRect(4 * pixelSize, 1 * pixelSize, 8 * pixelSize, 2 * pixelSize);
                     ctx.fillRect(3 * pixelSize, 2 * pixelSize, 2 * pixelSize, 4 * pixelSize);
                     ctx.fillRect(11 * pixelSize, 2 * pixelSize, 2 * pixelSize, 3 * pixelSize);
                     ctx.fillRect(5 * pixelSize, 0 * pixelSize, 6 * pixelSize, 1 * pixelSize);
                     ctx.fillRect(6 * pixelSize, 2 * pixelSize, 2 * pixelSize, 1 * pixelSize);
-                    
                     ctx.fillStyle = '#1e293b';
                     ctx.fillRect(5 * pixelSize, 5 * pixelSize, 1 * pixelSize, 1 * pixelSize);
                     ctx.fillRect(10 * pixelSize, 5 * pixelSize, 1 * pixelSize, 1 * pixelSize);
-                    
                     ctx.fillStyle = '#4a2c11';
                     ctx.fillRect(4 * pixelSize, 4 * pixelSize, 3 * pixelSize, 1 * pixelSize);
                     ctx.fillRect(9 * pixelSize, 4 * pixelSize, 3 * pixelSize, 1 * pixelSize);
-                    
                     ctx.fillStyle = '#dd7a5f';
                     ctx.fillRect(6 * pixelSize, 8 * pixelSize, 4 * pixelSize, 1 * pixelSize);
                 } else if (speaker === 'BRAND') {
@@ -759,29 +800,23 @@
                     ctx.fillRect(3 * pixelSize, 12 * pixelSize, 10 * pixelSize, 4 * pixelSize);
                     ctx.fillStyle = '#ff7800';
                     ctx.fillRect(5 * pixelSize, 12 * pixelSize, 6 * pixelSize, 1 * pixelSize);
-                    
                     ctx.fillStyle = '#f8a5c2';
                     ctx.fillRect(6 * pixelSize, 10 * pixelSize, 4 * pixelSize, 2 * pixelSize);
-                    
                     ctx.fillStyle = '#ffe0cb';
                     ctx.fillRect(4 * pixelSize, 3 * pixelSize, 8 * pixelSize, 7 * pixelSize);
                     ctx.fillRect(5 * pixelSize, 2 * pixelSize, 6 * pixelSize, 1 * pixelSize);
-                    
                     ctx.fillStyle = '#3d2006';
                     ctx.fillRect(4 * pixelSize, 1 * pixelSize, 8 * pixelSize, 2 * pixelSize);
                     ctx.fillRect(3 * pixelSize, 2 * pixelSize, 1 * pixelSize, 5 * pixelSize);
                     ctx.fillRect(12 * pixelSize, 2 * pixelSize, 1 * pixelSize, 5 * pixelSize);
                     ctx.fillRect(4 * pixelSize, 2 * pixelSize, 2 * pixelSize, 1 * pixelSize);
                     ctx.fillRect(10 * pixelSize, 2 * pixelSize, 2 * pixelSize, 1 * pixelSize);
-                    
                     ctx.fillStyle = '#2d5a27';
                     ctx.fillRect(5 * pixelSize, 5 * pixelSize, 1 * pixelSize, 1 * pixelSize);
                     ctx.fillRect(10 * pixelSize, 5 * pixelSize, 1 * pixelSize, 1 * pixelSize);
-                    
                     ctx.fillStyle = '#f8a5c2';
                     ctx.fillRect(4 * pixelSize, 6 * pixelSize, 1 * pixelSize, 1 * pixelSize);
                     ctx.fillRect(11 * pixelSize, 6 * pixelSize, 1 * pixelSize, 1 * pixelSize);
-                    
                     ctx.fillStyle = '#ea8685';
                     ctx.fillRect(7 * pixelSize, 8 * pixelSize, 2 * pixelSize, 1 * pixelSize);
                 } else if (speaker === 'POLITICIAN') {
@@ -791,28 +826,22 @@
                     ctx.fillRect(6 * pixelSize, 12 * pixelSize, 4 * pixelSize, 2 * pixelSize);
                     ctx.fillStyle = '#ef4444';
                     ctx.fillRect(7 * pixelSize, 12 * pixelSize, 2 * pixelSize, 3 * pixelSize);
-                    
                     ctx.fillStyle = '#f5b041';
                     ctx.fillRect(6 * pixelSize, 10 * pixelSize, 4 * pixelSize, 2 * pixelSize);
-                    
                     ctx.fillStyle = '#f9e79f';
                     ctx.fillRect(4 * pixelSize, 3 * pixelSize, 8 * pixelSize, 7 * pixelSize);
                     ctx.fillRect(5 * pixelSize, 2 * pixelSize, 6 * pixelSize, 1 * pixelSize);
-                    
                     ctx.fillStyle = '#94a3b8';
                     ctx.fillRect(3 * pixelSize, 2 * pixelSize, 2 * pixelSize, 6 * pixelSize);
                     ctx.fillRect(11 * pixelSize, 2 * pixelSize, 2 * pixelSize, 6 * pixelSize);
                     ctx.fillRect(4 * pixelSize, 1 * pixelSize, 1 * pixelSize, 1 * pixelSize);
                     ctx.fillRect(11 * pixelSize, 1 * pixelSize, 1 * pixelSize, 1 * pixelSize);
-                    
                     ctx.fillStyle = '#0f172a';
                     ctx.fillRect(5 * pixelSize, 5 * pixelSize, 1 * pixelSize, 1 * pixelSize);
                     ctx.fillRect(10 * pixelSize, 5 * pixelSize, 1 * pixelSize, 1 * pixelSize);
-                    
                     ctx.fillStyle = '#d5dbdb';
                     ctx.fillRect(5 * pixelSize, 7 * pixelSize, 1 * pixelSize, 1 * pixelSize);
                     ctx.fillRect(10 * pixelSize, 7 * pixelSize, 1 * pixelSize, 1 * pixelSize);
-                    
                     ctx.fillStyle = '#ba4a00';
                     ctx.fillRect(6 * pixelSize, 8 * pixelSize, 4 * pixelSize, 1 * pixelSize);
                 } else if (speaker === 'TARS') {
@@ -822,23 +851,18 @@
                         { x: 8, w: 3, c: '#cbd5e1' },
                         { x: 11, w: 2, c: '#64748b' }
                     ];
-                    
                     cols.forEach(col => {
                         ctx.fillStyle = col.c;
                         ctx.fillRect(col.x * pixelSize, 2 * pixelSize, col.w * pixelSize, 12 * pixelSize);
                     });
-                    
                     ctx.fillStyle = '#0f172a';
                     ctx.fillRect(5 * pixelSize, 2 * pixelSize, 1, 12 * pixelSize);
                     ctx.fillRect(8 * pixelSize, 2 * pixelSize, 1, 12 * pixelSize);
                     ctx.fillRect(11 * pixelSize, 2 * pixelSize, 1, 12 * pixelSize);
-                    
                     ctx.fillRect(3 * pixelSize, 6 * pixelSize, 10 * pixelSize, 1);
                     ctx.fillRect(3 * pixelSize, 10 * pixelSize, 10 * pixelSize, 1);
-                    
                     ctx.fillStyle = isLightOn ? '#ff3838' : '#7f1d1d';
                     ctx.fillRect(6 * pixelSize, 4 * pixelSize, 1 * pixelSize, 1 * pixelSize);
-                    
                     ctx.fillStyle = '#00dcff';
                     ctx.fillRect(9 * pixelSize, 4 * pixelSize, 1 * pixelSize, 1 * pixelSize);
                 }
@@ -1246,6 +1270,7 @@
 
             let player = {
                 x: 375, y: 460, r: 8,
+                angle: -Math.PI / 2,
                 isCrouching: false,
                 isSprinting: false,
                 speed: 3.2,
@@ -1385,6 +1410,10 @@
                 if (keys['f']) {
                     keys['f'] = false;
                     triggerKnock();
+                }
+
+                if (moveX !== 0 || moveY !== 0) {
+                    player.angle = Math.atan2(moveY, moveX);
                 }
 
                 if (moveX !== 0 && moveY !== 0) {
@@ -1537,6 +1566,12 @@
                     }
                 }
 
+                // Zona de Extracción / Ranger en Pixel Art
+                if (spriteCache.sprite_ranger_ship.complete && spriteCache.sprite_ranger_ship.naturalWidth !== 0) {
+                    ctx.imageSmoothingEnabled = false;
+                    ctx.drawImage(spriteCache.sprite_ranger_ship, 300 - 24, 25 - 16, 48, 32);
+                }
+
                 // Ondas de Ruido
                 soundRipples.forEach(rip => {
                     ctx.strokeStyle = `rgba(0, 220, 255, ${rip.life * 0.5})`;
@@ -1572,28 +1607,48 @@
                     ctx.closePath();
                     ctx.fill();
 
-                    // Sprite de Guardia
-                    ctx.fillStyle = g.state === 'SUSPICIOUS' ? '#ff7800' : '#ef4444';
-                    ctx.beginPath();
-                    ctx.arc(g.x, g.y, 7, 0, Math.PI * 2);
-                    ctx.fill();
+                    // Sprite de Guardia en Pixel Art con rotación direccional
+                    ctx.save();
+                    ctx.translate(g.x, g.y);
+                    ctx.rotate(g.lookAngle + Math.PI / 2);
+                    if (spriteCache.sprite_guard_security.complete && spriteCache.sprite_guard_security.naturalWidth !== 0) {
+                        ctx.imageSmoothingEnabled = false;
+                        ctx.drawImage(spriteCache.sprite_guard_security, -16, -16, 32, 32);
+                    } else {
+                        ctx.fillStyle = g.state === 'SUSPICIOUS' ? '#ff7800' : '#ef4444';
+                        ctx.beginPath();
+                        ctx.arc(0, 0, 7, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    ctx.restore();
 
                     if (g.state === 'SUSPICIOUS') {
                         ctx.fillStyle = '#ff7800';
-                        ctx.font = 'bold 12px monospace';
-                        ctx.fillText('?', g.x - 3, g.y - 10);
+                        ctx.font = 'bold 13px monospace';
+                        ctx.fillText('?', g.x - 4, g.y - 18);
                     }
                     ctx.restore();
                 });
 
-                // Cooper
+                // Cooper en Pixel Art con orientación dinámica
                 ctx.save();
-                ctx.shadowColor = '#00dcff';
-                ctx.shadowBlur = player.isCrouching ? 4 : 8;
-                ctx.fillStyle = player.isCrouching ? '#00ffaa' : '#00dcff';
-                ctx.beginPath();
-                ctx.arc(player.x, player.y, player.isCrouching ? 6 : player.r, 0, Math.PI * 2);
-                ctx.fill();
+                ctx.translate(player.x, player.y);
+                ctx.rotate(player.angle + Math.PI / 2);
+                if (spriteCache.sprite_cooper_stealth.complete && spriteCache.sprite_cooper_stealth.naturalWidth !== 0) {
+                    ctx.imageSmoothingEnabled = false;
+                    if (player.isCrouching) {
+                        ctx.globalAlpha = 0.85;
+                        ctx.scale(0.85, 0.85);
+                    }
+                    ctx.drawImage(spriteCache.sprite_cooper_stealth, -16, -16, 32, 32);
+                } else {
+                    ctx.shadowColor = '#00dcff';
+                    ctx.shadowBlur = player.isCrouching ? 4 : 8;
+                    ctx.fillStyle = player.isCrouching ? '#00ffaa' : '#00dcff';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, player.isCrouching ? 6 : player.r, 0, Math.PI * 2);
+                    ctx.fill();
+                }
                 ctx.restore();
             }
 
@@ -1609,6 +1664,7 @@
                 isFinished = false;
                 player.x = 375;
                 player.y = 460;
+                player.angle = -Math.PI / 2;
                 guards = initGuardStates(JSON.parse(JSON.stringify(initialGuards)));
                 failedScreen.classList.remove('active');
                 audio.playClockTick();
@@ -1659,7 +1715,26 @@
                     ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
                 }
 
+                // Endurance II central
                 drawEnduranceV2(ctx, canvas.width / 2, canvas.height / 2, 70, Date.now() * 0.0002, false, 0);
+
+                // TARS en la plataforma táctica
+                if (spriteCache.sprite_tars_monolith.complete && spriteCache.sprite_tars_monolith.naturalWidth !== 0) {
+                    ctx.imageSmoothingEnabled = false;
+                    ctx.drawImage(spriteCache.sprite_tars_monolith, canvas.width - 130, canvas.height / 2 - 24, 32, 48);
+                    ctx.fillStyle = '#ff7800';
+                    ctx.font = '10px monospace';
+                    ctx.fillText('TARS // TÁCTICO', canvas.width - 150, canvas.height / 2 + 38);
+                }
+
+                // Ranger de reconocimiento
+                if (spriteCache.sprite_ranger_ship.complete && spriteCache.sprite_ranger_ship.naturalWidth !== 0) {
+                    ctx.imageSmoothingEnabled = false;
+                    ctx.drawImage(spriteCache.sprite_ranger_ship, 100, canvas.height / 2 - 16, 48, 32);
+                    ctx.fillStyle = '#00dcff';
+                    ctx.font = '10px monospace';
+                    ctx.fillText('RANGER 01 // LISTO', 90, canvas.height / 2 + 30);
+                }
 
                 scanY = (scanY + 2) % canvas.height;
                 ctx.strokeStyle = 'rgba(0, 255, 100, 0.4)';
