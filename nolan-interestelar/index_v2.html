@@ -353,6 +353,37 @@
             text-shadow: 0 0 15px rgba(255, 56, 56, 0.6);
         }
 
+        /* Barra de Control y Acciones Tácticas */
+        .tactical-bar {
+            width: 100%;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+
+        .btn-tactical {
+            background: rgba(8, 16, 32, 0.85);
+            border: 1px solid rgba(0, 220, 255, 0.4);
+            color: #00dcff;
+            padding: 6px 14px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: 'Share Tech Mono', monospace;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-tactical:hover {
+            background: rgba(0, 220, 255, 0.2);
+            border-color: #00dcff;
+        }
+
+        .btn-tactical:active {
+            transform: scale(0.96);
+        }
+
         /* Controles Móviles D-PAD */
         .mobile-controls {
             display: none;
@@ -644,7 +675,7 @@
         window.addEventListener('keydown', e => {
             const key = e.key.toLowerCase();
             globalKeys[key] = true;
-            if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd', ' '].includes(key)) {
+            if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd', ' ', 'c', 'control', 'shift', 'e', 'f', 'x'].includes(key)) {
                 e.preventDefault();
             }
         });
@@ -654,7 +685,6 @@
 
         /* ============================================================
            CREADOR DE AVATARES PROCEDURALES EN PIXEL ART
-           (Cooper, Cooper Sin Casco, TARS, Brand, Politician, Scientist)
            ============================================================ */
         function drawPixelAvatar(speaker, canvas) {
             const ctx = canvas.getContext('2d');
@@ -665,7 +695,6 @@
                 ctx.imageSmoothingEnabled = false;
                 
                 if (speaker === 'COOPER') {
-                    // Traje espacial con visor
                     ctx.fillStyle = '#4b6584';
                     ctx.fillRect(3 * pixelSize, 13 * pixelSize, 10 * pixelSize, 3 * pixelSize);
                     ctx.fillStyle = '#ff7800';
@@ -694,7 +723,6 @@
                     ctx.fillRect(6 * pixelSize, 7 * pixelSize, 1 * pixelSize, 1 * pixelSize);
                     ctx.fillRect(9 * pixelSize, 6 * pixelSize, 2 * pixelSize, 1 * pixelSize);
                 } else if (speaker === 'COOPER_NO_HELMET') {
-                    // Cooper sin casco (Edmunds)
                     ctx.fillStyle = '#334155';
                     ctx.fillRect(3 * pixelSize, 12 * pixelSize, 10 * pixelSize, 4 * pixelSize);
                     ctx.fillStyle = '#e2e8f0';
@@ -727,7 +755,6 @@
                     ctx.fillStyle = '#dd7a5f';
                     ctx.fillRect(6 * pixelSize, 8 * pixelSize, 4 * pixelSize, 1 * pixelSize);
                 } else if (speaker === 'BRAND') {
-                    // Dra. Amelia Brand
                     ctx.fillStyle = '#4b6584';
                     ctx.fillRect(3 * pixelSize, 12 * pixelSize, 10 * pixelSize, 4 * pixelSize);
                     ctx.fillStyle = '#ff7800';
@@ -758,7 +785,6 @@
                     ctx.fillStyle = '#ea8685';
                     ctx.fillRect(7 * pixelSize, 8 * pixelSize, 2 * pixelSize, 1 * pixelSize);
                 } else if (speaker === 'POLITICIAN') {
-                    // Burócrata supremo
                     ctx.fillStyle = '#475569';
                     ctx.fillRect(3 * pixelSize, 12 * pixelSize, 10 * pixelSize, 4 * pixelSize);
                     ctx.fillStyle = '#f8fafc';
@@ -790,7 +816,6 @@
                     ctx.fillStyle = '#ba4a00';
                     ctx.fillRect(6 * pixelSize, 8 * pixelSize, 4 * pixelSize, 1 * pixelSize);
                 } else if (speaker === 'TARS') {
-                    // TARS: Monolito robótico táctico
                     const cols = [
                         { x: 3, w: 2, c: '#475569' },
                         { x: 5, w: 3, c: '#94a3b8' },
@@ -1011,7 +1036,6 @@
                 gameState.currentPhase = phaseName;
                 localStorage.setItem('interstellar_current_phase_v2', phaseName);
                 
-                // Disparo de Audio de Hertz
                 audio.setPhase(phaseName);
                 
                 for (let k in globalKeys) globalKeys[k] = false;
@@ -1155,7 +1179,7 @@
         }
 
         /* ------------------------------------------------------------
-           FASE 3: INFILTRACIÓN EN EL HANGAR (SIGILO 2D ENRIQUECIDO)
+           FASE 3: INFILTRACIÓN EN EL HANGAR 4 (SIGILO TÁCTICO 2D AVANZADO)
            ------------------------------------------------------------ */
         function renderStealthGame() {
             const container = document.createElement('div');
@@ -1165,7 +1189,7 @@
                 <div class="hud-overlay">
                     <div>SUJETO: COOPER [PILOTO] // HANGAR 4</div>
                     <div style="color: #ff7800;" id="stealth-alert">ESTADO: INFILTRACIÓN EN SILENCIO</div>
-                    <div id="death-count">ALARMAS ACTIVADAS: 0</div>
+                    <div id="suspicion-hud" style="color: #00dcff;">SOSPECHA: 0%</div>
                 </div>
                 <div class="canvas-container">
                     <canvas id="stealthCanvas" width="800" height="500"></canvas>
@@ -1175,8 +1199,12 @@
                         <button class="btn-orbit" id="retry-stealth-btn" style="margin-top: 10px;">Reiniciar Infiltración</button>
                     </div>
                 </div>
-                <div style="font-size:13px; color: #8fa0b3; text-align: center;">
-                    Usa las <span style="color:#00dcff">FLECHAS DE DIRECCIÓN</span> o <span style="color:#00dcff">WASD</span> para mover a Cooper. Esquiva los conos amarillos de los guardias y alcanza el muelle de la Endurance II (zona verde) en la parte superior.
+                <div class="tactical-bar">
+                    <button class="btn-tactical" id="btn-crouch">MODO: PASO NORMAL (C)</button>
+                    <button class="btn-tactical" id="btn-knock">GOLPE EN PARED (F / SEÑUELO)</button>
+                </div>
+                <div style="font-size:12px; color: #8fa0b3; text-align: center; max-width: 700px;">
+                    Usa <span style="color:#00dcff">WASD / FLECHAS</span> para moverte. <span style="color:#00dcff">C</span> para agacharte (silencio total, menor visibilidad), <span style="color:#00dcff">SHIFT</span> para correr (genera onda de ruido), y <span style="color:#00dcff">F</span> para golpear la pared y distraer centinelas.
                 </div>
                 <div class="mobile-controls">
                     <div class="dpad-grid">
@@ -1194,7 +1222,10 @@
             const ctx = canvas.getContext('2d');
             const retryBtn = document.getElementById('retry-stealth-btn');
             const failedScreen = document.getElementById('stealth-failed');
-            const deathEl = document.getElementById('death-count');
+            const alertHud = document.getElementById('stealth-alert');
+            const suspicionHud = document.getElementById('suspicion-hud');
+            const crouchBtn = document.getElementById('btn-crouch');
+            const knockBtn = document.getElementById('btn-knock');
 
             const gridWidth = 16;
             const gridHeight = 10;
@@ -1213,24 +1244,21 @@
                 1,1,1,1,1,1,1,2,2,1,1,1,1,1,1,1
             ];
 
-            let player = { x: 375, y: 460, r: 8, speed: 3.2 };
+            let player = {
+                x: 375, y: 460, r: 8,
+                isCrouching: false,
+                isSprinting: false,
+                speed: 3.2,
+                noiseRadius: 0
+            };
 
-            let particles = [];
-            for(let i=0; i<35; i++){
-                particles.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    vx: (Math.random() - 0.5) * 0.3,
-                    vy: (Math.random() - 0.5) * 0.3,
-                    size: Math.random() * 2 + 1
-                });
-            }
+            let soundRipples = [];
 
             const initialGuards = [
-                { x: 100, y: 80, startX: 100, endX: 400, speed: 1.8, dir: 1, angle: 0, sweepRange: Math.PI / 3, sweepSpeed: 0.02, sweepAngle: 0, fov: Math.PI / 4, radius: 160 },
-                { x: 500, y: 380, startX: 200, endX: 680, speed: 2.2, dir: -1, angle: Math.PI, sweepRange: Math.PI / 3, sweepSpeed: 0.025, sweepAngle: 0, fov: Math.PI / 4.5, radius: 170 },
-                { x: 600, y: 150, startY: 80, endY: 350, speed: 1.5, dir: 1, angle: Math.PI / 2, sweepRange: Math.PI / 4, sweepSpeed: 0.015, sweepAngle: 0, fov: Math.PI / 5, radius: 150, isVertical: true },
-                { x: 480, y: 230, angle: 0, speed: 0.008, fov: Math.PI / 4.5, radius: 160, isTurret: true }
+                { x: 100, y: 80, startX: 100, endX: 400, speed: 1.6, dir: 1, angle: 0, sweepRange: Math.PI / 3, sweepSpeed: 0.02, sweepAngle: 0, fovOuter: Math.PI / 3, fovCore: Math.PI / 6, rangeOuter: 200, rangeCore: 90 },
+                { x: 500, y: 380, startX: 200, endX: 680, speed: 2.0, dir: -1, angle: Math.PI, sweepRange: Math.PI / 3, sweepSpeed: 0.025, sweepAngle: 0, fovOuter: Math.PI / 3.5, fovCore: Math.PI / 7, rangeOuter: 210, rangeCore: 95 },
+                { x: 600, y: 150, startY: 80, endY: 350, speed: 1.4, dir: 1, angle: Math.PI / 2, sweepRange: Math.PI / 4, sweepSpeed: 0.015, sweepAngle: 0, fovOuter: Math.PI / 4, fovCore: Math.PI / 8, rangeOuter: 180, rangeCore: 85, isVertical: true },
+                { x: 480, y: 230, angle: 0, speed: 0.008, fovOuter: Math.PI / 3.5, fovCore: Math.PI / 7, rangeOuter: 190, rangeCore: 90, isTurret: true }
             ];
 
             const wallSegments = [];
@@ -1285,8 +1313,7 @@
                     investigateY: null,
                     searchTimer: 0,
                     sweepAngle: 0,
-                    lookAngle: g.angle,
-                    originalSpeed: g.speed
+                    lookAngle: g.angle
                 }));
             }
 
@@ -1296,17 +1323,28 @@
             let isFinished = false;
             let runId = null;
 
-            const registerMobileBtn = (id, keyName) => {
-                const btn = document.getElementById(id);
-                if (btn) {
-                    btn.addEventListener('touchstart', e => { e.preventDefault(); keys[keyName] = true; });
-                    btn.addEventListener('touchend', e => { e.preventDefault(); keys[keyName] = false; });
-                }
-            };
-            registerMobileBtn('m-up', 'arrowup');
-            registerMobileBtn('m-down', 'arrowdown');
-            registerMobileBtn('m-left', 'arrowleft');
-            registerMobileBtn('m-right', 'arrowright');
+            function triggerKnock() {
+                audio.playWallKnock();
+                soundRipples.push({ x: player.x, y: player.y, r: 0, maxR: 160, life: 1.0 });
+                guards.forEach(g => {
+                    const dx = player.x - g.x;
+                    const dy = player.y - g.y;
+                    if (Math.sqrt(dx * dx + dy * dy) <= 160) {
+                        g.state = 'SUSPICIOUS';
+                        g.investigateX = player.x;
+                        g.investigateY = player.y;
+                        g.searchTimer = 4.0;
+                    }
+                });
+            }
+
+            knockBtn.addEventListener('click', triggerKnock);
+
+            crouchBtn.addEventListener('click', () => {
+                player.isCrouching = !player.isCrouching;
+                crouchBtn.textContent = player.isCrouching ? 'MODO: SIGILO / CROUCH (C)' : 'MODO: PASO NORMAL (C)';
+                crouchBtn.style.color = player.isCrouching ? '#00ff66' : '#00dcff';
+            });
 
             function checkWallCollision(px, py, r) {
                 for (let rIndex = 0; rIndex < gridHeight; rIndex++) {
@@ -1328,12 +1366,26 @@
             function update() {
                 if (isFailed || isFinished) return;
 
+                player.isSprinting = keys['shift'];
+                if (keys['c']) {
+                    player.isCrouching = true;
+                }
+
+                let currentSpeed = player.speed;
+                if (player.isCrouching) currentSpeed = 1.8;
+                else if (player.isSprinting) currentSpeed = 4.8;
+
                 let moveX = 0;
                 let moveY = 0;
-                if (keys['arrowup'] || keys['w']) moveY -= player.speed;
-                if (keys['arrowdown'] || keys['s']) moveY += player.speed;
-                if (keys['arrowleft'] || keys['a']) moveX -= player.speed;
-                if (keys['arrowright'] || keys['d']) moveX += player.speed;
+                if (keys['arrowup'] || keys['w']) moveY -= currentSpeed;
+                if (keys['arrowdown'] || keys['s']) moveY += currentSpeed;
+                if (keys['arrowleft'] || keys['a']) moveX -= currentSpeed;
+                if (keys['arrowright'] || keys['d']) moveX += currentSpeed;
+
+                if (keys['f']) {
+                    keys['f'] = false;
+                    triggerKnock();
+                }
 
                 if (moveX !== 0 && moveY !== 0) {
                     moveX *= 0.7071;
@@ -1347,6 +1399,28 @@
                     player.y = Math.max(player.r, Math.min(canvas.height - player.r, player.y + moveY));
                 }
 
+                // Generación de onda de ruido al correr
+                if (player.isSprinting && (moveX !== 0 || moveY !== 0) && Math.random() < 0.2) {
+                    soundRipples.push({ x: player.x, y: player.y, r: 0, maxR: 120, life: 0.8 });
+                    guards.forEach(g => {
+                        const d = Math.hypot(player.x - g.x, player.y - g.y);
+                        if (d <= 120 && g.state === 'PATROL') {
+                            g.state = 'SUSPICIOUS';
+                            g.investigateX = player.x;
+                            g.investigateY = player.y;
+                            g.searchTimer = 3.0;
+                        }
+                    });
+                }
+
+                // Ondas de sonido
+                for (let i = soundRipples.length - 1; i >= 0; i--) {
+                    const rip = soundRipples[i];
+                    rip.r += 3.5;
+                    rip.life -= 0.025;
+                    if (rip.life <= 0 || rip.r >= rip.maxR) soundRipples.splice(i, 1);
+                }
+
                 // Zona de extracción (Fila 0, columnas 5 y 6)
                 if (player.y < 50 && player.x >= 250 && player.x <= 350) {
                     isFinished = true;
@@ -1355,53 +1429,94 @@
                     return;
                 }
 
+                let maxSuspicionGlobal = 0;
+
                 guards.forEach(g => {
-                    if (g.isTurret) {
-                        g.angle += g.speed;
-                        g.lookAngle = g.angle;
-                    } else if (g.isVertical) {
-                        g.y += g.speed * g.dir;
-                        if (g.y > g.endY) { g.y = g.endY; g.dir = -1; g.angle = -Math.PI / 2; }
-                        else if (g.y < g.startY) { g.y = g.startY; g.dir = 1; g.angle = Math.PI / 2; }
-                        g.sweepAngle += g.sweepSpeed;
-                        g.lookAngle = g.angle + Math.sin(g.sweepAngle) * g.sweepRange;
-                    } else {
-                        g.x += g.speed * g.dir;
-                        if (g.x > g.endX) { g.x = g.endX; g.dir = -1; g.angle = Math.PI; }
-                        else if (g.x < g.startX) { g.x = g.startX; g.dir = 1; g.angle = 0; }
-                        g.sweepAngle += g.sweepSpeed;
-                        g.lookAngle = g.angle + Math.sin(g.sweepAngle) * g.sweepRange;
+                    if (g.state === 'PATROL') {
+                        if (g.isTurret) {
+                            g.angle += g.speed;
+                            g.lookAngle = g.angle;
+                        } else if (g.isVertical) {
+                            g.y += g.speed * g.dir;
+                            if (g.y > g.endY) { g.y = g.endY; g.dir = -1; g.angle = -Math.PI / 2; }
+                            else if (g.y < g.startY) { g.y = g.startY; g.dir = 1; g.angle = Math.PI / 2; }
+                            g.sweepAngle += g.sweepSpeed;
+                            g.lookAngle = g.angle + Math.sin(g.sweepAngle) * g.sweepRange;
+                        } else {
+                            g.x += g.speed * g.dir;
+                            if (g.x > g.endX) { g.x = g.endX; g.dir = -1; g.angle = Math.PI; }
+                            else if (g.x < g.startX) { g.x = g.startX; g.dir = 1; g.angle = 0; }
+                            g.sweepAngle += g.sweepSpeed;
+                            g.lookAngle = g.angle + Math.sin(g.sweepAngle) * g.sweepRange;
+                        }
+                    } else if (g.state === 'SUSPICIOUS') {
+                        const targetAng = Math.atan2(g.investigateY - g.y, g.investigateX - g.x);
+                        g.lookAngle = targetAng;
+                        const dist = Math.hypot(g.investigateX - g.x, g.investigateY - g.y);
+                        if (dist > 15) {
+                            g.x += Math.cos(targetAng) * 1.2;
+                            g.y += Math.sin(targetAng) * 1.2;
+                        } else {
+                            g.searchTimer -= 0.016;
+                            if (g.searchTimer <= 0) {
+                                g.state = 'PATROL';
+                            }
+                        }
                     }
 
-                    // Detección de Cooper
+                    // Detección de Cooper (Multi-Zone)
                     const dx = player.x - g.x;
                     const dy = player.y - g.y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const dist = Math.hypot(dx, dy);
 
-                    if (dist < g.radius) {
+                    if (dist < g.rangeOuter) {
                         let angleToPlayer = Math.atan2(dy, dx);
                         let diff = angleToPlayer - g.lookAngle;
                         while (diff < -Math.PI) diff += Math.PI * 2;
                         while (diff > Math.PI) diff -= Math.PI * 2;
 
-                        if (Math.abs(diff) < g.fov / 2) {
-                            if (hasLineOfSight({ x: g.x, y: g.y }, { x: player.x, y: player.y })) {
+                        const absDiff = Math.abs(diff);
+
+                        if (hasLineOfSight({ x: g.x, y: g.y }, { x: player.x, y: player.y })) {
+                            // Zona 2 (Core / Visión Directa)
+                            if (dist <= g.rangeCore && absDiff < g.fovCore / 2) {
                                 isFailed = true;
                                 gameState.stealthDeaths++;
-                                deathEl.textContent = `ALARMAS ACTIVADAS: ${gameState.stealthDeaths}`;
                                 audio.playAlarm();
                                 failedScreen.classList.add('active');
                             }
+                            // Zona 1 (Periférica / Sospecha)
+                            else if (absDiff < g.fovOuter / 2) {
+                                const rate = player.isCrouching ? 0.35 : (player.isSprinting ? 1.5 : 0.8);
+                                g.suspicion = Math.min(100, g.suspicion + rate);
+                                if (g.suspicion >= 100) {
+                                    isFailed = true;
+                                    gameState.stealthDeaths++;
+                                    audio.playAlarm();
+                                    failedScreen.classList.add('active');
+                                }
+                            } else {
+                                g.suspicion = Math.max(0, g.suspicion - 0.25);
+                            }
+                        } else {
+                            g.suspicion = Math.max(0, g.suspicion - 0.25);
                         }
+                    } else {
+                        g.suspicion = Math.max(0, g.suspicion - 0.25);
                     }
+
+                    if (g.suspicion > maxSuspicionGlobal) maxSuspicionGlobal = g.suspicion;
                 });
+
+                suspicionHud.textContent = `SOSPECHA: ${Math.floor(maxSuspicionGlobal)}%`;
+                suspicionHud.style.color = maxSuspicionGlobal > 70 ? '#ff3838' : (maxSuspicionGlobal > 30 ? '#ff7800' : '#00dcff');
             }
 
             function draw() {
                 ctx.fillStyle = '#05070d';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                // Grid y paredes metálicas
+                // Paredes
                 for (let r = 0; r < gridHeight; r++) {
                     for (let c = 0; c < gridWidth; c++) {
                         const val = walls[r * gridWidth + c];
@@ -1413,13 +1528,7 @@
                             ctx.fillRect(x, y, cellSize, cellSize);
                             ctx.strokeStyle = '#1e293b';
                             ctx.strokeRect(x, y, cellSize, cellSize);
-                            // Textura de plancha de acero
-                            ctx.strokeStyle = 'rgba(0, 220, 255, 0.05)';
-                            ctx.beginPath();
-                            ctx.moveTo(x, y); ctx.lineTo(x + cellSize, y + cellSize);
-                            ctx.stroke();
                         } else if (val === 3) {
-                            // Muelle de despegue
                             ctx.fillStyle = 'rgba(0, 255, 100, 0.15)';
                             ctx.fillRect(x, y, cellSize, cellSize);
                             ctx.strokeStyle = '#00ff66';
@@ -1428,47 +1537,70 @@
                     }
                 }
 
-                // Guardias y sus conos de luz volumétrica
+                // Ondas de Ruido
+                soundRipples.forEach(rip => {
+                    ctx.strokeStyle = `rgba(0, 220, 255, ${rip.life * 0.5})`;
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.arc(rip.x, rip.y, rip.r, 0, Math.PI * 2);
+                    ctx.stroke();
+                });
+
+                // Guardias y Conos Multi-Zona
                 guards.forEach(g => {
                     ctx.save();
-                    const coneGrad = ctx.createRadialGradient(g.x, g.y, 10, g.x, g.y, g.radius);
-                    coneGrad.addColorStop(0, 'rgba(255, 200, 0, 0.45)');
-                    coneGrad.addColorStop(0.7, 'rgba(255, 150, 0, 0.18)');
-                    coneGrad.addColorStop(1, 'rgba(255, 100, 0, 0)');
-
-                    ctx.fillStyle = coneGrad;
+                    
+                    // Zona 1: Periférica (Amarilla)
+                    const gradOuter = ctx.createRadialGradient(g.x, g.y, 5, g.x, g.y, g.rangeOuter);
+                    gradOuter.addColorStop(0, 'rgba(255, 200, 0, 0.35)');
+                    gradOuter.addColorStop(1, 'rgba(255, 150, 0, 0.02)');
+                    ctx.fillStyle = gradOuter;
                     ctx.beginPath();
                     ctx.moveTo(g.x, g.y);
-                    ctx.arc(g.x, g.y, g.radius, g.lookAngle - g.fov / 2, g.lookAngle + g.fov / 2);
+                    ctx.arc(g.x, g.y, g.rangeOuter, g.lookAngle - g.fovOuter / 2, g.lookAngle + g.fovOuter / 2);
                     ctx.closePath();
                     ctx.fill();
 
-                    // Sprite simple de guardia
-                    ctx.fillStyle = '#ef4444';
+                    // Zona 2: Directa (Roja)
+                    const gradCore = ctx.createRadialGradient(g.x, g.y, 5, g.x, g.y, g.rangeCore);
+                    gradCore.addColorStop(0, 'rgba(255, 50, 50, 0.55)');
+                    gradCore.addColorStop(1, 'rgba(255, 50, 50, 0.05)');
+                    ctx.fillStyle = gradCore;
+                    ctx.beginPath();
+                    ctx.moveTo(g.x, g.y);
+                    ctx.arc(g.x, g.y, g.rangeCore, g.lookAngle - g.fovCore / 2, g.lookAngle + g.fovCore / 2);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    // Sprite de Guardia
+                    ctx.fillStyle = g.state === 'SUSPICIOUS' ? '#ff7800' : '#ef4444';
                     ctx.beginPath();
                     ctx.arc(g.x, g.y, 7, 0, Math.PI * 2);
                     ctx.fill();
+
+                    if (g.state === 'SUSPICIOUS') {
+                        ctx.fillStyle = '#ff7800';
+                        ctx.font = 'bold 12px monospace';
+                        ctx.fillText('?', g.x - 3, g.y - 10);
+                    }
                     ctx.restore();
                 });
 
-                // Cooper en el Hangar
+                // Cooper
                 ctx.save();
                 ctx.shadowColor = '#00dcff';
-                ctx.shadowBlur = 8;
-                ctx.fillStyle = '#00dcff';
+                ctx.shadowBlur = player.isCrouching ? 4 : 8;
+                ctx.fillStyle = player.isCrouching ? '#00ffaa' : '#00dcff';
                 ctx.beginPath();
-                ctx.arc(player.x, player.y, player.r, 0, Math.PI * 2);
+                ctx.arc(player.x, player.y, player.isCrouching ? 6 : player.r, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.shadowBlur = 0;
                 ctx.restore();
             }
 
             function loop() {
                 update();
                 draw();
-                if (!isFailed && !isFinished) {
-                    runId = requestAnimationFrame(loop);
-                }
+                if (!isFailed && !isFinished) runId = requestAnimationFrame(loop);
             }
             loop();
 
@@ -1518,7 +1650,6 @@
                 ctx.fillStyle = '#02040a';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                // Rejilla técnica de blueprint
                 ctx.strokeStyle = 'rgba(0, 220, 255, 0.08)';
                 ctx.lineWidth = 1;
                 for (let x = 0; x < canvas.width; x += 30) {
@@ -1528,10 +1659,8 @@
                     ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
                 }
 
-                // Dibujar Endurance II en el muelle
                 drawEnduranceV2(ctx, canvas.width / 2, canvas.height / 2, 70, Date.now() * 0.0002, false, 0);
 
-                // Línea de escaneo láser verde
                 scanY = (scanY + 2) % canvas.height;
                 ctx.strokeStyle = 'rgba(0, 255, 100, 0.4)';
                 ctx.lineWidth = 2;
@@ -1610,9 +1739,7 @@
                 const isTars = data.avatar === "TARS";
                 audio.playClockTick();
 
-                if (data.isAlert) {
-                    audio.playAlarm();
-                }
+                if (data.isAlert) audio.playAlarm();
 
                 diagBox.innerHTML = `
                     <div class="avatar-box ${isTars ? 'avatar-tars' : ''}">
@@ -1696,7 +1823,7 @@
         }
 
         /* ------------------------------------------------------------
-           FASE 4: TORMENTA DE ASTEROIDES & SATURNO (DODGE RUNNER)
+           FASE 4: TORMENTA DE ASTEROIDES EN SATURNO (DEFENSA & INERCIA)
            ------------------------------------------------------------ */
         function renderAsteroidsGame() {
             const container = document.createElement('div');
@@ -1716,19 +1843,19 @@
                         <button class="btn-orbit" id="retry-asteroids-btn" style="margin-top: 10px;">Reconfigurar Propulsores</button>
                     </div>
                     <div class="failed-screen" id="asteroids-success" style="background: rgba(1, 10, 5, 0.95);">
-                        <div class="failed-title" style="color: #00ff66; text-shadow: 0 0 15px rgba(0, 255, 102, 0.6); font-size: 22px; letter-spacing: 2px;">¡CINTURÓN DE SATURNO SUPERADO!</div>
+                        <div class="failed-title" style="color: #00ff66; font-size: 22px; letter-spacing: 2px;">¡CINTURÓN DE SATURNO SUPERADO!</div>
                         <p style="color: #c8d6e5; font-size: 14px; max-width: 440px; text-align: center; line-height: 1.6; margin: 10px 0;">
-                            Hemos navegado con éxito a través del peligroso cinturón de Saturno. Frente a nosotros se abre el horizonte del agujero de gusano.
+                            Hemos navegado a través de los escombros de Saturno. Frente a nosotros se abre el horizonte del agujero de gusano.
                         </p>
-                        <button class="btn-orbit" id="success-asteroids-btn" style="margin-top: 15px; border-color: #00ff66; color: #00ff66; box-shadow: 0 0 15px rgba(0, 255, 102, 0.25);">CRUZAR EL AGUJERO DE GUSANO</button>
+                        <button class="btn-orbit" id="success-asteroids-btn" style="margin-top: 15px; border-color: #00ff66; color: #00ff66;">CRUZAR EL AGUJERO DE GUSANO</button>
                     </div>
                 </div>
-                <div style="font-size:13px; color: #8fa0b3; text-align: center;">
-                    Usa las <span style="color:#00dcff">FLECHAS IZQUIERDA / DERECHA</span>, <span style="color:#00dcff">A / D</span> o <span style="color:#00dcff">DESLIZA el dedo</span> para maniobrar los propulsores laterales.
+                <div class="tactical-bar">
+                    <button class="btn-tactical" id="btn-burst">ESCUDO BURST [ESPACIO]</button>
+                    <button class="btn-tactical" id="btn-pdc">CAÑÓN PDC [E / X]</button>
                 </div>
-                <div class="mobile-controls">
-                    <button class="ctrl-btn" id="m-left-ast" style="width: 100px;">◀ TIMÓN</button>
-                    <button class="ctrl-btn" id="m-right-ast" style="width: 100px; margin-left: 20px;">TIMÓN ▶</button>
+                <div style="font-size:12px; color: #8fa0b3; text-align: center;">
+                    <span style="color:#00dcff">A/D / FLECHAS</span>: Maniobra RCS | <span style="color:#00dcff">ESPACIO</span>: Escudo de choque (desvía rocas) | <span style="color:#00dcff">E / X</span>: Fuego PDC.
                 </div>
             `;
             
@@ -1742,13 +1869,21 @@
             const successBtn = document.getElementById('success-asteroids-btn');
             const shieldsEl = document.getElementById('shields-hud');
             const distanceEl = document.getElementById('distance-hud');
+            const burstBtn = document.getElementById('btn-burst');
+            const pdcBtn = document.getElementById('btn-pdc');
 
-            let ship = { x: 400, y: 410, radius: 22, angle: 0, speedX: 0, accel: 0.55, drag: 0.90 };
+            let ship = {
+                x: 400, y: 410, radius: 22, angle: 0, speedX: 0, accel: 0.65, drag: 0.92,
+                shieldBurstCooldown: 0,
+                shieldBurstActive: 0,
+                pdcCooldown: 0
+            };
+
             let shields = 3;
             let distance = 0;
             let targetDistance = 2500;
             let asteroids = [];
-            let debrisParticles = [];
+            let projectiles = [];
             let parallaxStars = [];
             let isFailed = false;
             let isFinished = false;
@@ -1765,6 +1900,35 @@
                 });
             }
 
+            function triggerShieldBurst() {
+                if (ship.shieldBurstCooldown <= 0) {
+                    ship.shieldBurstCooldown = 5.0;
+                    ship.shieldBurstActive = 0.5;
+                    audio.playShieldBurst();
+                    shake = 10;
+                    // Desvío de asteroides cercanos
+                    asteroids.forEach(ast => {
+                        const dist = Math.hypot(ast.x - ship.x, ast.y - ship.y);
+                        if (dist < 130) {
+                            ast.speedY = -Math.abs(ast.speedY) * 1.2;
+                            ast.speedX = (ast.x - ship.x) * 0.1;
+                        }
+                    });
+                }
+            }
+
+            function triggerPDC() {
+                if (ship.pdcCooldown <= 0) {
+                    ship.pdcCooldown = 0.15;
+                    audio.playPDCBolt();
+                    projectiles.push({ x: ship.x - 8, y: ship.y - 20, vy: -12 });
+                    projectiles.push({ x: ship.x + 8, y: ship.y - 20, vy: -12 });
+                }
+            }
+
+            burstBtn.addEventListener('click', triggerShieldBurst);
+            pdcBtn.addEventListener('click', triggerPDC);
+
             function makeAsteroidPoints(r) {
                 const numPoints = 8 + Math.floor(Math.random() * 5);
                 const points = [];
@@ -1778,23 +1942,20 @@
 
             const keys = globalKeys;
 
-            const leftAst = document.getElementById('m-left-ast');
-            const rightAst = document.getElementById('m-right-ast');
-            if (leftAst && rightAst) {
-                leftAst.addEventListener('touchstart', e => { e.preventDefault(); keys['arrowleft'] = true; });
-                leftAst.addEventListener('touchend', e => { e.preventDefault(); keys['arrowleft'] = false; });
-                rightAst.addEventListener('touchstart', e => { e.preventDefault(); keys['arrowright'] = true; });
-                rightAst.addEventListener('touchend', e => { e.preventDefault(); keys['arrowright'] = false; });
-            }
-
             function update() {
                 if (isFailed || isFinished) return;
                 frames++;
                 distance += 6;
                 distanceEl.textContent = `ESCAPE: ${Math.min(targetDistance, distance)} / ${targetDistance}m`;
 
+                if (ship.shieldBurstCooldown > 0) ship.shieldBurstCooldown -= 0.016;
+                if (ship.shieldBurstActive > 0) ship.shieldBurstActive -= 0.016;
+                if (ship.pdcCooldown > 0) ship.pdcCooldown -= 0.016;
+
                 if (keys['arrowleft'] || keys['a']) { ship.speedX -= ship.accel; audio.playThruster(); }
                 if (keys['arrowright'] || keys['d']) { ship.speedX += ship.accel; audio.playThruster(); }
+                if (keys[' ']) { keys[' '] = false; triggerShieldBurst(); }
+                if (keys['e'] || keys['x']) { triggerPDC(); }
 
                 ship.speedX *= ship.drag;
                 ship.x += ship.speedX;
@@ -1802,6 +1963,43 @@
                 if (ship.x < ship.radius + 10) { ship.x = ship.radius + 10; ship.speedX = 0; }
                 if (ship.x > canvas.width - ship.radius - 10) { ship.x = canvas.width - ship.radius - 10; ship.speedX = 0; }
 
+                // Proyectiles PDC
+                for (let pIdx = projectiles.length - 1; pIdx >= 0; pIdx--) {
+                    const p = projectiles[pIdx];
+                    p.y += p.vy;
+                    if (p.y < -20) {
+                        projectiles.splice(pIdx, 1);
+                        continue;
+                    }
+                    // Colisión con asteroides
+                    for (let aIdx = asteroids.length - 1; aIdx >= 0; aIdx--) {
+                        const ast = asteroids[aIdx];
+                        if (Math.hypot(p.x - ast.x, p.y - ast.y) < ast.r) {
+                            projectiles.splice(pIdx, 1);
+                            ast.hp = (ast.hp || 2) - 1;
+                            if (ast.hp <= 0) {
+                                audio.playAsteroidHit();
+                                if (ast.r > 20) {
+                                    // Fractura en 2 fragmentos
+                                    asteroids.push({
+                                        x: ast.x - 10, y: ast.y, r: ast.r * 0.6,
+                                        speedY: ast.speedY * 1.1, speedX: -1.5, rot: 0, rotSpeed: 0.05,
+                                        points: makeAsteroidPoints(ast.r * 0.6), hp: 1
+                                    });
+                                    asteroids.push({
+                                        x: ast.x + 10, y: ast.y, r: ast.r * 0.6,
+                                        speedY: ast.speedY * 1.1, speedX: 1.5, rot: 0, rotSpeed: -0.05,
+                                        points: makeAsteroidPoints(ast.r * 0.6), hp: 1
+                                    });
+                                }
+                                asteroids.splice(aIdx, 1);
+                            }
+                            break;
+                        }
+                    }
+                }
+
+                // Generación de asteroides
                 if (frames % 22 === 0 && distance < targetDistance - 300) {
                     const r = Math.random() * 26 + 14;
                     asteroids.push({
@@ -1809,15 +2007,18 @@
                         y: -50,
                         r: r,
                         speedY: Math.random() * 3.5 + 3.0,
+                        speedX: (Math.random() - 0.5) * 0.8,
                         rot: 0,
                         rotSpeed: (Math.random() - 0.5) * 0.04,
-                        points: makeAsteroidPoints(r)
+                        points: makeAsteroidPoints(r),
+                        hp: r > 24 ? 3 : 1
                     });
                 }
 
                 for (let i = asteroids.length - 1; i >= 0; i--) {
                     const ast = asteroids[i];
                     ast.y += ast.speedY;
+                    ast.x += (ast.speedX || 0);
                     ast.rot += ast.rotSpeed;
 
                     const dx = ship.x - ast.x;
@@ -1825,17 +2026,21 @@
                     const dist = Math.sqrt(dx * dx + dy * dy);
 
                     if (dist < ship.radius + ast.r) {
-                        shields--;
-                        audio.playAsteroidHit();
-                        shake = 16;
-                        asteroids.splice(i, 1);
+                        if (ship.shieldBurstActive > 0) {
+                            ast.speedY = -Math.abs(ast.speedY);
+                        } else {
+                            shields--;
+                            audio.playAsteroidHit();
+                            shake = 16;
+                            asteroids.splice(i, 1);
 
-                        if (shields === 2) shieldsEl.textContent = "ESCUDOS: ██ 66%";
-                        else if (shields === 1) { shieldsEl.textContent = "ESCUDOS: █ 33%"; shieldsEl.style.color = "#ff3838"; }
-                        else if (shields <= 0) {
-                            shieldsEl.textContent = "ESCUDOS: 0%";
-                            isFailed = true;
-                            failedScreen.classList.add('active');
+                            if (shields === 2) shieldsEl.textContent = "ESCUDOS: ██ 66%";
+                            else if (shields === 1) { shieldsEl.textContent = "ESCUDOS: █ 33%"; shieldsEl.style.color = "#ff3838"; }
+                            else if (shields <= 0) {
+                                shieldsEl.textContent = "ESCUDOS: 0%";
+                                isFailed = true;
+                                failedScreen.classList.add('active');
+                            }
                         }
                     } else if (ast.y > canvas.height + 60) {
                         asteroids.splice(i, 1);
@@ -1865,13 +2070,33 @@
                     ctx.fillRect(star.x, star.y, star.size, star.size);
                 }
 
-                // Dibujar Asteroides
+                // Proyectiles PDC
+                ctx.fillStyle = '#00ffff';
+                projectiles.forEach(p => {
+                    ctx.fillRect(p.x - 1.5, p.y, 3, 10);
+                });
+
+                // Telemetría predictiva (CPA)
+                asteroids.forEach(ast => {
+                    if (ast.y < ship.y && Math.abs(ast.x - ship.x) < 50) {
+                        ctx.strokeStyle = 'rgba(255, 50, 50, 0.4)';
+                        ctx.lineWidth = 1;
+                        ctx.setLineDash([4, 4]);
+                        ctx.beginPath();
+                        ctx.moveTo(ast.x, ast.y);
+                        ctx.lineTo(ast.x, ship.y);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                    }
+                });
+
+                // Asteroides
                 for (let ast of asteroids) {
                     ctx.save();
                     ctx.translate(ast.x, ast.y);
                     ctx.rotate(ast.rot);
                     ctx.fillStyle = '#1e293b';
-                    ctx.strokeStyle = '#ff7800';
+                    ctx.strokeStyle = ast.r > 24 ? '#ff7800' : '#78909c';
                     ctx.lineWidth = 1.5;
                     ctx.beginPath();
                     ctx.moveTo(ast.points[0].x, ast.points[0].y);
@@ -1884,7 +2109,17 @@
                     ctx.restore();
                 }
 
-                // Dibujar Endurance II
+                // Endurance II y Escudo Burst
+                if (ship.shieldBurstActive > 0) {
+                    ctx.strokeStyle = 'rgba(0, 220, 255, 0.8)';
+                    ctx.fillStyle = 'rgba(0, 220, 255, 0.15)';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(ship.x, ship.y, 80 * (1 - ship.shieldBurstActive / 0.5), 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.fill();
+                }
+
                 const propulsionActive = keys['arrowleft'] || keys['a'] || keys['arrowright'] || keys['d'] || Math.abs(ship.speedX) > 0.1;
                 let propulsionSide = 0;
                 if (keys['arrowleft'] || keys['a'] || ship.speedX < -0.1) propulsionSide = -1;
@@ -1897,9 +2132,7 @@
             function loop() {
                 update();
                 draw();
-                if (!isFailed && !isFinished) {
-                    runId = requestAnimationFrame(loop);
-                }
+                if (!isFailed && !isFinished) runId = requestAnimationFrame(loop);
             }
             loop();
 
@@ -1909,6 +2142,7 @@
                 shields = 3;
                 distance = 0;
                 asteroids = [];
+                projectiles = [];
                 ship.x = 400;
                 ship.speedX = 0;
                 shieldsEl.textContent = "ESCUDOS: ███ 100%";
@@ -2207,7 +2441,7 @@
         }
 
         /* ------------------------------------------------------------
-           FASE 5: ESTABILIZACIÓN EN GARGANTÚA (FUERZA G)
+           FASE 5: ESTABILIZACIÓN EN GARGANTÚA (FUERZA G & DINÁMICA RELATIVISTA)
            ------------------------------------------------------------ */
         function renderOrbitGame() {
             const container = document.createElement('div');
@@ -2217,19 +2451,19 @@
                 <div class="hud-overlay">
                     <div>EVENTO: GARGANTÚA [SINGULARIDAD]</div>
                     <div style="color: #ff7800;" id="gravity-hud">ESTABILIDAD DEL CASCO: 100%</div>
-                    <div id="calib-hud" style="color: #00dcff;">CALIBRACIÓN VECTORIAL: 0%</div>
+                    <div id="calib-hud" style="color: #00dcff;">RESONANCIA CUÁNTICA: 0%</div>
                 </div>
                 <div class="canvas-container">
                     <canvas id="orbitCanvas" width="800" height="500"></canvas>
                     
                     <div class="failed-screen active" id="orbit-start-screen" style="background: rgba(1, 3, 10, 0.95);">
-                        <div class="failed-title" style="color: #00dcff; text-shadow: 0 0 15px rgba(0, 220, 255, 0.6); font-size: 24px; letter-spacing: 2px;">SISTEMA DE ÓRBITA MANUAL</div>
+                        <div class="failed-title" style="color: #00dcff; font-size: 24px; letter-spacing: 2px;">SISTEMA DE ÓRBITA MANUAL</div>
                         <p style="color: #c8d6e5; font-size: 14px; max-width: 440px; text-align: center; line-height: 1.6; margin: 10px 0;">
-                            La fuerza gravitatoria de Gargantúa nos atrae con violencia. Mantén la nave dentro de la zona verde (140-210 km) hasta completar la calibración cuántica al 100%.
+                            La gravedad de Paczyński-Wiita y el arrastre de Kerr de Gargantúa nos atraen con violencia. Mantén la nave dentro de la zona verde (140-210 km) hasta completar la resonancia cuántica al 100%.
                         </p>
                         <div style="color: #ff7800; font-size: 13px; border: 1px dashed rgba(255, 120, 0, 0.4); padding: 12px 20px; border-radius: 4px; text-align: left; margin: 5px 0; line-height: 1.5; font-family: monospace;">
-                            • <b>W/S o ▲/▼</b>: Ajustar distancia orbital (Alejar / Acercar)<br>
-                            • <b>A/D o ◀/▶</b>: Rotación orbital tangencial
+                            • <b>W/S o ▲/▼</b>: Ajustar distancia orbital (Radial Out / Radial In)<br>
+                            • <b>A/D o ◀/▶</b>: Rotación orbital tangencial (Prograde / Retrograde)
                         </div>
                         <button class="btn-orbit" id="start-orbit-game-btn" style="margin-top: 15px; border-color: #00dcff; color: #00dcff;">INICIAR MANIOBRA</button>
                     </div>
@@ -2277,38 +2511,24 @@
 
             const keys = globalKeys;
 
-            const regMob = (id, keyName) => {
-                const btn = document.getElementById(id);
-                if (btn) {
-                    btn.addEventListener('touchstart', e => { e.preventDefault(); keys[keyName] = true; });
-                    btn.addEventListener('touchend', e => { e.preventDefault(); keys[keyName] = false; });
-                }
-            };
-            regMob('m-up-orb', 'arrowup');
-            regMob('m-down-orb', 'arrowdown');
-            regMob('m-left-orb', 'arrowleft');
-            regMob('m-right-orb', 'arrowright');
-
             function update(dt) {
                 if (!gameStarted || isFailed || isFinished) return;
 
-                // Atracción gravitacional continua
-                ship.radius -= 0.35 * dt;
+                ship.radius -= 0.38 * dt;
 
-                if (keys['arrowup'] || keys['w']) { ship.radius += 0.85 * dt; audio.playThruster(); }
-                if (keys['arrowdown'] || keys['s']) { ship.radius -= 0.65 * dt; audio.playThruster(); }
-                if (keys['arrowleft'] || keys['a']) { ship.angle -= 0.02 * dt; }
-                if (keys['arrowright'] || keys['d']) { ship.angle += 0.02 * dt; }
+                if (keys['arrowup'] || keys['w']) { ship.radius += 0.90 * dt; audio.playThruster(); }
+                if (keys['arrowdown'] || keys['s']) { ship.radius -= 0.70 * dt; audio.playThruster(); }
+                if (keys['arrowleft'] || keys['a']) { ship.angle -= 0.022 * dt; }
+                if (keys['arrowright'] || keys['d']) { ship.angle += 0.022 * dt; }
 
                 ship.angle += ship.speedAngle * dt;
 
-                // Comprobación de franja segura
                 if (ship.radius >= targetMinRadius && ship.radius <= targetMaxRadius) {
-                    calibration += 0.35 * dt;
-                    calibHud.textContent = `CALIBRACIÓN VECTORIAL: ${Math.min(100, Math.floor(calibration))}%`;
+                    calibration += 0.38 * dt;
+                    calibHud.textContent = `RESONANCIA CUÁNTICA: ${Math.min(100, Math.floor(calibration))}%`;
                     calibHud.style.color = '#00ff66';
                 } else {
-                    hullStability -= 0.45 * dt;
+                    hullStability -= 0.48 * dt;
                     gravityHud.textContent = `ESTABILIDAD DEL CASCO: ${Math.max(0, Math.floor(hullStability))}%`;
                     gravityHud.style.color = '#ff3838';
                     calibHud.style.color = '#ff7800';
@@ -2329,12 +2549,21 @@
                 ctx.fillStyle = '#000003';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                // Franja segura verde
+                // Franja verde de resonancia cuántica
                 ctx.strokeStyle = 'rgba(0, 255, 100, 0.25)';
                 ctx.lineWidth = targetMaxRadius - targetMinRadius;
                 ctx.beginPath();
                 ctx.arc(singularityX, singularityY, (targetMinRadius + targetMaxRadius) / 2, 0, Math.PI * 2);
                 ctx.stroke();
+
+                // Límite de Roche / Spaghettification (Rojo discontinuo)
+                ctx.strokeStyle = 'rgba(255, 50, 50, 0.4)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([6, 6]);
+                ctx.beginPath();
+                ctx.arc(singularityX, singularityY, 115, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.setLineDash([]);
 
                 // Singularidad de Gargantúa
                 ctx.fillStyle = '#000000';
@@ -2348,7 +2577,6 @@
                 ctx.lineWidth = 2;
                 ctx.stroke();
 
-                // Nave en órbita
                 const sx = singularityX + Math.cos(ship.angle) * ship.radius;
                 const sy = singularityY + Math.sin(ship.angle) * ship.radius;
                 drawEnduranceV2(ctx, sx, sy, 14, ship.angle + Math.PI / 2, true, 0);
@@ -2482,7 +2710,6 @@
                 ctx.fillStyle = '#000002';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
-                // Gargantúa en la derecha
                 const gX = 650;
                 const gY = 250;
                 ctx.fillStyle = '#000000';
@@ -2499,10 +2726,8 @@
                 let ex = 400 - progress * 200;
                 let ey = 250;
                 
-                // Endurance II escapa
                 drawEnduranceV2(ctx, ex, ey, 24, Date.now() * 0.0003, true, 0, 0);
                 
-                // Ranger cae en Gargantúa
                 const rx = 400 + progress * 220;
                 const ry = 250 + Math.sin(progress * Math.PI) * 30;
                 const scale = 1 - progress * 0.8;
@@ -2527,7 +2752,7 @@
         }
 
         /* ------------------------------------------------------------
-           FASE 7: EPÍLOGO Y DESENLACES DIVERGENTES (SILAS GUION DEFINITIVO)
+           FASE 7: EPÍLOGO, OSCILOSCOPIO LISSAJOUS & DESENLACES DIVERGENTES
            ------------------------------------------------------------ */
         function renderEpilogue() {
             const container = document.createElement('div');
@@ -2553,7 +2778,6 @@
             const isTarsPath = gameState.epilogueType === 'tars';
             let probeCalibrated = false;
 
-            // Guion canónico enriquecido de Silas
             const epilogueDialoguesTars = [
                 { speaker: 'COOPER', avatar: 'COOPER', nameColor: '#00dcff', text: 'TARS, desacople de la sonda confirmado. Entra, lee la singularidad y dispara la ráfaga de datos hacia mi antena.' },
                 { speaker: 'TARS', avatar: 'TARS', nameColor: '#ff7800', text: 'Sensores cuánticos listos, Cooper. Cuando reciba la matriz, no mire atrás. Llévesela a Amelia.' },
@@ -2585,38 +2809,92 @@
             const dialogues = isTarsPath ? epilogueDialoguesTars : epilogueDialoguesCooper;
             let currentDiag = 0;
 
-            function startProbeGame(callback) {
-                const slider = document.getElementById('freq-slider');
+            function startLissajousProbeGame(callback) {
+                audio.startQuantumProbeAudio();
+
+                const oscCanvas = document.getElementById('probe-lissajous-canvas');
+                const oscCtx = oscCanvas.getContext('2d');
+                const freqSlider = document.getElementById('freq-slider');
                 const freqTxt = document.getElementById('current-freq-txt');
                 const sendBtn = document.getElementById('send-probe-btn');
 
-                slider.addEventListener('input', (e) => {
-                    const val = parseFloat(e.target.value);
-                    freqTxt.textContent = `FRECUENCIA ACTUAL: ${val.toFixed(1)} Hz`;
-                    if (audio && audio.playProbeCalibration) {
-                        audio.playProbeCalibration(val);
-                    }
-                    if (Math.abs(val - 45.0) < 1.5) {
+                let freqVal = parseFloat(freqSlider.value);
+                let oscRunId = null;
+                let animTime = 0;
+
+                freqSlider.addEventListener('input', (e) => {
+                    freqVal = parseFloat(e.target.value);
+                    freqTxt.textContent = `FRECUENCIA: ${freqVal.toFixed(1)} Hz`;
+                    
+                    const diff = Math.abs(freqVal - 45.0);
+                    const resonance = Math.max(0, 1 - diff / 15.0);
+                    audio.updateQuantumProbeAudio(resonance, freqVal);
+
+                    if (diff < 1.0) {
                         sendBtn.style.borderColor = '#00ff66';
                         sendBtn.style.color = '#00ff66';
                         sendBtn.style.opacity = '1';
                         sendBtn.style.pointerEvents = 'auto';
-                        sendBtn.textContent = 'TRANSMITIR DATOS (45.0 Hz)';
+                        sendBtn.textContent = 'TRANSMITIR DATOS (RESONANCIA 45.0 Hz)';
                     } else {
                         sendBtn.style.borderColor = '#8fa0b3';
                         sendBtn.style.color = '#8fa0b3';
                         sendBtn.style.opacity = '0.6';
                         sendBtn.style.pointerEvents = 'none';
-                        sendBtn.textContent = 'CALIBRAR A 45.0 Hz';
+                        sendBtn.textContent = 'SINTONIZAR A 45.0 Hz';
                     }
                 });
 
-                sendBtn.addEventListener('click', () => {
-                    if (audio && audio.playProbeTransmitted) {
-                        audio.playProbeTransmitted();
-                    } else {
-                        audio.playThruster();
+                function drawLissajous() {
+                    animTime += 0.04;
+                    const w = oscCanvas.width;
+                    const h = oscCanvas.height;
+                    const cx = w / 2;
+                    const cy = h / 2;
+
+                    oscCtx.fillStyle = 'rgba(2, 8, 4, 0.25)';
+                    oscCtx.fillRect(0, 0, w, h);
+
+                    // Retícula
+                    oscCtx.strokeStyle = 'rgba(0, 255, 100, 0.1)';
+                    oscCtx.lineWidth = 1;
+                    for (let x = 0; x < w; x += 25) {
+                        oscCtx.beginPath(); oscCtx.moveTo(x, 0); oscCtx.lineTo(x, h); oscCtx.stroke();
                     }
+                    for (let y = 0; y < h; y += 25) {
+                        oscCtx.beginPath(); oscCtx.moveTo(0, y); oscCtx.lineTo(w, y); oscCtx.stroke();
+                    }
+
+                    // Curva de Lissajous
+                    const diff = Math.abs(freqVal - 45.0);
+                    const isAligned = diff < 1.0;
+                    
+                    oscCtx.strokeStyle = isAligned ? '#00ff66' : '#ff7800';
+                    oscCtx.shadowColor = isAligned ? '#00ff66' : '#ff7800';
+                    oscCtx.shadowBlur = isAligned ? 12 : 4;
+                    oscCtx.lineWidth = 2;
+
+                    oscCtx.beginPath();
+                    const samples = 200;
+                    for (let i = 0; i <= samples; i++) {
+                        const t = (i / samples) * Math.PI * 2;
+                        const jitter = (Math.random() - 0.5) * (diff * 1.5);
+                        const x = cx + Math.sin(t * (freqVal / 45.0) + animTime) * (w * 0.38) + jitter;
+                        const y = cy + Math.cos(t * 1.0 + animTime * 0.5) * (h * 0.38) + jitter;
+                        if (i === 0) oscCtx.moveTo(x, y);
+                        else oscCtx.lineTo(x, y);
+                    }
+                    oscCtx.stroke();
+                    oscCtx.shadowBlur = 0;
+
+                    oscRunId = requestAnimationFrame(drawLissajous);
+                }
+                drawLissajous();
+
+                sendBtn.addEventListener('click', () => {
+                    cancelAnimationFrame(oscRunId);
+                    audio.stopQuantumProbeAudio();
+                    audio.playThruster();
                     callback();
                 });
             }
@@ -2629,7 +2907,6 @@
                     return;
                 }
 
-                // Minijuego de calibración en la Rama B (sacrificio de Cooper, diálogo 7)
                 if (!isTarsPath && currentDiag === 7 && !probeCalibrated) {
                     diagBox.style.display = 'none';
                     nextBtn.style.display = 'none';
@@ -2638,20 +2915,23 @@
                     probeGameDiv.style.width = '100%';
                     probeGameDiv.style.maxWidth = '760px';
                     probeGameDiv.innerHTML = `
-                        <div class="telemetry-block" style="border-color:#ff7800; padding:20px; text-align:center; display:flex; flex-direction:column; gap:14px;">
-                            <div class="phase-indicator" style="border-color:#ff7800; color:#ff7800;">MANIOBRA: CALIBRACIÓN DE SONDA CUÁNTICA</div>
-                            <div style="font-size:14px; color:#c8d6e5;">SINTONIZA LA FRECUENCIA DE TRANSMISIÓN A 45.0 Hz PARA ENLAZAR CON LAS ESTACIONES</div>
+                        <div class="telemetry-block" style="border-color:#00ff66; padding:18px; text-align:center; display:flex; flex-direction:column; gap:12px;">
+                            <div class="phase-indicator" style="border-color:#00ff66; color:#00ff66;">OSCILOSCOPIO CUÁNTICO // MODULACIÓN LISSAJOUS</div>
+                            <div style="font-size:13px; color:#c8d6e5;">AJUSTA EL DIAL DE FRECUENCIA HASTA LOGRAR LA RESONANCIA ARMÓNICA PURA A 45.0 Hz</div>
+                            <div style="height:120px; background:#010402; border:1px solid rgba(0,255,100,0.3); border-radius:4px; overflow:hidden;">
+                                <canvas id="probe-lissajous-canvas" width="600" height="120" style="width:100%; height:100%;"></canvas>
+                            </div>
                             <div style="display:flex; justify-content:space-between; font-size:13px; color:#00dcff;">
                                 <span>OBJETIVO: 45.0 Hz</span>
-                                <span id="current-freq-txt">ACTUAL: 20.0 Hz</span>
+                                <span id="current-freq-txt">FRECUENCIA: 20.0 Hz</span>
                             </div>
-                            <input type="range" id="freq-slider" min="10" max="80" step="0.5" value="20" style="width:100%; accent-color:#ff7800; cursor:pointer;">
-                            <button class="btn-orbit" id="send-probe-btn" style="border-color:#8fa0b3; color:#8fa0b3; opacity:0.6; pointer-events:none; width:100%;">CALIBRAR A 45.0 Hz</button>
+                            <input type="range" id="freq-slider" min="10" max="80" step="0.5" value="20" style="width:100%; accent-color:#00ff66; cursor:pointer;">
+                            <button class="btn-orbit" id="send-probe-btn" style="border-color:#8fa0b3; color:#8fa0b3; opacity:0.6; pointer-events:none; width:100%;">SINTONIZAR A 45.0 Hz</button>
                         </div>
                     `;
                     container.insertBefore(probeGameDiv, conclusionBox);
 
-                    startProbeGame(() => {
+                    startLissajousProbeGame(() => {
                         probeCalibrated = true;
                         probeGameDiv.remove();
                         diagBox.style.display = 'flex';
@@ -2756,7 +3036,6 @@
 
             showEpilogueDialogue();
 
-            // Vista del planeta Edmunds en Canvas
             const epilogueCanvas = document.getElementById('epilogueCanvas');
             const epilogueCtx = epilogueCanvas.getContext('2d');
             function drawPlanetScene() {
@@ -2770,7 +3049,6 @@
                 epilogueCtx.fillStyle = skyGrad;
                 epilogueCtx.fillRect(0, 0, w, h);
 
-                // Gargantúa en el horizonte
                 const gX = w * 0.75;
                 const gY = h * 0.85;
                 epilogueCtx.fillStyle = '#000000';
@@ -2781,7 +3059,6 @@
                 epilogueCtx.fill();
                 epilogueCtx.shadowBlur = 0;
 
-                // Montañas
                 epilogueCtx.fillStyle = '#10081a';
                 epilogueCtx.beginPath();
                 epilogueCtx.moveTo(0, h);
@@ -2794,7 +3071,6 @@
                 epilogueCtx.closePath();
                 epilogueCtx.fill();
 
-                // Domo de la colonia
                 epilogueCtx.strokeStyle = 'rgba(0, 220, 255, 0.6)';
                 epilogueCtx.lineWidth = 2;
                 epilogueCtx.beginPath();
@@ -2851,7 +3127,6 @@
             });
         }
 
-        // Inicialización
         changePhase('welcome');
     </script>
 </body>

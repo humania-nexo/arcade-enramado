@@ -1,4 +1,4 @@
-﻿/**
+/**
  * audio_interstellar.js — Motor de Órgano Sacro y Paisajes Gravitacionales (0 KB / Vanilla Web Audio API)
  * SAPIENSIA CLAN • Homenaje a Christopher Nolan & Hans Zimmer
  * Diseño e Ingeniería Sónica: Hertz (Sonidista del Yermo)
@@ -463,7 +463,140 @@ class InterstellarAudioEngine {
       gain.disconnect();
     };
   }
+
+  // Escudo Deflector / Shield Burst
+  playShieldBurst() {
+    if (this.isMuted || !this.ctx) return;
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const filter = this.ctx.createBiquadFilter();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(440, t);
+    osc.frequency.exponentialRampToValueAtTime(80, t + 0.35);
+
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(880, t);
+    filter.Q.setValueAtTime(3.0, t);
+
+    gain.gain.setValueAtTime(0.08, t);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.38);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.sfxGain);
+
+    osc.start(t);
+    osc.stop(t + 0.4);
+    osc.onended = () => {
+      osc.disconnect();
+      filter.disconnect();
+      gain.disconnect();
+    };
+  }
+
+  // Cañón de Defensa de Punto (PDC Bolt)
+  playPDCBolt() {
+    if (this.isMuted || !this.ctx) return;
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(1400, t);
+    osc.frequency.exponentialRampToValueAtTime(220, t + 0.05);
+
+    gain.gain.setValueAtTime(0.04, t);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+
+    osc.connect(gain);
+    gain.connect(this.sfxGain);
+
+    osc.start(t);
+    osc.stop(t + 0.07);
+    osc.onended = () => {
+      osc.disconnect();
+      gain.disconnect();
+    };
+  }
+
+  // Golpe de Pared / Señuelo Acústico (Wall Knock)
+  playWallKnock() {
+    if (this.isMuted || !this.ctx) return;
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const filter = this.ctx.createBiquadFilter();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(380, t);
+    osc.frequency.exponentialRampToValueAtTime(90, t + 0.08);
+
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(500, t);
+
+    gain.gain.setValueAtTime(0.07, t);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.1);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.sfxGain);
+
+    osc.start(t);
+    osc.stop(t + 0.12);
+    osc.onended = () => {
+      osc.disconnect();
+      filter.disconnect();
+      gain.disconnect();
+    };
+  }
+
+  // Sonda Cuántica Reactiva Continua (Osciloscopio 45.0 Hz)
+  startQuantumProbeAudio() {
+    if (this.isMuted || !this.ctx) return;
+    this.stopQuantumProbeAudio();
+
+    const t = this.ctx.currentTime;
+    this.probeOsc = this.ctx.createOscillator();
+    this.probeOsc.type = 'sine';
+    this.probeOsc.frequency.setValueAtTime(180, t);
+
+    this.probeGain = this.ctx.createGain();
+    this.probeGain.gain.setValueAtTime(0.0001, t);
+
+    this.probeOsc.connect(this.probeGain);
+    this.probeGain.connect(this.musicGain);
+
+    this.probeOsc.start(t);
+  }
+
+  updateQuantumProbeAudio(resonance, freq) {
+    if (!this.probeOsc || !this.probeGain || !this.ctx) return;
+    const t = this.ctx.currentTime;
+    const detune = (freq - 45.0) * 8.0;
+    this.probeOsc.frequency.setTargetAtTime(180 + detune, t, 0.05);
+    const targetGain = this.isMuted ? 0 : Math.pow(resonance, 2) * 0.08;
+    this.probeGain.gain.setTargetAtTime(targetGain, t, 0.05);
+  }
+
+  stopQuantumProbeAudio() {
+    if (this.probeOsc) {
+      try {
+        this.probeOsc.stop();
+        this.probeOsc.disconnect();
+      } catch (e) {}
+      this.probeOsc = null;
+    }
+    if (this.probeGain) {
+      try {
+        this.probeGain.disconnect();
+      } catch (e) {}
+      this.probeGain = null;
+    }
+  }
 }
 
 // Instancia global
 window.interstellarAudio = new InterstellarAudioEngine();
+
