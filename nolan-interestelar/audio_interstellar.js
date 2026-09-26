@@ -38,19 +38,19 @@ class InterstellarAudioEngine {
       this.compressor.release.setValueAtTime(0.20, this.ctx.currentTime);
       this.compressor.connect(this.ctx.destination);
 
-      // Master Gain Potente (0.70)
+      // Master Gain Equilibrado (0.38 - Potente pero sin saturar)
       this.masterGain = this.ctx.createGain();
-      this.masterGain.gain.setValueAtTime(0.70, this.ctx.currentTime);
+      this.masterGain.gain.setValueAtTime(0.38, this.ctx.currentTime);
       this.masterGain.connect(this.compressor);
 
       // Music Submix
       this.musicGain = this.ctx.createGain();
-      this.musicGain.gain.setValueAtTime(0.92, this.ctx.currentTime);
+      this.musicGain.gain.setValueAtTime(0.70, this.ctx.currentTime);
       this.musicGain.connect(this.masterGain);
 
       // SFX Submix
       this.sfxGain = this.ctx.createGain();
-      this.sfxGain.gain.setValueAtTime(0.88, this.ctx.currentTime);
+      this.sfxGain.gain.setValueAtTime(0.65, this.ctx.currentTime);
       this.sfxGain.connect(this.masterGain);
 
       this.initialized = true;
@@ -77,7 +77,7 @@ class InterstellarAudioEngine {
     this.isMuted = !this.isMuted;
     localStorage.setItem('interstellar_audio_muted', this.isMuted ? 'true' : 'false');
     if (this.masterGain && this.ctx) {
-      this.masterGain.gain.setValueAtTime(this.isMuted ? 0 : 0.70, this.ctx.currentTime);
+      this.masterGain.gain.setValueAtTime(this.isMuted ? 0 : 0.38, this.ctx.currentTime);
     }
     return this.isMuted;
   }
