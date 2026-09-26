@@ -696,8 +696,7 @@
             sprite_guard_security: new Image(),
             sprite_tars_monolith: new Image(),
             sprite_ranger_ship: new Image(),
-            sprite_endurance_ii: new Image(),
-            sprite_endurance_ii_thrust: new Image()
+            sprite_endurance_ii: new Image()
         };
         spriteCache.avatar_cooper.src = 'assets/sprites/avatar_cooper.png';
         spriteCache.avatar_cooper_no_helmet.src = 'assets/sprites/avatar_cooper_no_helmet.png';
@@ -709,7 +708,6 @@
         spriteCache.sprite_tars_monolith.src = 'assets/sprites/sprite_tars_monolith.png';
         spriteCache.sprite_ranger_ship.src = 'assets/sprites/sprite_ranger_ship.png';
         spriteCache.sprite_endurance_ii.src = 'assets/sprites/sprite_endurance_ii.png';
-        spriteCache.sprite_endurance_ii_thrust.src = 'assets/sprites/sprite_endurance_ii_thrust.png';
 
         /* ============================================================
            CREADOR DE AVATARES PROCEDURALES / SPRITE EN PIXEL ART
@@ -886,65 +884,113 @@
         }
 
         /* ============================================================
-           RENDERIZADOR DE LA ENDURANCE II (SPRITE PIXEL ART + VECTOR FALLBACK)
+           SÍNTESIS ALGORÍTMICA DE PLASMA DE PROPULSIÓN (NEXO ENGINE)
+           ============================================================ */
+        function drawAlgorithmicPlasma(ctx, x, y, dirX, dirY, mainLength, width, isIon = true) {
+            ctx.save();
+            const time = Date.now() * 0.006;
+            const pulse = Math.sin(time * 8) * 0.15 + Math.sin(time * 19) * 0.08;
+            const currentLen = mainLength * (1 + pulse);
+            const angle = Math.atan2(dirY, dirX);
+
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+
+            // 1. Resplandor / Pluma de Plasma Volumétrico Externo
+            const outerGrad = ctx.createRadialGradient(0, 0, width * 0.2, currentLen * 0.55, 0, currentLen);
+            if (isIon) {
+                outerGrad.addColorStop(0, 'rgba(0, 220, 255, 0.95)');
+                outerGrad.addColorStop(0.35, 'rgba(0, 120, 255, 0.55)');
+                outerGrad.addColorStop(0.7, 'rgba(255, 120, 0, 0.3)');
+                outerGrad.addColorStop(1, 'rgba(255, 60, 0, 0)');
+            } else {
+                outerGrad.addColorStop(0, 'rgba(255, 160, 0, 0.95)');
+                outerGrad.addColorStop(0.4, 'rgba(255, 80, 0, 0.6)');
+                outerGrad.addColorStop(1, 'rgba(255, 30, 0, 0)');
+            }
+
+            ctx.fillStyle = outerGrad;
+            ctx.beginPath();
+            ctx.moveTo(0, -width * 0.85);
+            ctx.bezierCurveTo(currentLen * 0.4, -width * 0.95, currentLen * 0.8, -width * 0.35, currentLen, 0);
+            ctx.bezierCurveTo(currentLen * 0.8, width * 0.35, currentLen * 0.4, width * 0.95, 0, width * 0.85);
+            ctx.closePath();
+            ctx.fill();
+
+            // 2. Ondas de Choque Mach / Discos de Diamante (Shock Diamonds)
+            const numDiamonds = 3;
+            for (let i = 1; i <= numDiamonds; i++) {
+                const dX = (currentLen * 0.24) * i;
+                const dSize = (width * 0.42) / (i * 0.75);
+                ctx.fillStyle = isIon ? 'rgba(210, 245, 255, 0.8)' : 'rgba(255, 240, 200, 0.85)';
+                ctx.beginPath();
+                ctx.ellipse(dX, 0, dSize * 1.3, dSize * 0.55, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // 3. Núcleo Incandescente Blanco-Iónico (White-Hot Core)
+            const coreGrad = ctx.createLinearGradient(0, 0, currentLen * 0.75, 0);
+            coreGrad.addColorStop(0, '#ffffff');
+            coreGrad.addColorStop(0.25, isIon ? 'rgba(200, 245, 255, 0.98)' : 'rgba(255, 245, 220, 0.98)');
+            coreGrad.addColorStop(0.75, isIon ? 'rgba(0, 220, 255, 0.45)' : 'rgba(255, 120, 0, 0.45)');
+            coreGrad.addColorStop(1, 'rgba(0, 220, 255, 0)');
+
+            ctx.fillStyle = coreGrad;
+            ctx.shadowColor = isIon ? '#00dcff' : '#ff7800';
+            ctx.shadowBlur = 14;
+            ctx.beginPath();
+            ctx.moveTo(0, -width * 0.32);
+            ctx.lineTo(currentLen * 0.75, 0);
+            ctx.lineTo(0, width * 0.32);
+            ctx.closePath();
+            ctx.fill();
+
+            // 4. Micro-Chispas de Plasma Eyectadas a Alta Velocidad
+            ctx.fillStyle = '#ffffff';
+            for (let p = 0; p < 4; p++) {
+                const pOffset = ((time * 45 + p * 30) % (currentLen * 1.15));
+                const pJitter = Math.sin(time * 15 + p * 2) * (width * 0.22);
+                ctx.fillRect(pOffset, pJitter - 1, 2, 2);
+            }
+
+            ctx.restore();
+        }
+
+        /* ============================================================
+           RENDERIZADOR DE LA ENDURANCE II (SPRITE PIXEL ART + PLASMA ALGORÍTMICO)
            ============================================================ */
         function drawEnduranceV2(ctx, cx, cy, radius, rotation, propulsionActive, propulsionSide = 0, stableFlameAngle = null) {
-            // Empuje orbital principal exterior
+            // Empuje orbital exterior (Gargantúa)
             if (propulsionActive && propulsionSide === 0 && stableFlameAngle !== null) {
-                ctx.save();
-                ctx.translate(cx, cy);
-                ctx.rotate(stableFlameAngle);
-                ctx.shadowColor = '#ff7800';
-                ctx.shadowBlur = 12;
-                ctx.fillStyle = '#ff7800';
-                ctx.beginPath();
-                ctx.moveTo(radius * 1.15, -radius * 0.18);
-                ctx.lineTo(radius * 1.15 + (radius * 0.55 + Math.sin(Date.now() * 0.08) * radius * 0.15), 0);
-                ctx.lineTo(radius * 1.15, radius * 0.18);
-                ctx.closePath();
-                ctx.fill();
-                ctx.fillStyle = '#ffffff';
-                ctx.beginPath();
-                ctx.moveTo(radius * 1.15, -radius * 0.08);
-                ctx.lineTo(radius * 1.15 + (radius * 0.3 + Math.sin(Date.now() * 0.08) * radius * 0.08), 0);
-                ctx.lineTo(radius * 1.15, radius * 0.08);
-                ctx.closePath();
-                ctx.fill();
-                ctx.restore();
+                drawAlgorithmicPlasma(ctx, cx, cy, Math.cos(stableFlameAngle), Math.sin(stableFlameAngle), radius * 1.6, radius * 0.42, true);
             }
 
             ctx.save();
             ctx.translate(cx, cy);
             ctx.rotate(rotation);
 
-            // Intentar renderizar el modelo Pixel Art maestro si está disponible
-            const enduranceSprite = (propulsionActive && propulsionSide === 0) ? spriteCache.sprite_endurance_ii_thrust : spriteCache.sprite_endurance_ii;
+            // Intentar renderizar el modelo Pixel Art maestro puro de Pix
+            const enduranceSprite = spriteCache.sprite_endurance_ii;
 
             if (enduranceSprite && enduranceSprite.complete && enduranceSprite.naturalWidth !== 0) {
+                // 1. Plasma Principal Trasero en Vuelo Directo / Asteroides
+                if (propulsionActive && propulsionSide === 0 && stableFlameAngle === null) {
+                    drawAlgorithmicPlasma(ctx, -radius * 1.05, 0, -1, 0, radius * 1.5, radius * 0.42, true);
+                }
+
+                // 2. Toberas RCS Laterales (propulsionSide = -1 o 1)
+                if (propulsionActive && propulsionSide !== 0) {
+                    if (propulsionSide === -1) {
+                        drawAlgorithmicPlasma(ctx, 0, radius * 0.95, 0, 1, radius * 0.75, radius * 0.26, false);
+                    } else if (propulsionSide === 1) {
+                        drawAlgorithmicPlasma(ctx, 0, -radius * 0.95, 0, -1, radius * 0.75, radius * 0.26, false);
+                    }
+                }
+
+                // 3. Renderizado del Sprite Pixel Art
                 ctx.imageSmoothingEnabled = false;
                 const diameter = radius * 2.2;
                 ctx.drawImage(enduranceSprite, -diameter / 2, -diameter / 2, diameter, diameter);
-
-                // Llamas RCS de maniobra lateral (propulsionSide = -1 o 1)
-                if (propulsionActive && propulsionSide !== 0) {
-                    ctx.shadowColor = '#ff7800';
-                    ctx.shadowBlur = 10;
-                    ctx.fillStyle = '#ff7800';
-                    ctx.beginPath();
-                    if (propulsionSide === -1) {
-                        ctx.moveTo(0, radius);
-                        ctx.lineTo(-radius * 0.15, radius + radius * 0.3);
-                        ctx.lineTo(0, radius + radius * 0.18);
-                        ctx.lineTo(radius * 0.15, radius + radius * 0.3);
-                    } else if (propulsionSide === 1) {
-                        ctx.moveTo(0, -radius);
-                        ctx.lineTo(-radius * 0.15, -radius - radius * 0.3);
-                        ctx.lineTo(0, -radius - radius * 0.18);
-                        ctx.lineTo(radius * 0.15, -radius - radius * 0.3);
-                    }
-                    ctx.closePath();
-                    ctx.fill();
-                }
 
                 ctx.restore();
                 ctx.shadowBlur = 0;
@@ -1053,31 +1099,12 @@
             ctx.stroke();
 
             if (propulsionActive) {
-                ctx.shadowColor = '#ff7800';
-                ctx.shadowBlur = 10;
-                ctx.fillStyle = '#ff7800';
-                ctx.beginPath();
-                let shouldDraw = true;
                 if (propulsionSide === -1) {
-                    ctx.moveTo(0, radius + modH/2);
-                    ctx.lineTo(-radius * 0.15, radius + modH/2 + radius * 0.25);
-                    ctx.lineTo(0, radius + modH/2 + radius * 0.15);
-                    ctx.lineTo(radius * 0.15, radius + modH/2 + radius * 0.25);
+                    drawAlgorithmicPlasma(ctx, 0, radius + modH / 2, 0, 1, radius * 0.75, radius * 0.26, false);
                 } else if (propulsionSide === 1) {
-                    ctx.moveTo(0, -radius - modH/2);
-                    ctx.lineTo(-radius * 0.15, -radius - modH/2 - radius * 0.25);
-                    ctx.lineTo(0, -radius - modH/2 - radius * 0.15);
-                    ctx.lineTo(radius * 0.15, -radius - modH/2 - radius * 0.25);
+                    drawAlgorithmicPlasma(ctx, 0, -radius - modH / 2, 0, -1, radius * 0.75, radius * 0.26, false);
                 } else if (stableFlameAngle === null) {
-                    ctx.moveTo(-radius * 1.15, -radius * 0.18);
-                    ctx.lineTo(-radius * 1.15 - (radius * 0.45 + Math.sin(Date.now() * 0.08) * radius * 0.12), 0);
-                    ctx.lineTo(-radius * 1.15, radius * 0.18);
-                } else {
-                    shouldDraw = false;
-                }
-                if (shouldDraw) {
-                    ctx.closePath();
-                    ctx.fill();
+                    drawAlgorithmicPlasma(ctx, -radius * 1.15, 0, -1, 0, radius * 1.5, radius * 0.42, true);
                 }
             }
 
