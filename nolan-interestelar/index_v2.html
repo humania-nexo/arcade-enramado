@@ -695,7 +695,9 @@
             sprite_cooper_stealth: new Image(),
             sprite_guard_security: new Image(),
             sprite_tars_monolith: new Image(),
-            sprite_ranger_ship: new Image()
+            sprite_ranger_ship: new Image(),
+            sprite_endurance_ii: new Image(),
+            sprite_endurance_ii_thrust: new Image()
         };
         spriteCache.avatar_cooper.src = 'assets/sprites/avatar_cooper.png';
         spriteCache.avatar_cooper_no_helmet.src = 'assets/sprites/avatar_cooper_no_helmet.png';
@@ -706,6 +708,8 @@
         spriteCache.sprite_guard_security.src = 'assets/sprites/sprite_guard_security.png';
         spriteCache.sprite_tars_monolith.src = 'assets/sprites/sprite_tars_monolith.png';
         spriteCache.sprite_ranger_ship.src = 'assets/sprites/sprite_ranger_ship.png';
+        spriteCache.sprite_endurance_ii.src = 'assets/sprites/sprite_endurance_ii.png';
+        spriteCache.sprite_endurance_ii_thrust.src = 'assets/sprites/sprite_endurance_ii_thrust.png';
 
         /* ============================================================
            CREADOR DE AVATARES PROCEDURALES / SPRITE EN PIXEL ART
@@ -882,20 +886,28 @@
         }
 
         /* ============================================================
-           RENDERIZADOR VECTORIAL DE LA ENDURANCE II
+           RENDERIZADOR DE LA ENDURANCE II (SPRITE PIXEL ART + VECTOR FALLBACK)
            ============================================================ */
         function drawEnduranceV2(ctx, cx, cy, radius, rotation, propulsionActive, propulsionSide = 0, stableFlameAngle = null) {
+            // Empuje orbital principal exterior
             if (propulsionActive && propulsionSide === 0 && stableFlameAngle !== null) {
                 ctx.save();
                 ctx.translate(cx, cy);
                 ctx.rotate(stableFlameAngle);
                 ctx.shadowColor = '#ff7800';
-                ctx.shadowBlur = 10;
+                ctx.shadowBlur = 12;
                 ctx.fillStyle = '#ff7800';
                 ctx.beginPath();
                 ctx.moveTo(radius * 1.15, -radius * 0.18);
-                ctx.lineTo(radius * 1.15 + (radius * 0.45 + Math.sin(Date.now() * 0.08) * radius * 0.12), 0);
+                ctx.lineTo(radius * 1.15 + (radius * 0.55 + Math.sin(Date.now() * 0.08) * radius * 0.15), 0);
                 ctx.lineTo(radius * 1.15, radius * 0.18);
+                ctx.closePath();
+                ctx.fill();
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.moveTo(radius * 1.15, -radius * 0.08);
+                ctx.lineTo(radius * 1.15 + (radius * 0.3 + Math.sin(Date.now() * 0.08) * radius * 0.08), 0);
+                ctx.lineTo(radius * 1.15, radius * 0.08);
                 ctx.closePath();
                 ctx.fill();
                 ctx.restore();
@@ -905,6 +917,41 @@
             ctx.translate(cx, cy);
             ctx.rotate(rotation);
 
+            // Intentar renderizar el modelo Pixel Art maestro si está disponible
+            const enduranceSprite = (propulsionActive && propulsionSide === 0) ? spriteCache.sprite_endurance_ii_thrust : spriteCache.sprite_endurance_ii;
+
+            if (enduranceSprite && enduranceSprite.complete && enduranceSprite.naturalWidth !== 0) {
+                ctx.imageSmoothingEnabled = false;
+                const diameter = radius * 2.2;
+                ctx.drawImage(enduranceSprite, -diameter / 2, -diameter / 2, diameter, diameter);
+
+                // Llamas RCS de maniobra lateral (propulsionSide = -1 o 1)
+                if (propulsionActive && propulsionSide !== 0) {
+                    ctx.shadowColor = '#ff7800';
+                    ctx.shadowBlur = 10;
+                    ctx.fillStyle = '#ff7800';
+                    ctx.beginPath();
+                    if (propulsionSide === -1) {
+                        ctx.moveTo(0, radius);
+                        ctx.lineTo(-radius * 0.15, radius + radius * 0.3);
+                        ctx.lineTo(0, radius + radius * 0.18);
+                        ctx.lineTo(radius * 0.15, radius + radius * 0.3);
+                    } else if (propulsionSide === 1) {
+                        ctx.moveTo(0, -radius);
+                        ctx.lineTo(-radius * 0.15, -radius - radius * 0.3);
+                        ctx.lineTo(0, -radius - radius * 0.18);
+                        ctx.lineTo(radius * 0.15, -radius - radius * 0.3);
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+                }
+
+                ctx.restore();
+                ctx.shadowBlur = 0;
+                return;
+            }
+
+            // Fallback Vectorial Procedural
             ctx.shadowColor = '#00dcff';
             ctx.shadowBlur = 8;
 
