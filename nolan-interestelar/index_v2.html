@@ -1362,16 +1362,17 @@
             const cellSize = 50;
             
             const walls = [
-                1,1,1,1,1,3,3,1,1,1,1,1,1,1,1,1,
-                1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,
-                1,0,1,1,1,1,1,0,0,1,0,1,1,1,0,1,
-                1,0,1,0,0,0,1,0,0,0,0,1,0,1,0,1,
-                1,0,1,0,1,0,1,1,1,1,0,1,0,1,0,1,
-                1,0,0,0,1,0,0,0,0,1,0,0,0,1,0,1,
-                1,1,1,0,1,1,1,0,0,1,1,1,0,1,0,1,
-                1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,
-                1,0,1,1,1,0,0,0,0,0,0,1,1,1,0,1,
-                1,1,1,1,1,1,1,2,2,1,1,1,1,1,1,1
+                // 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5
+                1,1,1,1,1,3,3,1,1,1,1,1,1,1,1,1, // Row 0: Esclusa Hangar Principal (Cols 5,6)
+                1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1, // Row 1: Pasillo superior Norte (Cols 1..8 y 10..14)
+                1,0,1,1,1,1,1,0,0,1,0,1,1,1,0,1, // Row 2: Bloques superiores
+                1,0,1,0,0,0,1,0,0,0,0,1,0,1,0,1, // Row 3: Pasillos intermedios
+                1,0,1,0,1,0,1,0,0,1,0,1,0,1,0,1, // Row 4: Pilar central torreta en (Col 9, Row 4)
+                1,0,0,0,1,0,0,0,0,1,0,0,0,1,0,1, // Row 5: Pasillo central
+                1,1,1,0,1,1,1,0,0,1,1,1,0,1,0,1, // Row 6: Bloques inferiores
+                1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1, // Row 7: Pasillo Sur 100% despejado (Cols 1..14)
+                1,0,1,1,1,0,0,0,0,0,0,1,1,1,0,1, // Row 8: Antecámara de infiltración
+                1,1,1,1,1,1,1,2,2,1,1,1,1,1,1,1  // Row 9: Punto de entrada (Cols 7,8)
             ];
 
             let player = {
@@ -1386,7 +1387,7 @@
             let soundRipples = [];
 
             const initialGuards = [
-                // Guardia 1: Corredor Superior Norte (Despejado en Row 1, $y=75$)
+                // Guardia 1: Corredor Superior Norte (Despejado en Row 1, $y=75$, Cols 1..8)
                 { 
                     x: 100, y: 75, 
                     startX: 80, endX: 380, 
@@ -1396,17 +1397,17 @@
                     fovOuter: Math.PI / 3, fovCore: Math.PI / 6, 
                     rangeOuter: 190, rangeCore: 85 
                 },
-                // Guardia 2: Pasillo Inferior Sur (Despejado en Row 8, $y=425$)
+                // Guardia 2: Pasillo Inferior Sur (100% Despejado en Row 7, $y=375$, Cols 1..14)
                 { 
-                    x: 350, y: 425, 
-                    startX: 275, endX: 520, 
-                    speed: 1.5, dir: 1, 
+                    x: 350, y: 375, 
+                    startX: 120, endX: 680, 
+                    speed: 1.6, dir: 1, 
                     angle: 0, 
                     sweepRange: Math.PI / 3.5, sweepSpeed: 0.022, sweepAngle: 0, 
                     fovOuter: Math.PI / 3.5, fovCore: Math.PI / 7, 
                     rangeOuter: 190, rangeCore: 85 
                 },
-                // Guardia 3: Corredor Este (Completamente despejado vertical en Col 14, $x=725$)
+                // Guardia 3: Corredor Este (100% Despejado vertical en Col 14, $x=725$, Rows 1..8)
                 { 
                     x: 725, y: 100, 
                     startY: 80, endY: 410, 
@@ -1417,7 +1418,7 @@
                     rangeOuter: 190, rangeCore: 85, 
                     isVertical: true 
                 },
-                // Guardia 4: Torreta Centinela Elevada Central (Sobre el muro en Col 9, Row 4)
+                // Guardia 4: Torreta Centinela Elevada Central (Sobre el pilar en Col 9, Row 4)
                 { 
                     x: 475, y: 225, 
                     angle: 0, 
@@ -1635,8 +1636,16 @@
                         g.lookAngle = targetAng;
                         const dist = Math.hypot(g.investigateX - g.x, g.investigateY - g.y);
                         if (dist > 15) {
-                            g.x += Math.cos(targetAng) * 1.2;
-                            g.y += Math.sin(targetAng) * 1.2;
+                            const nextX = g.x + Math.cos(targetAng) * 1.2;
+                            const nextY = g.y + Math.sin(targetAng) * 1.2;
+
+                            let moved = false;
+                            if (!checkWallCollision(nextX, g.y, 8)) { g.x = nextX; moved = true; }
+                            if (!checkWallCollision(g.x, nextY, 8)) { g.y = nextY; moved = true; }
+
+                            if (!moved) {
+                                g.searchTimer = 0;
+                            }
                         } else {
                             g.searchTimer -= 0.016;
                             if (g.searchTimer <= 0) {
