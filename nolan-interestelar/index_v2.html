@@ -2013,7 +2013,8 @@
             container.innerHTML = `
                 <div class="hud-overlay">
                     <div>NAVE: ENDURANCE II // CINTURÓN DE SATURNO</div>
-                    <div style="color: #ff7800;" id="shields-hud">ESCUDOS: ███ 100%</div>
+                    <div style="color: #00ff66;" id="shields-hud">ESCUDOS: ███ 100%</div>
+                    <div style="color: #00dcff;" id="heat-hud">CALOR PDC: 0%</div>
                     <div id="distance-hud">ESCAPE: 0 / 6000m</div>
                 </div>
                 <div class="canvas-container">
@@ -2024,12 +2025,12 @@
                         <div class="phase-indicator" style="border-color:#00dcff; color:#00dcff;">CINTURÓN DE SATURNO // ADVERTENCIA DE IMPACTO</div>
                         <div class="failed-title" style="color: #00dcff; font-size: 22px; letter-spacing: 2px; margin-top: 8px;">NAVEGACIÓN EN CAMPO DE ESCOMBROS</div>
                         <p style="color: #c8d6e5; font-size: 14px; max-width: 480px; text-align: center; line-height: 1.6; margin: 10px 0;">
-                            Los anillos de Saturno están arrojando una lluvia de meteoros de alta densidad contra la nave. Cruza el campo antes de alcanzar el agujero de gusano.
+                            Los anillos de Saturno están arrojando una lluvia de meteoros de alta densidad. Administra tus recursos defensivos con prudencia:
                         </p>
                         <div style="color: #00dcff; font-size: 13px; border: 1px dashed rgba(0, 220, 255, 0.4); padding: 12px 18px; border-radius: 4px; text-align: left; margin: 6px 0; line-height: 1.6; font-family: monospace; max-width: 460px;">
-                            • <b style="color:#ffffff;">A/D / ◀ ▶ / Táctil</b>: Propulsores RCS laterales (inercia newtoniana)<br>
-                            • <b style="color:#00dcff;">ESPACIO / BOTÓN CYAN</b>: Escudo de Choque Deflector (desvía y empuja meteoros)<br>
-                            • <b style="color:#ff7800;">E / X / BOTÓN ÁMBAR</b>: Cañón PDC (destruye y fractura rocas en corredor)
+                            • <b style="color:#ffffff;">A/D / ◀ ▶ / Táctil</b>: Propulsores RCS laterales de evasión<br>
+                            • <b style="color:#00dcff;">ESPACIO / BOTÓN CYAN</b>: Escudo Burst (🛡️ <b>Máximo 2 cargas de energía</b>)<br>
+                            • <b style="color:#ff7800;">E / X / BOTÓN ÁMBAR</b>: Cañón PDC (⚠️ <b>Límite de recalentamiento térmico</b>)
                         </div>
                         <button class="btn-orbit" id="start-asteroids-btn" style="margin-top: 12px;">INICIAR VUELO DE EVASIÓN</button>
                     </div>
@@ -2051,14 +2052,14 @@
                 </div>
                 
                 <div class="tactical-bar">
-                    <button class="btn-tactical" id="btn-burst">ESCUDO BURST [ESPACIO]</button>
-                    <button class="btn-tactical" id="btn-pdc">CAÑÓN PDC [E / X]</button>
+                    <button class="btn-tactical" id="btn-burst">ESCUDO BURST [x2] (ESPACIO)</button>
+                    <button class="btn-tactical" id="btn-pdc">CAÑÓN PDC (E / X)</button>
                 </div>
                 
                 <div class="mobile-controls">
                     <div class="mobile-action-row">
-                        <button class="ctrl-btn btn-action-burst" id="m-btn-burst">🛡️ ESCUDO BURST</button>
-                        <button class="ctrl-btn btn-action-pdc" id="m-btn-pdc">⚡ CAÑÓN PDC</button>
+                        <button class="ctrl-btn btn-action-burst" id="m-btn-burst">🛡️ BURST [x2]</button>
+                        <button class="ctrl-btn btn-action-pdc" id="m-btn-pdc">⚡ PDC [0%]</button>
                     </div>
                     <div style="display:flex; gap:16px; width:100%; justify-content:center;">
                         <button class="ctrl-btn" style="flex:1; height:50px;" id="m-left-ast">◀ RCS IZQUIERDA</button>
@@ -2078,9 +2079,12 @@
             const successScreen = document.getElementById('asteroids-success');
             const successBtn = document.getElementById('success-asteroids-btn');
             const shieldsEl = document.getElementById('shields-hud');
+            const heatEl = document.getElementById('heat-hud');
             const distanceEl = document.getElementById('distance-hud');
             const burstBtn = document.getElementById('btn-burst');
             const pdcBtn = document.getElementById('btn-pdc');
+            const mBurstBtn = document.getElementById('m-btn-burst');
+            const mPdcBtn = document.getElementById('m-btn-pdc');
 
             let ship = {
                 x: 400, y: 410, radius: 24, angle: 0, speedX: 0, accel: 0.70, drag: 0.92,
@@ -2090,6 +2094,9 @@
             };
 
             let shields = 3;
+            let shieldCharges = 2;
+            let cannonHeat = 0;
+            let isOverheated = false;
             let distance = 0;
             let targetDistance = 6000;
             let asteroids = [];
@@ -2114,16 +2121,21 @@
 
             function triggerShieldBurst() {
                 if (!gameStarted || isFailed || isFinished) return;
+                if (shieldCharges <= 0) {
+                    audio.playClick();
+                    return;
+                }
                 if (ship.shieldBurstCooldown <= 0) {
+                    shieldCharges--;
                     ship.shieldBurstCooldown = 4.5;
-                    ship.shieldBurstActive = 0.55;
+                    ship.shieldBurstActive = 0.60;
                     audio.playShieldBurst();
-                    shake = 12;
+                    shake = 14;
                     asteroids.forEach(ast => {
                         const dist = Math.hypot(ast.x - ship.x, ast.y - ship.y);
-                        if (dist < 150) {
-                            ast.speedY = -Math.abs(ast.speedY) * 1.3;
-                            ast.speedX = (ast.x - ship.x) * 0.12;
+                        if (dist < 160) {
+                            ast.speedY = -Math.abs(ast.speedY) * 1.35;
+                            ast.speedX = (ast.x - ship.x) * 0.14;
                         }
                     });
                 }
@@ -2131,8 +2143,17 @@
 
             function triggerPDC() {
                 if (!gameStarted || isFailed || isFinished) return;
+                if (isOverheated) {
+                    audio.playClick();
+                    return;
+                }
                 if (ship.pdcCooldown <= 0) {
                     ship.pdcCooldown = 0.14;
+                    cannonHeat = Math.min(100, cannonHeat + 14);
+                    if (cannonHeat >= 100) {
+                        isOverheated = true;
+                        audio.playAlarm();
+                    }
                     audio.playPDCBolt();
                     projectiles.push({ x: ship.x - 9, y: ship.y - 20, vy: -14 });
                     projectiles.push({ x: ship.x + 9, y: ship.y - 20, vy: -14 });
@@ -2178,13 +2199,56 @@
                 if (ship.shieldBurstActive > 0) ship.shieldBurstActive -= 0.016;
                 if (ship.pdcCooldown > 0) ship.pdcCooldown -= 0.016;
 
-                // Actualizar botón de Burst UI
-                if (ship.shieldBurstCooldown > 0) {
-                    burstBtn.style.opacity = '0.5';
-                    burstBtn.textContent = `ESCUDO BURST [${ship.shieldBurstCooldown.toFixed(1)}s]`;
+                // Enfriamiento del Cañón PDC
+                cannonHeat = Math.max(0, cannonHeat - 0.40);
+                if (isOverheated && cannonHeat <= 20) {
+                    isOverheated = false;
+                }
+
+                // Actualizar HUD de calor
+                if (isOverheated) {
+                    heatEl.textContent = `SOBRECALENTADO: ${Math.floor(cannonHeat)}%`;
+                    heatEl.style.color = '#ff3838';
+                } else if (cannonHeat > 70) {
+                    heatEl.textContent = `CALOR PDC: ${Math.floor(cannonHeat)}%`;
+                    heatEl.style.color = '#ff7800';
+                } else {
+                    heatEl.textContent = `CALOR PDC: ${Math.floor(cannonHeat)}%`;
+                    heatEl.style.color = '#00dcff';
+                }
+
+                // Actualizar Botón de Burst UI
+                if (shieldCharges <= 0) {
+                    burstBtn.style.opacity = '0.35';
+                    burstBtn.style.borderColor = '#64748b';
+                    burstBtn.style.color = '#64748b';
+                    burstBtn.textContent = 'ESCUDO AGOTADO [0/2]';
+                    if (mBurstBtn) { mBurstBtn.textContent = '🛡️ AGOTADO'; mBurstBtn.style.opacity = '0.4'; }
+                } else if (ship.shieldBurstCooldown > 0) {
+                    burstBtn.style.opacity = '0.6';
+                    burstBtn.style.borderColor = '#00dcff';
+                    burstBtn.style.color = '#00dcff';
+                    burstBtn.textContent = `ESCUDO BURST [x${shieldCharges}] (${ship.shieldBurstCooldown.toFixed(1)}s)`;
+                    if (mBurstBtn) mBurstBtn.textContent = `🛡️ [${ship.shieldBurstCooldown.toFixed(0)}s]`;
                 } else {
                     burstBtn.style.opacity = '1';
-                    burstBtn.textContent = 'ESCUDO BURST [ESPACIO]';
+                    burstBtn.style.borderColor = '#00dcff';
+                    burstBtn.style.color = '#00dcff';
+                    burstBtn.textContent = `ESCUDO BURST [x${shieldCharges}] (ESPACIO)`;
+                    if (mBurstBtn) { mBurstBtn.textContent = `🛡️ BURST [x${shieldCharges}]`; mBurstBtn.style.opacity = '1'; }
+                }
+
+                // Actualizar Botón de PDC UI
+                if (isOverheated) {
+                    pdcBtn.style.borderColor = '#ff3838';
+                    pdcBtn.style.color = '#ff3838';
+                    pdcBtn.textContent = `SOBRECALENTADO [ENFRIANDO ${Math.floor(cannonHeat)}%]`;
+                    if (mPdcBtn) { mPdcBtn.textContent = `⚠️ ENFRIANDO ${Math.floor(cannonHeat)}%`; mPdcBtn.style.borderColor = '#ff3838'; mPdcBtn.style.color = '#ff3838'; }
+                } else {
+                    pdcBtn.style.borderColor = '#ff7800';
+                    pdcBtn.style.color = '#ff7800';
+                    pdcBtn.textContent = `CAÑÓN PDC [CALOR ${Math.floor(cannonHeat)}%] (E/X)`;
+                    if (mPdcBtn) { mPdcBtn.textContent = `⚡ PDC [${Math.floor(cannonHeat)}%]`; mPdcBtn.style.borderColor = '#ff7800'; mPdcBtn.style.color = '#ff7800'; }
                 }
 
                 if (keys['arrowleft'] || keys['a']) { ship.speedX -= ship.accel; audio.playThruster(); }
@@ -3387,7 +3451,7 @@
             let currentDiag = 0;
 
             function startLissajousProbeGame(callback) {
-                audio.startQuantumProbeAudio();
+                try { if (audio && audio.startQuantumProbeAudio) audio.startQuantumProbeAudio(); } catch (e) {}
 
                 const oscCanvas = document.getElementById('probe-lissajous-canvas');
                 const oscCtx = oscCanvas.getContext('2d');
@@ -3397,8 +3461,8 @@
                 const phaseTxt = document.getElementById('current-phase-txt');
                 const sendBtn = document.getElementById('send-probe-btn');
 
-                let freqVal = parseFloat(freqSlider.value);
-                let phaseVal = parseFloat(phaseSlider.value);
+                let freqVal = parseFloat(freqSlider.value) || 20.0;
+                let phaseVal = parseFloat(phaseSlider.value) || 10.0;
                 let oscRunId = null;
                 let animTime = 0;
 
@@ -3408,21 +3472,24 @@
                     const isAligned = (freqDiff < 1.0) && (phaseDiff < 4.0);
                     const resonance = Math.max(0, 1 - (freqDiff / 15.0 + phaseDiff / 60.0) / 2);
 
-                    audio.updateQuantumProbeAudio(resonance, freqVal);
-                    audio.playProbeCalibration(freqVal, phaseVal);
+                    try {
+                        if (audio && audio.updateQuantumProbeAudio) audio.updateQuantumProbeAudio(resonance, freqVal);
+                        if (audio && audio.playProbeCalibration) audio.playProbeCalibration(freqVal, phaseVal);
+                    } catch (e) {}
 
                     if (isAligned) {
                         sendBtn.style.borderColor = '#00ff66';
                         sendBtn.style.color = '#00ff66';
                         sendBtn.style.opacity = '1';
                         sendBtn.style.pointerEvents = 'auto';
-                        sendBtn.textContent = 'TRANSMITIR DATOS // RESONANCIA 45.0 Hz @ 90.0°';
+                        sendBtn.textContent = 'TRANSMITIR DATOS // RESONANCIA 45.0 Hz @ 90.0° [BLOQUEO 100%]';
                     } else {
+                        const pct = Math.floor(resonance * 100);
                         sendBtn.style.borderColor = '#8fa0b3';
                         sendBtn.style.color = '#8fa0b3';
                         sendBtn.style.opacity = '0.6';
                         sendBtn.style.pointerEvents = 'none';
-                        sendBtn.textContent = 'CALIBRANDO MATRIZ (45.0 Hz & 90.0°)';
+                        sendBtn.textContent = `CALIBRANDO MATRIZ // COHERENCIA: ${pct}% (OBJETIVO 45.0 Hz & 90.0°)`;
                     }
                 }
 
@@ -3439,24 +3506,30 @@
                 });
 
                 function drawLissajous() {
-                    animTime += 0.04;
+                    animTime += 0.045;
                     const w = oscCanvas.width;
                     const h = oscCanvas.height;
                     const cx = w / 2;
                     const cy = h / 2;
 
-                    oscCtx.fillStyle = 'rgba(2, 8, 4, 0.28)';
+                    // Fondo con persistencia de fósforo verde
+                    oscCtx.fillStyle = 'rgba(2, 10, 5, 0.26)';
                     oscCtx.fillRect(0, 0, w, h);
 
                     // Retícula métrica del osciloscopio
-                    oscCtx.strokeStyle = 'rgba(0, 255, 100, 0.12)';
+                    oscCtx.strokeStyle = 'rgba(0, 255, 100, 0.14)';
                     oscCtx.lineWidth = 1;
-                    for (let x = 0; x < w; x += 25) {
+                    for (let x = 0; x < w; x += 30) {
                         oscCtx.beginPath(); oscCtx.moveTo(x, 0); oscCtx.lineTo(x, h); oscCtx.stroke();
                     }
                     for (let y = 0; y < h; y += 25) {
                         oscCtx.beginPath(); oscCtx.moveTo(0, y); oscCtx.lineTo(w, y); oscCtx.stroke();
                     }
+
+                    // Ejes centrales cruzados
+                    oscCtx.strokeStyle = 'rgba(0, 255, 100, 0.35)';
+                    oscCtx.beginPath(); oscCtx.moveTo(cx, 0); oscCtx.lineTo(cx, h); oscCtx.stroke();
+                    oscCtx.beginPath(); oscCtx.moveTo(0, cy); oscCtx.lineTo(w, cy); oscCtx.stroke();
 
                     // Curva de Lissajous Multi-Parámetro (Frecuencia + Fase)
                     const freqDiff = Math.abs(freqVal - 45.0);
@@ -3464,17 +3537,18 @@
                     const isAligned = (freqDiff < 1.0) && (phaseDiff < 4.0);
                     const phaseRad = (phaseVal * Math.PI) / 180;
                     
-                    oscCtx.strokeStyle = isAligned ? '#00ff66' : (freqDiff < 3.0 ? '#00dcff' : '#ff7800');
-                    oscCtx.shadowColor = isAligned ? '#00ff66' : (freqDiff < 3.0 ? '#00dcff' : '#ff7800');
-                    oscCtx.shadowBlur = isAligned ? 14 : 4;
-                    oscCtx.lineWidth = isAligned ? 2.5 : 1.8;
+                    const lineColor = isAligned ? '#00ff66' : (freqDiff < 3.5 ? '#00dcff' : '#ff7800');
+                    oscCtx.strokeStyle = lineColor;
+                    oscCtx.shadowColor = lineColor;
+                    oscCtx.shadowBlur = isAligned ? 16 : 8;
+                    oscCtx.lineWidth = isAligned ? 2.8 : 2.0;
 
                     oscCtx.beginPath();
-                    const samples = 220;
+                    const samples = 260;
                     for (let i = 0; i <= samples; i++) {
                         const t = (i / samples) * Math.PI * 2;
-                        const jitter = (Math.random() - 0.5) * (freqDiff * 0.9 + phaseDiff * 0.15);
-                        const x = cx + Math.sin(t * (freqVal / 45.0) + animTime + phaseRad) * (w * 0.38) + jitter;
+                        const jitter = (Math.random() - 0.5) * (freqDiff * 0.85 + phaseDiff * 0.12);
+                        const x = cx + Math.sin(t * (freqVal / 45.0) + animTime + phaseRad) * (w * 0.40) + jitter;
                         const y = cy + Math.cos(t * 1.0 + animTime * 0.5) * (h * 0.38) + jitter;
                         if (i === 0) oscCtx.moveTo(x, y);
                         else oscCtx.lineTo(x, y);
@@ -3482,14 +3556,22 @@
                     oscCtx.stroke();
                     oscCtx.shadowBlur = 0;
 
+                    // Línea de barrido de fósforo (Scanline de radar)
+                    const scanX = ((animTime * 140) % (w + 40)) - 20;
+                    oscCtx.fillStyle = 'rgba(0, 255, 100, 0.12)';
+                    oscCtx.fillRect(scanX, 0, 8, h);
+
                     oscRunId = requestAnimationFrame(drawLissajous);
                 }
+
+                // Inicializar estado y arrancar render
+                checkResonance();
                 drawLissajous();
 
                 sendBtn.addEventListener('click', () => {
                     cancelAnimationFrame(oscRunId);
-                    audio.stopQuantumProbeAudio();
-                    audio.playThruster();
+                    try { if (audio && audio.stopQuantumProbeAudio) audio.stopQuantumProbeAudio(); } catch (e) {}
+                    try { if (audio && audio.playThruster) audio.playThruster(); } catch (e) {}
                     callback();
                 });
             }

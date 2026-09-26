@@ -586,6 +586,62 @@ class InterstellarAudioEngine {
   }
 
   // --- SONDA CUÁNTICA MULTI-PARÁMETRO ---
+  startQuantumProbeAudio() {
+    if (this.isMuted) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+    try {
+      this.stopQuantumProbeAudio();
+      const t = this.ctx.currentTime;
+      this.probeOsc = this.ctx.createOscillator();
+      this.probeOsc.type = 'sine';
+      this.probeOsc.frequency.setValueAtTime(40.0, t);
+
+      this.probeGain = this.ctx.createGain();
+      this.probeGain.gain.setValueAtTime(0.0001, t);
+      this.probeGain.gain.linearRampToValueAtTime(0.14, t + 0.1);
+
+      this.probeOsc.connect(this.probeGain);
+      this.probeGain.connect(this.sfxGain);
+      this.probeOsc.start(t);
+    } catch (e) {
+      console.warn('Probe audio error:', e);
+    }
+  }
+
+  updateQuantumProbeAudio(resonance, freqVal) {
+    if (this.isMuted || !this.ctx || !this.probeOsc || !this.probeGain) return;
+    try {
+      const t = this.ctx.currentTime;
+      this.probeOsc.frequency.setTargetAtTime(Math.max(20, freqVal * 2), t, 0.05);
+      const targetGain = 0.06 + (resonance * 0.18);
+      this.probeGain.gain.setTargetAtTime(targetGain, t, 0.05);
+    } catch (e) {
+      console.warn('Probe audio update error:', e);
+    }
+  }
+
+  stopQuantumProbeAudio() {
+    if (!this.probeOsc) return;
+    try {
+      const t = this.ctx ? this.ctx.currentTime : 0;
+      if (this.probeGain && this.ctx) {
+        this.probeGain.gain.linearRampToValueAtTime(0.0001, t + 0.08);
+      }
+      const oscToStop = this.probeOsc;
+      const gainToStop = this.probeGain;
+      this.probeOsc = null;
+      this.probeGain = null;
+      setTimeout(() => {
+        try { if (oscToStop) { oscToStop.stop(); oscToStop.disconnect(); } } catch (e) {}
+        try { if (gainToStop) gainToStop.disconnect(); } catch (e) {}
+      }, 100);
+    } catch (e) {
+      this.probeOsc = null;
+      this.probeGain = null;
+    }
+  }
+
   playProbeCalibration(freqVal, phaseVal = 90.0, targetFreq = 45.0, targetPhase = 90.0) {
     if (this.isMuted) return;
     this.ensureContext();
