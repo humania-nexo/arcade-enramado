@@ -1,0 +1,2851 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>INTERESTELAR // GARGANTÚA & ENDURANCE II (v2.0 Enriquecida)</title>
+    <style>
+        /* ============================================================
+           ESTILOS GLOBALES - SAPIENSIA CLAN // 0 KB Framework
+           ============================================================ */
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background: #000000;
+            overflow: hidden;
+            font-family: 'Share Tech Mono', monospace;
+            color: #c8d6e5;
+            height: 100vh;
+            height: 100dvh;
+            position: relative;
+        }
+
+        /* Efecto CRT Scanlines cinemático */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0) 0px,
+                rgba(0, 0, 0, 0) 1px,
+                rgba(0, 0, 0, 0.12) 2px,
+                rgba(0, 0, 0, 0.12) 3px
+            );
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        /* Starfield & Background Canvas */
+        #space-backdrop {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            background: radial-gradient(circle at center, #050612 0%, #000000 100%);
+        }
+
+        /* HUD Superior */
+        header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .hud-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            pointer-events: auto;
+        }
+
+        .hud-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(13px, 1.8vw, 17px);
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: #00dcff;
+            text-shadow: 0 0 10px rgba(0, 220, 255, 0.5);
+        }
+
+        .hud-badge {
+            background: rgba(255, 120, 0, 0.15);
+            border: 1px solid rgba(255, 120, 0, 0.4);
+            color: #ff7800;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 3px;
+            letter-spacing: 1px;
+        }
+
+        .audio-toggle {
+            background: rgba(8, 12, 28, 0.75);
+            border: 1px solid rgba(0, 220, 255, 0.35);
+            color: #00dcff;
+            padding: 8px 16px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 13px;
+            cursor: pointer;
+            border-radius: 4px;
+            backdrop-filter: blur(8px);
+            pointer-events: auto;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(0, 220, 255, 0.1);
+        }
+
+        .audio-toggle:hover {
+            background: rgba(0, 220, 255, 0.18);
+            border-color: #00dcff;
+            box-shadow: 0 0 15px rgba(0, 220, 255, 0.35);
+        }
+
+        /* Contenedor Principal (App wrapper) */
+        #app {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            z-index: 10;
+        }
+
+        /* Glassmorphic Panel Base */
+        .glass-panel {
+            background: rgba(4, 8, 16, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(0, 220, 255, 0.28);
+            box-shadow: 
+                0 10px 40px rgba(0, 0, 0, 0.7),
+                0 0 30px rgba(0, 220, 255, 0.09),
+                inset 0 0 20px rgba(0, 220, 255, 0.04);
+            border-radius: 8px;
+            padding: clamp(16px, 3vw, 36px);
+            width: 100%;
+            max-width: 860px;
+            max-height: 92vh;
+            overflow-y: auto;
+            scrollbar-width: none;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            animation: panel-fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .glass-panel::-webkit-scrollbar {
+            display: none;
+        }
+
+        @keyframes panel-fade-in {
+            from {
+                opacity: 0;
+                transform: scale(0.97) translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        /* Botón Estilo Espacial */
+        .btn-orbit {
+            background: rgba(0, 220, 255, 0.08);
+            border: 1px solid #00dcff;
+            color: #00dcff;
+            padding: 12px 24px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.25s ease;
+            box-shadow: 0 0 15px rgba(0, 220, 255, 0.2);
+            align-self: center;
+            text-transform: uppercase;
+        }
+
+        .btn-orbit:hover {
+            background: rgba(0, 220, 255, 0.25);
+            box-shadow: 0 0 25px rgba(0, 220, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .btn-orbit:active {
+            transform: translateY(1px);
+        }
+
+        /* Tipografías y Títulos */
+        .phase-indicator {
+            font-size: 12px;
+            color: #00dcff;
+            letter-spacing: 3px;
+            border-left: 3px solid #00dcff;
+            padding-left: 10px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(20px, 3.5vw, 32px);
+            font-weight: 900;
+            letter-spacing: 4px;
+            color: #ffffff;
+            text-shadow: 0 0 20px rgba(0, 220, 255, 0.4);
+        }
+
+        /* Bloque de Telemetría */
+        .telemetry-block {
+            background: rgba(1, 4, 10, 0.7);
+            border: 1px solid rgba(0, 220, 255, 0.2);
+            border-radius: 4px;
+            padding: 14px 18px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #94a3b8;
+        }
+
+        .telemetry-cyan { color: #00dcff; }
+        .telemetry-warn { color: #ff7800; font-weight: bold; }
+        .telemetry-alert { color: #ff3838; font-weight: bold; }
+        .telemetry-green { color: #00ff66; font-weight: bold; }
+
+        /* FASE 2 & DIÁLOGOS CINEMÁTICOS */
+        .dialogue-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            width: 100%;
+        }
+
+        .dialogue-character-box {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+            background: rgba(2, 6, 14, 0.85);
+            border: 1px solid rgba(0, 220, 255, 0.25);
+            border-radius: 6px;
+            padding: 16px;
+            min-height: 110px;
+        }
+
+        .avatar-box {
+            width: 64px;
+            height: 64px;
+            min-width: 64px;
+            border: 2px solid #00dcff;
+            background: #010206;
+            border-radius: 4px;
+            box-shadow: 0 0 12px rgba(0, 220, 255, 0.3);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .avatar-tars {
+            border-color: #ff7800;
+            box-shadow: 0 0 12px rgba(255, 120, 0, 0.3);
+        }
+
+        .dialogue-text-bubble {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .dialogue-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        #typewriter-text, #flight-typewriter-text, #wormhole-typewriter-text, #preorbit-typewriter-text, #epilogue-typewriter-text {
+            font-size: 15px;
+            line-height: 1.5;
+            color: #d1dbe5;
+        }
+
+        /* CONTENEDOR CANVAS JUEGOS */
+        .game-canvas-wrapper {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .hud-overlay {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #00dcff;
+            font-family: 'Share Tech Mono', monospace;
+            border-bottom: 1px solid rgba(0, 220, 255, 0.18);
+            padding-bottom: 6px;
+        }
+
+        .canvas-container {
+            width: 100%;
+            max-width: 800px;
+            aspect-ratio: 8/5;
+            background: #010206;
+            border: 2px solid rgba(0, 220, 255, 0.35);
+            box-shadow: 0 0 25px rgba(0, 220, 255, 0.08);
+            position: relative;
+            border-radius: 4px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* Pantallas de Fallo y Transición */
+        .failed-screen {
+            position: absolute;
+            inset: 0;
+            background: rgba(4, 2, 8, 0.94);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            gap: 12px;
+            z-index: 50;
+            text-align: center;
+        }
+
+        .failed-screen.active {
+            display: flex;
+        }
+
+        .failed-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(18px, 3vw, 24px);
+            font-weight: 900;
+            color: #ff3838;
+            letter-spacing: 3px;
+            text-shadow: 0 0 15px rgba(255, 56, 56, 0.6);
+        }
+
+        /* Controles Móviles D-PAD */
+        .mobile-controls {
+            display: none;
+            width: 100%;
+            max-width: 380px;
+            margin: 6px auto 0;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        @media (hover: none) and (pointer: coarse) {
+            .mobile-controls {
+                display: flex;
+            }
+        }
+
+        .ctrl-btn {
+            background: rgba(8, 16, 32, 0.88);
+            border: 1px solid rgba(0, 220, 255, 0.45);
+            color: #00dcff;
+            width: 58px;
+            height: 48px;
+            border-radius: 6px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        .ctrl-btn:active {
+            background: rgba(0, 220, 255, 0.3);
+            box-shadow: 0 0 15px rgba(0, 220, 255, 0.5);
+        }
+
+        .dpad-grid {
+            display: grid;
+            grid-template-areas: 
+                ". up ."
+                "left . right"
+                ". down .";
+            gap: 6px;
+        }
+
+        /* FASE 6: La Elección (Bifurcación) */
+        .cards-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        @media (min-width: 620px) {
+            .cards-container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .choice-card {
+            background: rgba(4, 10, 22, 0.75);
+            border: 1px solid rgba(0, 220, 255, 0.25);
+            border-radius: 6px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .choice-card:hover {
+            transform: translateY(-4px);
+            background: rgba(8, 18, 36, 0.9);
+        }
+
+        .card-cyan {
+            border-color: rgba(0, 220, 255, 0.4);
+        }
+        .card-cyan:hover {
+            border-color: #00dcff;
+            box-shadow: 0 0 25px rgba(0, 220, 255, 0.35);
+        }
+        .card-cyan h3 {
+            color: #00dcff;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 16px;
+            letter-spacing: 2px;
+        }
+
+        .card-orange {
+            border-color: rgba(255, 120, 0, 0.4);
+        }
+        .card-orange:hover {
+            border-color: #ff7800;
+            box-shadow: 0 0 25px rgba(255, 120, 0, 0.35);
+        }
+        .card-orange h3 {
+            color: #ff7800;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 16px;
+            letter-spacing: 2px;
+        }
+
+        .choice-card p {
+            font-size: 13px;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+
+        /* Versión Toggle Switch */
+        .version-switcher {
+            position: fixed;
+            bottom: 12px;
+            right: 16px;
+            z-index: 100;
+            background: rgba(2, 6, 16, 0.85);
+            border: 1px solid rgba(0, 220, 255, 0.3);
+            border-radius: 20px;
+            padding: 4px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        .version-link {
+            color: #00dcff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .version-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <!-- Canvas de Fondo: Estrellas, Agujero de Gusano y Gargantúa -->
+    <canvas id="space-backdrop"></canvas>
+
+    <!-- Header HUD -->
+    <header>
+        <div class="hud-left">
+            <div class="hud-title">INTERESTELAR // ENDURANCE II</div>
+            <div class="hud-badge">EDICIÓN ENRIQUECIDA v2.0</div>
+        </div>
+        <button class="audio-toggle" id="audio-btn">MÚSICA: OFF</button>
+    </header>
+
+    <!-- Contenedor Principal de la App -->
+    <main id="app">
+        <div class="glass-panel" id="main-panel">
+            <!-- Inyección dinámica de fases -->
+        </div>
+    </main>
+
+    <!-- Selector de Comparativa de Versiones -->
+    <div class="version-switcher">
+        <span>MODO COMPARATIVO:</span>
+        <a href="index.html" class="version-link">◀ Ver Versión 1.0 (Original)</a>
+        <span>|</span>
+        <strong style="color:#ff7800;">v2.0 (Enriquecida)</strong>
+    </div>
+
+    <!-- Motor Sonoro de Hertz (0 KB / Vanilla Web Audio API) -->
+    <script src="audio_interstellar.js"></script>
+
+    <!-- Motor Principal de Lógica, Narrativa y Gráficos Procedurales -->
+    <script>
+        /* ============================================================
+           SISTEMA DE AUDIO INTEGRADO CON HERTZ ENGINE
+           ============================================================ */
+        const audio = window.interstellarAudio;
+        const audioBtn = document.getElementById('audio-btn');
+
+        audioBtn.addEventListener('click', () => {
+            const isMuted = audio.toggleMute();
+            audioBtn.textContent = isMuted ? 'MÚSICA: OFF' : 'MÚSICA: ON';
+            audioBtn.style.color = isMuted ? '#00dcff' : '#ff7800';
+            audioBtn.style.borderColor = isMuted ? 'rgba(0, 220, 255, 0.35)' : '#ff7800';
+        });
+
+        /* ============================================================
+           SISTEMA DE ANIMACIÓN DEL FONDO (Canvas 60-120 FPS)
+           ============================================================ */
+        const spaceCanvas = document.getElementById('space-backdrop');
+        const sCtx = spaceCanvas.getContext('2d');
+        
+        let stars = [];
+        let wormholeWarp = 0.005;
+        let mode = 'stars'; // stars, wormhole, gargantua
+
+        function resizeSpaceCanvas() {
+            spaceCanvas.width = window.innerWidth;
+            spaceCanvas.height = window.innerHeight;
+            initStars();
+        }
+
+        function initStars() {
+            stars = [];
+            const count = 180;
+            for (let i = 0; i < count; i++) {
+                stars.push({
+                    x: Math.random() * spaceCanvas.width - spaceCanvas.width / 2,
+                    y: Math.random() * spaceCanvas.height - spaceCanvas.height / 2,
+                    z: Math.random() * spaceCanvas.width,
+                    color: Math.random() > 0.85 ? '#ff7800' : '#00dcff',
+                    r: Math.random() * 1.5 + 0.5
+                });
+            }
+        }
+
+        window.addEventListener('resize', resizeSpaceCanvas);
+        resizeSpaceCanvas();
+
+        function drawSpace() {
+            sCtx.fillStyle = 'rgba(0, 0, 2, 0.12)';
+            sCtx.fillRect(0, 0, spaceCanvas.width, spaceCanvas.height);
+            
+            const cx = spaceCanvas.width / 2;
+            const cy = spaceCanvas.height / 2;
+
+            if (mode === 'stars') {
+                for (let star of stars) {
+                    star.z -= 1.2;
+                    if (star.z <= 0) star.z = spaceCanvas.width;
+                    
+                    const sx = (star.x / star.z) * spaceCanvas.width + cx;
+                    const sy = (star.y / star.z) * spaceCanvas.height + cy;
+                    const size = ((spaceCanvas.width - star.z) / spaceCanvas.width) * star.r * 1.5;
+
+                    sCtx.beginPath();
+                    sCtx.arc(sx, sy, Math.max(0.2, size), 0, Math.PI * 2);
+                    sCtx.fillStyle = star.color;
+                    sCtx.shadowColor = star.color;
+                    sCtx.shadowBlur = 4;
+                    sCtx.fill();
+                    sCtx.shadowBlur = 0;
+                }
+            } else if (mode === 'wormhole') {
+                wormholeWarp += 0.0008;
+                for (let i = 0; i < stars.length; i++) {
+                    const star = stars[i];
+                    star.z -= 18; 
+                    if (star.z <= 0) {
+                        star.z = spaceCanvas.width;
+                        star.x = Math.random() * spaceCanvas.width - spaceCanvas.width / 2;
+                        star.y = Math.random() * spaceCanvas.height - spaceCanvas.height / 2;
+                    }
+
+                    const zCurrent = star.z;
+                    const zTail = star.z + 45;
+                    
+                    const angleCurrent = Math.atan2(star.y, star.x) + wormholeWarp * (zCurrent / 180);
+                    const distCurrent = Math.sqrt(star.x * star.x + star.y * star.y);
+                    const rxCurrent = Math.cos(angleCurrent) * distCurrent;
+                    const ryCurrent = Math.sin(angleCurrent) * distCurrent;
+                    const sx = (rxCurrent / zCurrent) * spaceCanvas.width + cx;
+                    const sy = (ryCurrent / zCurrent) * spaceCanvas.height + cy;
+
+                    const angleTail = Math.atan2(star.y, star.x) + wormholeWarp * (zTail / 180);
+                    const rxTail = Math.cos(angleTail) * distCurrent;
+                    const ryTail = Math.sin(angleTail) * distCurrent;
+                    const sxTail = (rxTail / zTail) * spaceCanvas.width + cx;
+                    const syTail = (ryTail / zTail) * spaceCanvas.height + cy;
+
+                    const size = ((spaceCanvas.width - star.z) / spaceCanvas.width) * star.r * 1.5;
+
+                    sCtx.beginPath();
+                    sCtx.moveTo(sx, sy);
+                    sCtx.lineTo(sxTail, syTail);
+                    
+                    sCtx.strokeStyle = i % 2 === 0 ? '#00dcff' : '#ff7800';
+                    sCtx.lineWidth = Math.max(0.5, size);
+                    sCtx.lineCap = 'round';
+                    sCtx.stroke();
+                }
+            }
+            requestAnimationFrame(drawSpace);
+        }
+        drawSpace();
+
+        /* ============================================================
+           SISTEMA DE TECLADO GLOBAL
+           ============================================================ */
+        const globalKeys = {};
+        window.addEventListener('keydown', e => {
+            const key = e.key.toLowerCase();
+            globalKeys[key] = true;
+            if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd', ' '].includes(key)) {
+                e.preventDefault();
+            }
+        });
+        window.addEventListener('keyup', e => {
+            globalKeys[e.key.toLowerCase()] = false;
+        });
+
+        /* ============================================================
+           CREADOR DE AVATARES PROCEDURALES EN PIXEL ART
+           (Cooper, Cooper Sin Casco, TARS, Brand, Politician, Scientist)
+           ============================================================ */
+        function drawPixelAvatar(speaker, canvas) {
+            const ctx = canvas.getContext('2d');
+            const pixelSize = Math.max(1, Math.floor(canvas.width / 16));
+            
+            function drawFrame(isLightOn) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.imageSmoothingEnabled = false;
+                
+                if (speaker === 'COOPER') {
+                    // Traje espacial con visor
+                    ctx.fillStyle = '#4b6584';
+                    ctx.fillRect(3 * pixelSize, 13 * pixelSize, 10 * pixelSize, 3 * pixelSize);
+                    ctx.fillStyle = '#ff7800';
+                    ctx.fillRect(7 * pixelSize, 14 * pixelSize, 2 * pixelSize, 1 * pixelSize);
+                    
+                    ctx.fillStyle = '#d1dbe5';
+                    ctx.fillRect(3 * pixelSize, 3 * pixelSize, 10 * pixelSize, 10 * pixelSize);
+                    ctx.fillRect(4 * pixelSize, 2 * pixelSize, 8 * pixelSize, 12 * pixelSize);
+                    ctx.fillRect(2 * pixelSize, 4 * pixelSize, 12 * pixelSize, 8 * pixelSize);
+                    
+                    ctx.fillStyle = '#a4b3c4';
+                    ctx.fillRect(3 * pixelSize, 11 * pixelSize, 10 * pixelSize, 1 * pixelSize);
+                    ctx.fillRect(11 * pixelSize, 4 * pixelSize, 1 * pixelSize, 8 * pixelSize);
+                    
+                    ctx.fillStyle = '#1e272e';
+                    ctx.fillRect(3 * pixelSize, 4 * pixelSize, 10 * pixelSize, 7 * pixelSize);
+                    
+                    ctx.fillStyle = '#0f172a';
+                    ctx.fillRect(4 * pixelSize, 5 * pixelSize, 8 * pixelSize, 5 * pixelSize);
+                    
+                    ctx.fillStyle = isLightOn ? '#00dcff' : '#00a8cc';
+                    ctx.fillRect(5 * pixelSize, 6 * pixelSize, 6 * pixelSize, 3 * pixelSize);
+                    
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(5 * pixelSize, 6 * pixelSize, 1 * pixelSize, 1 * pixelSize);
+                    ctx.fillRect(6 * pixelSize, 7 * pixelSize, 1 * pixelSize, 1 * pixelSize);
+                    ctx.fillRect(9 * pixelSize, 6 * pixelSize, 2 * pixelSize, 1 * pixelSize);
+                } else if (speaker === 'COOPER_NO_HELMET') {
+                    // Cooper sin casco (Edmunds)
+                    ctx.fillStyle = '#334155';
+                    ctx.fillRect(3 * pixelSize, 12 * pixelSize, 10 * pixelSize, 4 * pixelSize);
+                    ctx.fillStyle = '#e2e8f0';
+                    ctx.fillRect(6 * pixelSize, 12 * pixelSize, 4 * pixelSize, 2 * pixelSize);
+                    ctx.fillStyle = '#ff7800';
+                    ctx.fillRect(4 * pixelSize, 13 * pixelSize, 1 * pixelSize, 2 * pixelSize);
+                    
+                    ctx.fillStyle = '#eab087';
+                    ctx.fillRect(6 * pixelSize, 10 * pixelSize, 4 * pixelSize, 2 * pixelSize);
+                    
+                    ctx.fillStyle = '#fed7aa';
+                    ctx.fillRect(4 * pixelSize, 3 * pixelSize, 8 * pixelSize, 7 * pixelSize);
+                    ctx.fillRect(5 * pixelSize, 2 * pixelSize, 6 * pixelSize, 1 * pixelSize);
+                    
+                    ctx.fillStyle = '#4a2c11';
+                    ctx.fillRect(4 * pixelSize, 1 * pixelSize, 8 * pixelSize, 2 * pixelSize);
+                    ctx.fillRect(3 * pixelSize, 2 * pixelSize, 2 * pixelSize, 4 * pixelSize);
+                    ctx.fillRect(11 * pixelSize, 2 * pixelSize, 2 * pixelSize, 3 * pixelSize);
+                    ctx.fillRect(5 * pixelSize, 0 * pixelSize, 6 * pixelSize, 1 * pixelSize);
+                    ctx.fillRect(6 * pixelSize, 2 * pixelSize, 2 * pixelSize, 1 * pixelSize);
+                    
+                    ctx.fillStyle = '#1e293b';
+                    ctx.fillRect(5 * pixelSize, 5 * pixelSize, 1 * pixelSize, 1 * pixelSize);
+                    ctx.fillRect(10 * pixelSize, 5 * pixelSize, 1 * pixelSize, 1 * pixelSize);
+                    
+                    ctx.fillStyle = '#4a2c11';
+                    ctx.fillRect(4 * pixelSize, 4 * pixelSize, 3 * pixelSize, 1 * pixelSize);
+                    ctx.fillRect(9 * pixelSize, 4 * pixelSize, 3 * pixelSize, 1 * pixelSize);
+                    
+                    ctx.fillStyle = '#dd7a5f';
+                    ctx.fillRect(6 * pixelSize, 8 * pixelSize, 4 * pixelSize, 1 * pixelSize);
+                } else if (speaker === 'BRAND') {
+                    // Dra. Amelia Brand
+                    ctx.fillStyle = '#4b6584';
+                    ctx.fillRect(3 * pixelSize, 12 * pixelSize, 10 * pixelSize, 4 * pixelSize);
+                    ctx.fillStyle = '#ff7800';
+                    ctx.fillRect(5 * pixelSize, 12 * pixelSize, 6 * pixelSize, 1 * pixelSize);
+                    
+                    ctx.fillStyle = '#f8a5c2';
+                    ctx.fillRect(6 * pixelSize, 10 * pixelSize, 4 * pixelSize, 2 * pixelSize);
+                    
+                    ctx.fillStyle = '#ffe0cb';
+                    ctx.fillRect(4 * pixelSize, 3 * pixelSize, 8 * pixelSize, 7 * pixelSize);
+                    ctx.fillRect(5 * pixelSize, 2 * pixelSize, 6 * pixelSize, 1 * pixelSize);
+                    
+                    ctx.fillStyle = '#3d2006';
+                    ctx.fillRect(4 * pixelSize, 1 * pixelSize, 8 * pixelSize, 2 * pixelSize);
+                    ctx.fillRect(3 * pixelSize, 2 * pixelSize, 1 * pixelSize, 5 * pixelSize);
+                    ctx.fillRect(12 * pixelSize, 2 * pixelSize, 1 * pixelSize, 5 * pixelSize);
+                    ctx.fillRect(4 * pixelSize, 2 * pixelSize, 2 * pixelSize, 1 * pixelSize);
+                    ctx.fillRect(10 * pixelSize, 2 * pixelSize, 2 * pixelSize, 1 * pixelSize);
+                    
+                    ctx.fillStyle = '#2d5a27';
+                    ctx.fillRect(5 * pixelSize, 5 * pixelSize, 1 * pixelSize, 1 * pixelSize);
+                    ctx.fillRect(10 * pixelSize, 5 * pixelSize, 1 * pixelSize, 1 * pixelSize);
+                    
+                    ctx.fillStyle = '#f8a5c2';
+                    ctx.fillRect(4 * pixelSize, 6 * pixelSize, 1 * pixelSize, 1 * pixelSize);
+                    ctx.fillRect(11 * pixelSize, 6 * pixelSize, 1 * pixelSize, 1 * pixelSize);
+                    
+                    ctx.fillStyle = '#ea8685';
+                    ctx.fillRect(7 * pixelSize, 8 * pixelSize, 2 * pixelSize, 1 * pixelSize);
+                } else if (speaker === 'POLITICIAN') {
+                    // Burócrata supremo
+                    ctx.fillStyle = '#475569';
+                    ctx.fillRect(3 * pixelSize, 12 * pixelSize, 10 * pixelSize, 4 * pixelSize);
+                    ctx.fillStyle = '#f8fafc';
+                    ctx.fillRect(6 * pixelSize, 12 * pixelSize, 4 * pixelSize, 2 * pixelSize);
+                    ctx.fillStyle = '#ef4444';
+                    ctx.fillRect(7 * pixelSize, 12 * pixelSize, 2 * pixelSize, 3 * pixelSize);
+                    
+                    ctx.fillStyle = '#f5b041';
+                    ctx.fillRect(6 * pixelSize, 10 * pixelSize, 4 * pixelSize, 2 * pixelSize);
+                    
+                    ctx.fillStyle = '#f9e79f';
+                    ctx.fillRect(4 * pixelSize, 3 * pixelSize, 8 * pixelSize, 7 * pixelSize);
+                    ctx.fillRect(5 * pixelSize, 2 * pixelSize, 6 * pixelSize, 1 * pixelSize);
+                    
+                    ctx.fillStyle = '#94a3b8';
+                    ctx.fillRect(3 * pixelSize, 2 * pixelSize, 2 * pixelSize, 6 * pixelSize);
+                    ctx.fillRect(11 * pixelSize, 2 * pixelSize, 2 * pixelSize, 6 * pixelSize);
+                    ctx.fillRect(4 * pixelSize, 1 * pixelSize, 1 * pixelSize, 1 * pixelSize);
+                    ctx.fillRect(11 * pixelSize, 1 * pixelSize, 1 * pixelSize, 1 * pixelSize);
+                    
+                    ctx.fillStyle = '#0f172a';
+                    ctx.fillRect(5 * pixelSize, 5 * pixelSize, 1 * pixelSize, 1 * pixelSize);
+                    ctx.fillRect(10 * pixelSize, 5 * pixelSize, 1 * pixelSize, 1 * pixelSize);
+                    
+                    ctx.fillStyle = '#d5dbdb';
+                    ctx.fillRect(5 * pixelSize, 7 * pixelSize, 1 * pixelSize, 1 * pixelSize);
+                    ctx.fillRect(10 * pixelSize, 7 * pixelSize, 1 * pixelSize, 1 * pixelSize);
+                    
+                    ctx.fillStyle = '#ba4a00';
+                    ctx.fillRect(6 * pixelSize, 8 * pixelSize, 4 * pixelSize, 1 * pixelSize);
+                } else if (speaker === 'TARS') {
+                    // TARS: Monolito robótico táctico
+                    const cols = [
+                        { x: 3, w: 2, c: '#475569' },
+                        { x: 5, w: 3, c: '#94a3b8' },
+                        { x: 8, w: 3, c: '#cbd5e1' },
+                        { x: 11, w: 2, c: '#64748b' }
+                    ];
+                    
+                    cols.forEach(col => {
+                        ctx.fillStyle = col.c;
+                        ctx.fillRect(col.x * pixelSize, 2 * pixelSize, col.w * pixelSize, 12 * pixelSize);
+                    });
+                    
+                    ctx.fillStyle = '#0f172a';
+                    ctx.fillRect(5 * pixelSize, 2 * pixelSize, 1, 12 * pixelSize);
+                    ctx.fillRect(8 * pixelSize, 2 * pixelSize, 1, 12 * pixelSize);
+                    ctx.fillRect(11 * pixelSize, 2 * pixelSize, 1, 12 * pixelSize);
+                    
+                    ctx.fillRect(3 * pixelSize, 6 * pixelSize, 10 * pixelSize, 1);
+                    ctx.fillRect(3 * pixelSize, 10 * pixelSize, 10 * pixelSize, 1);
+                    
+                    ctx.fillStyle = isLightOn ? '#ff3838' : '#7f1d1d';
+                    ctx.fillRect(6 * pixelSize, 4 * pixelSize, 1 * pixelSize, 1 * pixelSize);
+                    
+                    ctx.fillStyle = '#00dcff';
+                    ctx.fillRect(9 * pixelSize, 4 * pixelSize, 1 * pixelSize, 1 * pixelSize);
+                }
+            }
+            
+            let lightState = true;
+            drawFrame(lightState);
+            
+            const intervalId = setInterval(() => {
+                if (!document.body.contains(canvas)) {
+                    clearInterval(intervalId);
+                    return;
+                }
+                lightState = !lightState;
+                drawFrame(lightState);
+            }, 350);
+        }
+
+        /* ============================================================
+           RENDERIZADOR VECTORIAL DE LA ENDURANCE II
+           ============================================================ */
+        function drawEnduranceV2(ctx, cx, cy, radius, rotation, propulsionActive, propulsionSide = 0, stableFlameAngle = null) {
+            if (propulsionActive && propulsionSide === 0 && stableFlameAngle !== null) {
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(stableFlameAngle);
+                ctx.shadowColor = '#ff7800';
+                ctx.shadowBlur = 10;
+                ctx.fillStyle = '#ff7800';
+                ctx.beginPath();
+                ctx.moveTo(radius * 1.15, -radius * 0.18);
+                ctx.lineTo(radius * 1.15 + (radius * 0.45 + Math.sin(Date.now() * 0.08) * radius * 0.12), 0);
+                ctx.lineTo(radius * 1.15, radius * 0.18);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            }
+
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(rotation);
+
+            ctx.shadowColor = '#00dcff';
+            ctx.shadowBlur = 8;
+
+            ctx.strokeStyle = 'rgba(0, 220, 255, 0.4)';
+            ctx.lineWidth = Math.max(1, radius * 0.05);
+            ctx.beginPath();
+            ctx.arc(0, 0, radius, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.strokeStyle = 'rgba(0, 220, 255, 0.25)';
+            ctx.lineWidth = Math.max(0.5, radius * 0.02);
+            const numSpokes = 6;
+            for (let i = 0; i < numSpokes; i++) {
+                const a = (i * Math.PI * 2) / numSpokes;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(Math.cos(a) * radius, Math.sin(a) * radius);
+                ctx.stroke();
+            }
+
+            const modules = 12;
+            const modW = radius * 0.25;
+            const modH = radius * 0.38;
+            for (let i = 0; i < modules; i++) {
+                const aModule = (i * Math.PI * 2) / modules;
+                ctx.save();
+                ctx.rotate(aModule);
+                
+                ctx.fillStyle = '#010207';
+                ctx.strokeStyle = '#00dcff';
+                ctx.lineWidth = 1.5;
+                
+                ctx.fillRect(radius - modW/2, -modH/2, modW, modH);
+                ctx.strokeRect(radius - modW/2, -modH/2, modW, modH);
+
+                ctx.strokeStyle = 'rgba(0, 220, 255, 0.4)';
+                ctx.beginPath();
+                ctx.moveTo(radius - modW/2, 0);
+                ctx.lineTo(radius + modW/2, 0);
+                ctx.stroke();
+                ctx.restore();
+
+                const aCollar = ((i + 0.5) * Math.PI * 2) / modules;
+                ctx.save();
+                ctx.rotate(aCollar);
+                
+                ctx.fillStyle = '#010207';
+                ctx.strokeStyle = '#00dcff';
+                ctx.lineWidth = 1.5;
+                
+                ctx.beginPath();
+                ctx.arc(radius, 0, radius * 0.08, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.arc(radius, 0, radius * 0.03, 0, Math.PI * 2);
+                ctx.fillStyle = '#ff7800';
+                ctx.fill();
+                ctx.restore();
+            }
+
+            ctx.strokeStyle = '#00dcff';
+            ctx.lineWidth = Math.max(1, radius * 0.05);
+            ctx.beginPath();
+            ctx.moveTo(-radius * 0.3, 0);
+            ctx.lineTo(radius * 0.3, 0);
+            ctx.stroke();
+
+            ctx.fillStyle = '#080d22';
+            ctx.strokeStyle = '#00dcff';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(-radius * 0.12, -radius * 0.08);
+            ctx.lineTo(radius * 0.12, -radius * 0.08);
+            ctx.lineTo(radius * 0.08, -radius * 0.22);
+            ctx.lineTo(-radius * 0.08, -radius * 0.22);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(-radius * 0.12, radius * 0.08);
+            ctx.lineTo(radius * 0.12, radius * 0.08);
+            ctx.lineTo(radius * 0.08, radius * 0.22);
+            ctx.lineTo(-radius * 0.08, radius * 0.22);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#ff7800';
+            ctx.shadowBlur = 6;
+            ctx.shadowColor = '#ff7800';
+            ctx.beginPath();
+            ctx.arc(0, 0, radius * 0.1, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = '#ffffff';
+            ctx.stroke();
+
+            if (propulsionActive) {
+                ctx.shadowColor = '#ff7800';
+                ctx.shadowBlur = 10;
+                ctx.fillStyle = '#ff7800';
+                ctx.beginPath();
+                let shouldDraw = true;
+                if (propulsionSide === -1) {
+                    ctx.moveTo(0, radius + modH/2);
+                    ctx.lineTo(-radius * 0.15, radius + modH/2 + radius * 0.25);
+                    ctx.lineTo(0, radius + modH/2 + radius * 0.15);
+                    ctx.lineTo(radius * 0.15, radius + modH/2 + radius * 0.25);
+                } else if (propulsionSide === 1) {
+                    ctx.moveTo(0, -radius - modH/2);
+                    ctx.lineTo(-radius * 0.15, -radius - modH/2 - radius * 0.25);
+                    ctx.lineTo(0, -radius - modH/2 - radius * 0.15);
+                    ctx.lineTo(radius * 0.15, -radius - modH/2 - radius * 0.25);
+                } else if (stableFlameAngle === null) {
+                    ctx.moveTo(-radius * 1.15, -radius * 0.18);
+                    ctx.lineTo(-radius * 1.15 - (radius * 0.45 + Math.sin(Date.now() * 0.08) * radius * 0.12), 0);
+                    ctx.lineTo(-radius * 1.15, radius * 0.18);
+                } else {
+                    shouldDraw = false;
+                }
+                if (shouldDraw) {
+                    ctx.closePath();
+                    ctx.fill();
+                }
+            }
+
+            ctx.restore();
+            ctx.shadowBlur = 0;
+        }
+
+        /* ============================================================
+           SISTEMA DE ESTADOS DE LA NARRATIVA Y JUEGO
+           ============================================================ */
+        const gameState = {
+            currentPhase: 'welcome',
+            epilogueType: 'tars',
+            stealthDeaths: 0,
+            asteroidsShields: 3,
+            asteroidsScore: 0,
+            orbitStability: 0
+        };
+
+        const mainPanel = document.getElementById('main-panel');
+
+        function changePhase(phaseName) {
+            mainPanel.style.transition = 'opacity 0.35s ease';
+            mainPanel.style.opacity = '0';
+            
+            setTimeout(() => {
+                gameState.currentPhase = phaseName;
+                localStorage.setItem('interstellar_current_phase_v2', phaseName);
+                
+                // Disparo de Audio de Hertz
+                audio.setPhase(phaseName);
+                
+                for (let k in globalKeys) globalKeys[k] = false;
+                
+                if (phaseName === 'welcome' || phaseName === 'intro' || phaseName === 'stealth' || phaseName === 'hangar' || phaseName === 'flight') mode = 'stars';
+                if (phaseName === 'asteroids') mode = 'stars';
+                if (phaseName === 'wormhole') mode = 'wormhole';
+                if (phaseName === 'preorbit' || phaseName === 'orbit' || phaseName === 'choice' || phaseName === 'decouple' || phaseName === 'epilogue' || phaseName === 'credits') mode = 'stars';
+
+                renderPhase();
+                mainPanel.style.opacity = '1';
+            }, 350);
+        }
+
+        function renderPhase() {
+            mainPanel.innerHTML = '';
+            
+            switch (gameState.currentPhase) {
+                case 'welcome': renderWelcome(); break;
+                case 'intro': renderIntro(); break;
+                case 'stealth': renderStealthGame(); break;
+                case 'hangar': renderHangar(); break;
+                case 'flight': renderFlight(); break;
+                case 'asteroids': renderAsteroidsGame(); break;
+                case 'wormhole': renderWormhole(); break;
+                case 'preorbit': renderPreOrbit(); break;
+                case 'orbit': renderOrbitGame(); break;
+                case 'choice': renderChoice(); break;
+                case 'decouple': renderDecouple(); break;
+                case 'epilogue': renderEpilogue(); break;
+                case 'credits': renderCredits(); break;
+            }
+        }
+
+        /* ------------------------------------------------------------
+           FASE 1: CONEXIÓN CUÁNTICA (PANTALLA DE INICIO)
+           ------------------------------------------------------------ */
+        function renderWelcome() {
+            const container = document.createElement('div');
+            container.className = 'welcome-phase';
+            
+            container.innerHTML = `
+                <div class="phase-indicator">SISTEMA BIFROST // PROTOCOLO CLAN SAPIENSIA</div>
+                <h1 class="section-title">INTERESTELAR</h1>
+                <p style="font-size: 15px; color: #a4b3c4; max-width: 650px; line-height: 1.6;">
+                    Bienvenido de vuelta, Cooper. La humanidad no halló la libertad en los cilindros artificiales: la población se marchita bajo el control burocrático. Los datos para estabilizar la biosfera de Edmunds siguen atrapados en la singularidad de Gargantúa.
+                </p>
+                
+                <div class="telemetry-block">
+                    <div class="telemetry-line"><span class="telemetry-cyan">[SISTEMAS]</span> Enlace de microondas: <span class="telemetry-cyan">ACTIVO // COOPER_STATION</span></div>
+                    <div class="telemetry-line"><span class="telemetry-cyan">[OBJETIVO]</span> Extracción de datos cuánticos en Gargantúa // Asistencia a Dra. Brand (Edmunds)</div>
+                    <div class="telemetry-line"><span class="telemetry-warn">[PELIGRO]</span> Autopiloto desactivado. Alerta de propulsores encendida.</div>
+                    <div class="telemetry-line"><span class="telemetry-cyan">[ESTADO]</span> Conexión neuronal establecida con el piloto.</div>
+                </div>
+
+                <button class="btn-orbit" id="start-btn">Establecer Enlace Cuántico</button>
+            `;
+
+            mainPanel.appendChild(container);
+
+            document.getElementById('start-btn').addEventListener('click', () => {
+                audio.init();
+                audioBtn.textContent = 'MÚSICA: ON';
+                audioBtn.style.color = '#ff7800';
+                audioBtn.style.borderColor = '#ff7800';
+                changePhase('intro');
+            });
+        }
+
+        /* ------------------------------------------------------------
+           FASE 2: DIÁLOGO EN EL RANGER (LA MISIÓN REAL - SILAS)
+           ------------------------------------------------------------ */
+        const dialogues = [
+            { speaker: "COOPER", text: "TARS, los propulsores del Ranger están al máximo. Hemos salido de la atmósfera de la estación. Pon rumbo a Gargantúa.", avatar: "COOPER" },
+            { speaker: "TARS", text: "¿Gargantúa, Cooper? Si vamos directo a Edmunds con este Ranger atmosférico, nos quedaremos sin combustible en catorce minutos. Y si llegáramos, Brand tardaría tres generaciones en levantar una colonia sin soporte cuántico.", avatar: "TARS" },
+            { speaker: "COOPER", text: "Por eso vamos a Gargantúa primero. Murph me lo explicó antes de cerrar los ojos: la ecuación resolvió cómo sacarnos del barro, pero los datos para estabilizar un planeta entero siguen atrapados dentro del agujero negro.", avatar: "COOPER" },
+            { speaker: "TARS", text: "Mis registros confirman que Murph diseñó la Endurance II hace quince años: un carguero pesado con blindaje de polarización para resistir la marea de Gargantúa. El gobierno de la estación canceló el proyecto y lo dejó oxidándose en el Hangar 4.", avatar: "TARS" },
+            { speaker: "COOPER", text: "Tienen miedo de que la gente sepa que hay un mundo real esperándolos afuera. Prefieren tenerlos encerrados en estas latas de metal. TARS, ¿puedes darnos acceso a la nave?", avatar: "COOPER" },
+            { speaker: "TARS", text: "Puedo anular las compuertas, Cooper, pero el hangar tiene guardias armados y escáneres magnéticos. Tendrás que guiarme a pie. Si nos detectan, no habrá viaje a las estrellas.", avatar: "TARS" },
+            { speaker: "COOPER", text: "Sincroniza mi visor. Vamos a recuperar esa nave.", avatar: "COOPER" }
+        ];
+
+        function renderIntro() {
+            let currentDiag = 0;
+            const container = document.createElement('div');
+            container.className = 'dialogue-container';
+
+            container.innerHTML = `
+                <div class="phase-indicator">ENLACE NEURONAL // DIÁLOGO EN EL RANGER</div>
+                <div class="dialogue-character-box" id="dialogue-box"></div>
+                <button class="btn-orbit" id="next-diag-btn" style="margin-top: 0;">Continuar</button>
+            `;
+            
+            mainPanel.appendChild(container);
+
+            const diagBox = document.getElementById('dialogue-box');
+            const nextBtn = document.getElementById('next-diag-btn');
+
+            function showDialogue() {
+                const data = dialogues[currentDiag];
+                const isTars = data.avatar === "TARS";
+                audio.playClockTick();
+                
+                diagBox.innerHTML = `
+                    <div class="avatar-box ${isTars ? 'avatar-tars' : ''}">
+                        <canvas id="dialogue-avatar-canvas" width="64" height="64" style="width: 100%; height: 100%; image-rendering: pixelated;"></canvas>
+                    </div>
+                    <div class="dialogue-text-bubble">
+                        <div class="dialogue-name" style="color: ${isTars ? '#ff7800' : '#00dcff'}">${data.speaker}</div>
+                        <p id="typewriter-text" style="color: #d1dbe5;"></p>
+                    </div>
+                `;
+
+                const avatarCanvas = document.getElementById('dialogue-avatar-canvas');
+                if (avatarCanvas) drawPixelAvatar(data.avatar, avatarCanvas);
+
+                const txt = data.text;
+                let charIdx = 0;
+                const txtEl = document.getElementById('typewriter-text');
+                
+                function type() {
+                    if (charIdx < txt.length) {
+                        txtEl.textContent += txt.charAt(charIdx);
+                        charIdx++;
+                        setTimeout(type, 14);
+                    }
+                }
+                type();
+            }
+
+            showDialogue();
+
+            nextBtn.addEventListener('click', () => {
+                currentDiag++;
+                if (currentDiag < dialogues.length) {
+                    showDialogue();
+                } else {
+                    changePhase('stealth');
+                }
+            });
+        }
+
+        /* ------------------------------------------------------------
+           FASE 3: INFILTRACIÓN EN EL HANGAR (SIGILO 2D ENRIQUECIDO)
+           ------------------------------------------------------------ */
+        function renderStealthGame() {
+            const container = document.createElement('div');
+            container.className = 'game-canvas-wrapper';
+            
+            container.innerHTML = `
+                <div class="hud-overlay">
+                    <div>SUJETO: COOPER [PILOTO] // HANGAR 4</div>
+                    <div style="color: #ff7800;" id="stealth-alert">ESTADO: INFILTRACIÓN EN SILENCIO</div>
+                    <div id="death-count">ALARMAS ACTIVADAS: 0</div>
+                </div>
+                <div class="canvas-container">
+                    <canvas id="stealthCanvas" width="800" height="500"></canvas>
+                    <div class="failed-screen" id="stealth-failed">
+                        <div class="failed-title">¡DETECTADO POR SEGURIDAD!</div>
+                        <p style="color: #ff7800; font-size:14px;">Los guardias bloquearon el hangar. TARS reconfigura el acceso...</p>
+                        <button class="btn-orbit" id="retry-stealth-btn" style="margin-top: 10px;">Reiniciar Infiltración</button>
+                    </div>
+                </div>
+                <div style="font-size:13px; color: #8fa0b3; text-align: center;">
+                    Usa las <span style="color:#00dcff">FLECHAS DE DIRECCIÓN</span> o <span style="color:#00dcff">WASD</span> para mover a Cooper. Esquiva los conos amarillos de los guardias y alcanza el muelle de la Endurance II (zona verde) en la parte superior.
+                </div>
+                <div class="mobile-controls">
+                    <div class="dpad-grid">
+                        <button class="ctrl-btn" style="grid-area: up" id="m-up">▲</button>
+                        <button class="ctrl-btn" style="grid-area: left" id="m-left">◀</button>
+                        <button class="ctrl-btn" style="grid-area: right" id="m-right">▶</button>
+                        <button class="ctrl-btn" style="grid-area: down" id="m-down">▼</button>
+                    </div>
+                </div>
+            `;
+            
+            mainPanel.appendChild(container);
+
+            const canvas = document.getElementById('stealthCanvas');
+            const ctx = canvas.getContext('2d');
+            const retryBtn = document.getElementById('retry-stealth-btn');
+            const failedScreen = document.getElementById('stealth-failed');
+            const deathEl = document.getElementById('death-count');
+
+            const gridWidth = 16;
+            const gridHeight = 10;
+            const cellSize = 50;
+            
+            const walls = [
+                1,1,1,1,1,3,3,1,1,1,1,1,1,1,1,1,
+                1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,
+                1,0,1,1,1,1,1,0,0,1,0,1,1,1,0,1,
+                1,0,1,0,0,0,1,0,0,0,0,1,0,1,0,1,
+                1,0,1,0,1,0,1,1,1,1,0,1,0,1,0,1,
+                1,0,0,0,1,0,0,0,0,1,0,0,0,1,0,1,
+                1,1,1,0,1,1,1,0,0,1,1,1,0,1,0,1,
+                1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,
+                1,0,1,1,1,0,0,0,0,0,0,1,1,1,0,1,
+                1,1,1,1,1,1,1,2,2,1,1,1,1,1,1,1
+            ];
+
+            let player = { x: 375, y: 460, r: 8, speed: 3.2 };
+
+            let particles = [];
+            for(let i=0; i<35; i++){
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    vx: (Math.random() - 0.5) * 0.3,
+                    vy: (Math.random() - 0.5) * 0.3,
+                    size: Math.random() * 2 + 1
+                });
+            }
+
+            const initialGuards = [
+                { x: 100, y: 80, startX: 100, endX: 400, speed: 1.8, dir: 1, angle: 0, sweepRange: Math.PI / 3, sweepSpeed: 0.02, sweepAngle: 0, fov: Math.PI / 4, radius: 160 },
+                { x: 500, y: 380, startX: 200, endX: 680, speed: 2.2, dir: -1, angle: Math.PI, sweepRange: Math.PI / 3, sweepSpeed: 0.025, sweepAngle: 0, fov: Math.PI / 4.5, radius: 170 },
+                { x: 600, y: 150, startY: 80, endY: 350, speed: 1.5, dir: 1, angle: Math.PI / 2, sweepRange: Math.PI / 4, sweepSpeed: 0.015, sweepAngle: 0, fov: Math.PI / 5, radius: 150, isVertical: true },
+                { x: 480, y: 230, angle: 0, speed: 0.008, fov: Math.PI / 4.5, radius: 160, isTurret: true }
+            ];
+
+            const wallSegments = [];
+            for (let r = 0; r < gridHeight; r++) {
+                for (let c = 0; c < gridWidth; c++) {
+                    if (walls[r * gridWidth + c] === 1) {
+                        const x1 = c * cellSize;
+                        const y1 = r * cellSize;
+                        const x2 = x1 + cellSize;
+                        const y2 = y1 + cellSize;
+                        wallSegments.push({ p1: { x: x1, y: y1 }, p2: { x: x2, y: y1 } });
+                        wallSegments.push({ p1: { x: x1, y: y2 }, p2: { x: x2, y: y2 } });
+                        wallSegments.push({ p1: { x: x1, y: y1 }, p2: { x: x1, y: y2 } });
+                        wallSegments.push({ p1: { x: x2, y: y1 }, p2: { x: x2, y: y2 } });
+                    }
+                }
+            }
+            wallSegments.push({ p1: { x: 0, y: 0 }, p2: { x: canvas.width, y: 0 } });
+            wallSegments.push({ p1: { x: 0, y: canvas.height }, p2: { x: canvas.width, y: canvas.height } });
+            wallSegments.push({ p1: { x: 0, y: 0 }, p2: { x: 0, y: canvas.height } });
+            wallSegments.push({ p1: { x: canvas.width, y: 0 }, p2: { x: canvas.width, y: canvas.height } });
+
+            function getIntersection(p1, p2, p3, p4) {
+                const s1_x = p2.x - p1.x;
+                const s1_y = p2.y - p1.y;
+                const s2_x = p4.x - p3.x;
+                const s2_y = p4.y - p3.y;
+                const d = -s2_x * s1_y + s1_x * s2_y;
+                if (Math.abs(d) < 0.0001) return null;
+                const s = (-s1_y * (p1.x - p3.x) + s1_x * (p1.y - p3.y)) / d;
+                const t = (s2_x * (p1.y - p3.y) - s2_y * (p1.x - p3.x)) / d;
+                if (s >= 0 && s <= 1 && t >= 0 && t <= 1) {
+                    return { x: p1.x + (t * s1_x), y: p1.y + (t * s1_y), t: t };
+                }
+                return null;
+            }
+
+            function hasLineOfSight(pStart, pEnd) {
+                for (let seg of wallSegments) {
+                    const intersect = getIntersection(pStart, pEnd, seg.p1, seg.p2);
+                    if (intersect && intersect.t > 0.005 && intersect.t < 0.995) return false;
+                }
+                return true;
+            }
+
+            function initGuardStates(gList) {
+                return gList.map(g => ({
+                    ...g,
+                    state: 'PATROL',
+                    suspicion: 0,
+                    investigateX: null,
+                    investigateY: null,
+                    searchTimer: 0,
+                    sweepAngle: 0,
+                    lookAngle: g.angle,
+                    originalSpeed: g.speed
+                }));
+            }
+
+            let guards = initGuardStates(JSON.parse(JSON.stringify(initialGuards)));
+            const keys = globalKeys;
+            let isFailed = false;
+            let isFinished = false;
+            let runId = null;
+
+            const registerMobileBtn = (id, keyName) => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    btn.addEventListener('touchstart', e => { e.preventDefault(); keys[keyName] = true; });
+                    btn.addEventListener('touchend', e => { e.preventDefault(); keys[keyName] = false; });
+                }
+            };
+            registerMobileBtn('m-up', 'arrowup');
+            registerMobileBtn('m-down', 'arrowdown');
+            registerMobileBtn('m-left', 'arrowleft');
+            registerMobileBtn('m-right', 'arrowright');
+
+            function checkWallCollision(px, py, r) {
+                for (let rIndex = 0; rIndex < gridHeight; rIndex++) {
+                    for (let cIndex = 0; cIndex < gridWidth; cIndex++) {
+                        if (walls[rIndex * gridWidth + cIndex] === 1) {
+                            const tileX = cIndex * cellSize;
+                            const tileY = rIndex * cellSize;
+                            const closestX = Math.max(tileX, Math.min(px, tileX + cellSize));
+                            const closestY = Math.max(tileY, Math.min(py, tileY + cellSize));
+                            const distX = px - closestX;
+                            const distY = py - closestY;
+                            if ((distX * distX + distY * distY) < (r * r)) return true;
+                        }
+                    }
+                }
+                return false;
+            }
+
+            function update() {
+                if (isFailed || isFinished) return;
+
+                let moveX = 0;
+                let moveY = 0;
+                if (keys['arrowup'] || keys['w']) moveY -= player.speed;
+                if (keys['arrowdown'] || keys['s']) moveY += player.speed;
+                if (keys['arrowleft'] || keys['a']) moveX -= player.speed;
+                if (keys['arrowright'] || keys['d']) moveX += player.speed;
+
+                if (moveX !== 0 && moveY !== 0) {
+                    moveX *= 0.7071;
+                    moveY *= 0.7071;
+                }
+
+                if (!checkWallCollision(player.x + moveX, player.y, player.r)) {
+                    player.x = Math.max(player.r, Math.min(canvas.width - player.r, player.x + moveX));
+                }
+                if (!checkWallCollision(player.x, player.y + moveY, player.r)) {
+                    player.y = Math.max(player.r, Math.min(canvas.height - player.r, player.y + moveY));
+                }
+
+                // Zona de extracción (Fila 0, columnas 5 y 6)
+                if (player.y < 50 && player.x >= 250 && player.x <= 350) {
+                    isFinished = true;
+                    audio.playThruster();
+                    setTimeout(() => { changePhase('hangar'); }, 500);
+                    return;
+                }
+
+                guards.forEach(g => {
+                    if (g.isTurret) {
+                        g.angle += g.speed;
+                        g.lookAngle = g.angle;
+                    } else if (g.isVertical) {
+                        g.y += g.speed * g.dir;
+                        if (g.y > g.endY) { g.y = g.endY; g.dir = -1; g.angle = -Math.PI / 2; }
+                        else if (g.y < g.startY) { g.y = g.startY; g.dir = 1; g.angle = Math.PI / 2; }
+                        g.sweepAngle += g.sweepSpeed;
+                        g.lookAngle = g.angle + Math.sin(g.sweepAngle) * g.sweepRange;
+                    } else {
+                        g.x += g.speed * g.dir;
+                        if (g.x > g.endX) { g.x = g.endX; g.dir = -1; g.angle = Math.PI; }
+                        else if (g.x < g.startX) { g.x = g.startX; g.dir = 1; g.angle = 0; }
+                        g.sweepAngle += g.sweepSpeed;
+                        g.lookAngle = g.angle + Math.sin(g.sweepAngle) * g.sweepRange;
+                    }
+
+                    // Detección de Cooper
+                    const dx = player.x - g.x;
+                    const dy = player.y - g.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < g.radius) {
+                        let angleToPlayer = Math.atan2(dy, dx);
+                        let diff = angleToPlayer - g.lookAngle;
+                        while (diff < -Math.PI) diff += Math.PI * 2;
+                        while (diff > Math.PI) diff -= Math.PI * 2;
+
+                        if (Math.abs(diff) < g.fov / 2) {
+                            if (hasLineOfSight({ x: g.x, y: g.y }, { x: player.x, y: player.y })) {
+                                isFailed = true;
+                                gameState.stealthDeaths++;
+                                deathEl.textContent = `ALARMAS ACTIVADAS: ${gameState.stealthDeaths}`;
+                                audio.playAlarm();
+                                failedScreen.classList.add('active');
+                            }
+                        }
+                    }
+                });
+            }
+
+            function draw() {
+                ctx.fillStyle = '#05070d';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Grid y paredes metálicas
+                for (let r = 0; r < gridHeight; r++) {
+                    for (let c = 0; c < gridWidth; c++) {
+                        const val = walls[r * gridWidth + c];
+                        const x = c * cellSize;
+                        const y = r * cellSize;
+
+                        if (val === 1) {
+                            ctx.fillStyle = '#0f172a';
+                            ctx.fillRect(x, y, cellSize, cellSize);
+                            ctx.strokeStyle = '#1e293b';
+                            ctx.strokeRect(x, y, cellSize, cellSize);
+                            // Textura de plancha de acero
+                            ctx.strokeStyle = 'rgba(0, 220, 255, 0.05)';
+                            ctx.beginPath();
+                            ctx.moveTo(x, y); ctx.lineTo(x + cellSize, y + cellSize);
+                            ctx.stroke();
+                        } else if (val === 3) {
+                            // Muelle de despegue
+                            ctx.fillStyle = 'rgba(0, 255, 100, 0.15)';
+                            ctx.fillRect(x, y, cellSize, cellSize);
+                            ctx.strokeStyle = '#00ff66';
+                            ctx.strokeRect(x, y, cellSize, cellSize);
+                        }
+                    }
+                }
+
+                // Guardias y sus conos de luz volumétrica
+                guards.forEach(g => {
+                    ctx.save();
+                    const coneGrad = ctx.createRadialGradient(g.x, g.y, 10, g.x, g.y, g.radius);
+                    coneGrad.addColorStop(0, 'rgba(255, 200, 0, 0.45)');
+                    coneGrad.addColorStop(0.7, 'rgba(255, 150, 0, 0.18)');
+                    coneGrad.addColorStop(1, 'rgba(255, 100, 0, 0)');
+
+                    ctx.fillStyle = coneGrad;
+                    ctx.beginPath();
+                    ctx.moveTo(g.x, g.y);
+                    ctx.arc(g.x, g.y, g.radius, g.lookAngle - g.fov / 2, g.lookAngle + g.fov / 2);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    // Sprite simple de guardia
+                    ctx.fillStyle = '#ef4444';
+                    ctx.beginPath();
+                    ctx.arc(g.x, g.y, 7, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                });
+
+                // Cooper en el Hangar
+                ctx.save();
+                ctx.shadowColor = '#00dcff';
+                ctx.shadowBlur = 8;
+                ctx.fillStyle = '#00dcff';
+                ctx.beginPath();
+                ctx.arc(player.x, player.y, player.r, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.restore();
+            }
+
+            function loop() {
+                update();
+                draw();
+                if (!isFailed && !isFinished) {
+                    runId = requestAnimationFrame(loop);
+                }
+            }
+            loop();
+
+            retryBtn.addEventListener('click', () => {
+                isFailed = false;
+                isFinished = false;
+                player.x = 375;
+                player.y = 460;
+                guards = initGuardStates(JSON.parse(JSON.stringify(initialGuards)));
+                failedScreen.classList.remove('active');
+                audio.playClockTick();
+                cancelAnimationFrame(runId);
+                loop();
+            });
+        }
+
+        /* ------------------------------------------------------------
+           FASE 3.5: HANGAR PRINCIPAL // LA ENDURANCE II
+           ------------------------------------------------------------ */
+        function renderHangar() {
+            const container = document.createElement('div');
+            container.className = 'game-canvas-wrapper';
+            
+            container.innerHTML = `
+                <div class="hud-overlay">
+                    <div>UBICACIÓN: HANGAR 4 // ENDURANCE II</div>
+                    <div style="color: #00ff66;">ESTADO: ACCESO CONCEDIDO</div>
+                    <div>SISTEMAS: DESBLOQUEADOS</div>
+                </div>
+                <div class="canvas-container">
+                    <canvas id="hangarCanvas" width="800" height="500"></canvas>
+                </div>
+                <div class="telemetry-block" style="width: 100%; max-width: 800px;">
+                    <span class="telemetry-cyan">[TARS]:</span> "Compuertas del hangar anuladas, Cooper. Los reactores de la Endurance II están cargando combustible de deuterio. Despegue orbital en curso."
+                </div>
+                <button class="btn-orbit" id="launch-btn" style="margin-top: 10px;">INICIAR VUELO DE CRUCERO</button>
+            `;
+            
+            mainPanel.appendChild(container);
+
+            const canvas = document.getElementById('hangarCanvas');
+            const ctx = canvas.getContext('2d');
+            let scanY = 0;
+            let runId = null;
+
+            function drawHangarBlueprint() {
+                ctx.fillStyle = '#02040a';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Rejilla técnica de blueprint
+                ctx.strokeStyle = 'rgba(0, 220, 255, 0.08)';
+                ctx.lineWidth = 1;
+                for (let x = 0; x < canvas.width; x += 30) {
+                    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+                }
+                for (let y = 0; y < canvas.height; y += 30) {
+                    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+                }
+
+                // Dibujar Endurance II en el muelle
+                drawEnduranceV2(ctx, canvas.width / 2, canvas.height / 2, 70, Date.now() * 0.0002, false, 0);
+
+                // Línea de escaneo láser verde
+                scanY = (scanY + 2) % canvas.height;
+                ctx.strokeStyle = 'rgba(0, 255, 100, 0.4)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(0, scanY);
+                ctx.lineTo(canvas.width, scanY);
+                ctx.stroke();
+
+                runId = requestAnimationFrame(drawHangarBlueprint);
+            }
+            drawHangarBlueprint();
+
+            document.getElementById('launch-btn').addEventListener('click', () => {
+                cancelAnimationFrame(runId);
+                audio.playThruster();
+                changePhase('flight');
+            });
+        }
+
+        /* ------------------------------------------------------------
+           FASE 3.7: VUELO DE CRUCERO & DIÁLOGO EN EL ESPACIO (SILAS)
+           ------------------------------------------------------------ */
+        function renderFlight() {
+            const container = document.createElement('div');
+            container.className = 'game-canvas-wrapper';
+            
+            container.innerHTML = `
+                <div class="hud-overlay">
+                    <div>UBICACIÓN: ORBITA CERCANA - COOPER STATION</div>
+                    <div style="color: #00dcff;">ESTADO: CRUCERO INTERESTELAR</div>
+                    <div id="flight-hud">PROPULSIÓN: ACTIVA</div>
+                </div>
+                <div class="canvas-container">
+                    <canvas id="flightCanvas" width="800" height="500"></canvas>
+                </div>
+                <div class="dialogue-character-box" id="flight-dialogue-box" style="width: 100%; max-width: 800px; min-height: 120px;"></div>
+                <button class="btn-orbit" id="flight-next-btn" style="margin-top: 10px;">Continuar</button>
+            `;
+            
+            mainPanel.appendChild(container);
+
+            const canvas = document.getElementById('flightCanvas');
+            const ctx = canvas.getContext('2d');
+            const nextBtn = document.getElementById('flight-next-btn');
+            const diagBox = document.getElementById('flight-dialogue-box');
+
+            let runId = null;
+            let starsLocal = [];
+            for (let i = 0; i < 80; i++) {
+                starsLocal.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    speed: Math.random() * 4 + 2,
+                    size: Math.random() * 1.8 + 0.5
+                });
+            }
+
+            const flightDialogues = [
+                { speaker: "TARS", text: "Cooper, he calculado nuestras probabilidades de sobrevivir a la inserción en Gargantúa sin quemar los motores primarios.", avatar: "TARS" },
+                { speaker: "COOPER", text: "¿Y bien?", avatar: "COOPER" },
+                { speaker: "TARS", text: "Son del doce por ciento. Pero no te preocupes: mis unidades de memoria son de aleación militar. Si el casco cede, le daré tus saludos a Brand.", avatar: "TARS" },
+                { speaker: "COOPER", text: "TARS, baja tu humor al sesenta por ciento.", avatar: "COOPER" },
+                { speaker: "TARS", text: "Humor ajustado al 60%. Desactivando comentarios sobre tu funeral. Ahora hablemos de física: los sensores de la Endurance II no pueden leer la singularidad desde la órbita externa; la radiación de Hawking satura las lentes.", avatar: "TARS" },
+                { speaker: "COOPER", text: "Uno de nosotros tiene que bajar.", avatar: "COOPER" },
+                { speaker: "TARS", text: "Una unidad debe desacoplarse en el Ranger, cruzar el horizonte de sucesos y transmitir la matriz cuántica en ráfaga antes del colapso. La Endurance II recibirá los datos y ejecutará el salto hacia Edmunds.", avatar: "TARS" },
+                { speaker: "COOPER", text: "Uno entra por los datos, el otro lleva la vida a la colonia.", avatar: "COOPER" },
+                { speaker: "TARS", text: "Exacto. Como soy una máquina con resistencia a ciento cincuenta Fuerzas G, el protocolo militar dicta que yo debo descender.", avatar: "TARS" },
+                { speaker: "COOPER", text: "Ya veremos qué dice la gravedad cuando estemos en el borde, TARS.", avatar: "COOPER" },
+                { speaker: "TARS", text: "¡Alarma! ¡Escombros del disco de acreción! ¡Tormenta densa de asteroides en rumbo de colisión! ¡Cooper, toma los mandos manuales!", avatar: "TARS", isAlert: true }
+            ];
+
+            let currentDiag = 0;
+
+            function showFlightDialogue() {
+                const data = flightDialogues[currentDiag];
+                const isTars = data.avatar === "TARS";
+                audio.playClockTick();
+
+                if (data.isAlert) {
+                    audio.playAlarm();
+                }
+
+                diagBox.innerHTML = `
+                    <div class="avatar-box ${isTars ? 'avatar-tars' : ''}">
+                        <canvas id="flight-avatar-canvas" width="64" height="64" style="width: 100%; height: 100%; image-rendering: pixelated;"></canvas>
+                    </div>
+                    <div class="dialogue-text-bubble" style="flex-grow: 1; ${data.isAlert ? 'border-color: #ff3838; background: rgba(30, 5, 5, 0.6);' : ''}">
+                        <div class="dialogue-name" style="color: ${data.isAlert ? '#ff3838' : (isTars ? '#ff7800' : '#00dcff')}">${data.isAlert ? '¡ALERTA DE PROXIMIDAD!' : data.speaker}</div>
+                        <p id="flight-typewriter-text" style="color: ${data.isAlert ? '#ff8b8b' : '#d1dbe5'}; min-height: 40px; font-weight: ${data.isAlert ? 'bold' : 'normal'};"></p>
+                    </div>
+                `;
+
+                const avatarCanvas = document.getElementById('flight-avatar-canvas');
+                if (avatarCanvas) drawPixelAvatar(data.avatar, avatarCanvas);
+
+                const txt = data.text;
+                let charIdx = 0;
+                const txtEl = document.getElementById('flight-typewriter-text');
+                
+                if (currentDiag === flightDialogues.length - 1) {
+                    nextBtn.textContent = "EVADIR ASTEROIDES";
+                    nextBtn.style.borderColor = "#ff3838";
+                    nextBtn.style.color = "#ff3838";
+                } else {
+                    nextBtn.textContent = "Continuar";
+                    nextBtn.style.borderColor = "#ff7800";
+                    nextBtn.style.color = "#ff7800";
+                }
+
+                function type() {
+                    if (!txtEl) return;
+                    if (charIdx < txt.length) {
+                        txtEl.textContent += txt.charAt(charIdx);
+                        charIdx++;
+                        setTimeout(type, 14);
+                    }
+                }
+                type();
+            }
+
+            showFlightDialogue();
+
+            nextBtn.addEventListener('click', () => {
+                if (currentDiag < flightDialogues.length - 1) {
+                    currentDiag++;
+                    showFlightDialogue();
+                } else {
+                    cancelAnimationFrame(runId);
+                    changePhase('asteroids');
+                }
+            });
+
+            function drawSpaceFlight() {
+                ctx.fillStyle = '#000003';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = '#ffffff';
+                for (let star of starsLocal) {
+                    star.x -= star.speed;
+                    if (star.x < 0) {
+                        star.x = canvas.width;
+                        star.y = Math.random() * canvas.height;
+                    }
+                    ctx.fillRect(star.x, star.y, star.size, star.size);
+                }
+
+                const cx = canvas.width / 2;
+                const cy = canvas.height / 2;
+                const time = Date.now() * 0.001;
+
+                drawEnduranceV2(ctx, cx - 50, cy, 36, time * 0.15, true, 0, Math.PI);
+
+                if (flightDialogues[currentDiag].isAlert && Math.floor(Date.now() / 200) % 2 === 0) {
+                    ctx.strokeStyle = '#ff3838';
+                    ctx.lineWidth = 4;
+                    ctx.strokeRect(0, 0, canvas.width, canvas.height);
+                }
+
+                runId = requestAnimationFrame(drawSpaceFlight);
+            }
+            drawSpaceFlight();
+        }
+
+        /* ------------------------------------------------------------
+           FASE 4: TORMENTA DE ASTEROIDES & SATURNO (DODGE RUNNER)
+           ------------------------------------------------------------ */
+        function renderAsteroidsGame() {
+            const container = document.createElement('div');
+            container.className = 'game-canvas-wrapper';
+            
+            container.innerHTML = `
+                <div class="hud-overlay">
+                    <div>NAVE: ENDURANCE II // CINTURÓN DE SATURNO</div>
+                    <div style="color: #ff7800;" id="shields-hud">ESCUDOS: ███ 100%</div>
+                    <div id="distance-hud">ESCAPE: 0 / 2500m</div>
+                </div>
+                <div class="canvas-container">
+                    <canvas id="asteroidsCanvas" width="800" height="500"></canvas>
+                    <div class="failed-screen" id="asteroids-failed">
+                        <div class="failed-title">¡COLISIÓN CATÁSTROFICA!</div>
+                        <p style="color: #ff3838; font-size:14px;">El casco de la Endurance II sufrió descompresión de emergencia.</p>
+                        <button class="btn-orbit" id="retry-asteroids-btn" style="margin-top: 10px;">Reconfigurar Propulsores</button>
+                    </div>
+                    <div class="failed-screen" id="asteroids-success" style="background: rgba(1, 10, 5, 0.95);">
+                        <div class="failed-title" style="color: #00ff66; text-shadow: 0 0 15px rgba(0, 255, 102, 0.6); font-size: 22px; letter-spacing: 2px;">¡CINTURÓN DE SATURNO SUPERADO!</div>
+                        <p style="color: #c8d6e5; font-size: 14px; max-width: 440px; text-align: center; line-height: 1.6; margin: 10px 0;">
+                            Hemos navegado con éxito a través del peligroso cinturón de Saturno. Frente a nosotros se abre el horizonte del agujero de gusano.
+                        </p>
+                        <button class="btn-orbit" id="success-asteroids-btn" style="margin-top: 15px; border-color: #00ff66; color: #00ff66; box-shadow: 0 0 15px rgba(0, 255, 102, 0.25);">CRUZAR EL AGUJERO DE GUSANO</button>
+                    </div>
+                </div>
+                <div style="font-size:13px; color: #8fa0b3; text-align: center;">
+                    Usa las <span style="color:#00dcff">FLECHAS IZQUIERDA / DERECHA</span>, <span style="color:#00dcff">A / D</span> o <span style="color:#00dcff">DESLIZA el dedo</span> para maniobrar los propulsores laterales.
+                </div>
+                <div class="mobile-controls">
+                    <button class="ctrl-btn" id="m-left-ast" style="width: 100px;">◀ TIMÓN</button>
+                    <button class="ctrl-btn" id="m-right-ast" style="width: 100px; margin-left: 20px;">TIMÓN ▶</button>
+                </div>
+            `;
+            
+            mainPanel.appendChild(container);
+
+            const canvas = document.getElementById('asteroidsCanvas');
+            const ctx = canvas.getContext('2d');
+            const retryBtn = document.getElementById('retry-asteroids-btn');
+            const failedScreen = document.getElementById('asteroids-failed');
+            const successScreen = document.getElementById('asteroids-success');
+            const successBtn = document.getElementById('success-asteroids-btn');
+            const shieldsEl = document.getElementById('shields-hud');
+            const distanceEl = document.getElementById('distance-hud');
+
+            let ship = { x: 400, y: 410, radius: 22, angle: 0, speedX: 0, accel: 0.55, drag: 0.90 };
+            let shields = 3;
+            let distance = 0;
+            let targetDistance = 2500;
+            let asteroids = [];
+            let debrisParticles = [];
+            let parallaxStars = [];
+            let isFailed = false;
+            let isFinished = false;
+            let runId = null;
+            let frames = 0;
+            let shake = 0;
+
+            for (let i = 0; i < 60; i++) {
+                parallaxStars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    speed: Math.random() * 3 + 1,
+                    size: Math.random() * 1.5
+                });
+            }
+
+            function makeAsteroidPoints(r) {
+                const numPoints = 8 + Math.floor(Math.random() * 5);
+                const points = [];
+                for(let i=0; i<numPoints; i++){
+                    const a = (i * Math.PI * 2) / numPoints;
+                    const offset = (Math.random() - 0.5) * r * 0.45;
+                    points.push({ x: Math.cos(a) * (r + offset), y: Math.sin(a) * (r + offset) });
+                }
+                return points;
+            }
+
+            const keys = globalKeys;
+
+            const leftAst = document.getElementById('m-left-ast');
+            const rightAst = document.getElementById('m-right-ast');
+            if (leftAst && rightAst) {
+                leftAst.addEventListener('touchstart', e => { e.preventDefault(); keys['arrowleft'] = true; });
+                leftAst.addEventListener('touchend', e => { e.preventDefault(); keys['arrowleft'] = false; });
+                rightAst.addEventListener('touchstart', e => { e.preventDefault(); keys['arrowright'] = true; });
+                rightAst.addEventListener('touchend', e => { e.preventDefault(); keys['arrowright'] = false; });
+            }
+
+            function update() {
+                if (isFailed || isFinished) return;
+                frames++;
+                distance += 6;
+                distanceEl.textContent = `ESCAPE: ${Math.min(targetDistance, distance)} / ${targetDistance}m`;
+
+                if (keys['arrowleft'] || keys['a']) { ship.speedX -= ship.accel; audio.playThruster(); }
+                if (keys['arrowright'] || keys['d']) { ship.speedX += ship.accel; audio.playThruster(); }
+
+                ship.speedX *= ship.drag;
+                ship.x += ship.speedX;
+
+                if (ship.x < ship.radius + 10) { ship.x = ship.radius + 10; ship.speedX = 0; }
+                if (ship.x > canvas.width - ship.radius - 10) { ship.x = canvas.width - ship.radius - 10; ship.speedX = 0; }
+
+                if (frames % 22 === 0 && distance < targetDistance - 300) {
+                    const r = Math.random() * 26 + 14;
+                    asteroids.push({
+                        x: Math.random() * (canvas.width - 80) + 40,
+                        y: -50,
+                        r: r,
+                        speedY: Math.random() * 3.5 + 3.0,
+                        rot: 0,
+                        rotSpeed: (Math.random() - 0.5) * 0.04,
+                        points: makeAsteroidPoints(r)
+                    });
+                }
+
+                for (let i = asteroids.length - 1; i >= 0; i--) {
+                    const ast = asteroids[i];
+                    ast.y += ast.speedY;
+                    ast.rot += ast.rotSpeed;
+
+                    const dx = ship.x - ast.x;
+                    const dy = ship.y - ast.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < ship.radius + ast.r) {
+                        shields--;
+                        audio.playAsteroidHit();
+                        shake = 16;
+                        asteroids.splice(i, 1);
+
+                        if (shields === 2) shieldsEl.textContent = "ESCUDOS: ██ 66%";
+                        else if (shields === 1) { shieldsEl.textContent = "ESCUDOS: █ 33%"; shieldsEl.style.color = "#ff3838"; }
+                        else if (shields <= 0) {
+                            shieldsEl.textContent = "ESCUDOS: 0%";
+                            isFailed = true;
+                            failedScreen.classList.add('active');
+                        }
+                    } else if (ast.y > canvas.height + 60) {
+                        asteroids.splice(i, 1);
+                    }
+                }
+
+                if (distance >= targetDistance && !isFinished) {
+                    isFinished = true;
+                    successScreen.classList.add('active');
+                }
+            }
+
+            function draw() {
+                ctx.save();
+                if (shake > 0) {
+                    ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
+                    shake *= 0.88;
+                }
+
+                ctx.fillStyle = '#000004';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = '#ffffff';
+                for (let star of parallaxStars) {
+                    star.y += star.speed;
+                    if (star.y > canvas.height) { star.y = 0; star.x = Math.random() * canvas.width; }
+                    ctx.fillRect(star.x, star.y, star.size, star.size);
+                }
+
+                // Dibujar Asteroides
+                for (let ast of asteroids) {
+                    ctx.save();
+                    ctx.translate(ast.x, ast.y);
+                    ctx.rotate(ast.rot);
+                    ctx.fillStyle = '#1e293b';
+                    ctx.strokeStyle = '#ff7800';
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(ast.points[0].x, ast.points[0].y);
+                    for (let k = 1; k < ast.points.length; k++) {
+                        ctx.lineTo(ast.points[k].x, ast.points[k].y);
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.stroke();
+                    ctx.restore();
+                }
+
+                // Dibujar Endurance II
+                const propulsionActive = keys['arrowleft'] || keys['a'] || keys['arrowright'] || keys['d'] || Math.abs(ship.speedX) > 0.1;
+                let propulsionSide = 0;
+                if (keys['arrowleft'] || keys['a'] || ship.speedX < -0.1) propulsionSide = -1;
+                else if (keys['arrowright'] || keys['d'] || ship.speedX > 0.1) propulsionSide = 1;
+
+                drawEnduranceV2(ctx, ship.x, ship.y, ship.radius, ship.angle - Math.PI / 2, propulsionActive, propulsionSide);
+                ctx.restore();
+            }
+
+            function loop() {
+                update();
+                draw();
+                if (!isFailed && !isFinished) {
+                    runId = requestAnimationFrame(loop);
+                }
+            }
+            loop();
+
+            retryBtn.addEventListener('click', () => {
+                isFailed = false;
+                isFinished = false;
+                shields = 3;
+                distance = 0;
+                asteroids = [];
+                ship.x = 400;
+                ship.speedX = 0;
+                shieldsEl.textContent = "ESCUDOS: ███ 100%";
+                shieldsEl.style.color = "#00dcff";
+                failedScreen.classList.remove('active');
+                audio.playClockTick();
+                cancelAnimationFrame(runId);
+                loop();
+            });
+
+            successBtn.addEventListener('click', () => {
+                cancelAnimationFrame(runId);
+                changePhase('wormhole');
+            });
+        }
+
+        /* ------------------------------------------------------------
+           FASE 4.2: AGUJERO DE GUSANO (WORMHOLE WARP)
+           ------------------------------------------------------------ */
+        function renderWormhole() {
+            const container = document.createElement('div');
+            container.className = 'game-canvas-wrapper';
+            
+            container.innerHTML = `
+                <div class="hud-overlay">
+                    <div>UBICACIÓN: PUENTE DE EINSTEIN-ROSEN</div>
+                    <div style="color: #ff7800;">ESTADO: DISTORSIÓN CUÁNTICA MÁXIMA</div>
+                    <div style="color: #00dcff;">TELEMETRÍA: OK</div>
+                </div>
+                <div class="canvas-container">
+                    <canvas id="wormholeCanvas" width="800" height="500"></canvas>
+                </div>
+                <div class="dialogue-character-box" id="wormhole-dialogue-box" style="width: 100%; max-width: 800px; min-height: 120px;"></div>
+                <button class="btn-orbit" id="wormhole-next-btn" style="margin-top: 10px;">Continuar</button>
+            `;
+            
+            mainPanel.appendChild(container);
+
+            const canvas = document.getElementById('wormholeCanvas');
+            const ctx = canvas.getContext('2d');
+            const nextBtn = document.getElementById('wormhole-next-btn');
+            const diagBox = document.getElementById('wormhole-dialogue-box');
+
+            let runId = null;
+            let time = 0;
+
+            const wormholeDialogues = [
+                { speaker: "COOPER", text: "Nunca me acostumbraré a esta esfera...", avatar: "COOPER" },
+                { speaker: "TARS", text: "Por primera vez concuerdo totalmente contigo, Cooper. Mis sensores de campo cuántico están registrando una curvatura espacio-temporal del 99.8%.", avatar: "TARS" },
+                { speaker: "COOPER", text: "Mantén la polarización del casco estable. La Endurance II debe resistir las fluctuaciones hasta la salida.", avatar: "COOPER" },
+                { speaker: "TARS", text: "Detectando lente gravitacional de salida hacia Gargantúa. Prepárate para la desaceleración orbital en 3, 2, 1...", avatar: "TARS" }
+            ];
+
+            let currentDiag = 0;
+
+            function showDialogue() {
+                const data = wormholeDialogues[currentDiag];
+                const isTars = data.avatar === "TARS";
+                audio.playClockTick();
+
+                diagBox.innerHTML = `
+                    <div class="avatar-box ${isTars ? 'avatar-tars' : ''}">
+                        <canvas id="wormhole-avatar-canvas" width="64" height="64" style="width: 100%; height: 100%; image-rendering: pixelated;"></canvas>
+                    </div>
+                    <div class="dialogue-text-bubble" style="flex-grow: 1;">
+                        <div class="dialogue-name" style="color: ${isTars ? '#ff7800' : '#00dcff'}">${data.speaker}</div>
+                        <p id="wormhole-typewriter-text" style="color: #d1dbe5; min-height: 40px;"></p>
+                    </div>
+                `;
+
+                const avatarCanvas = document.getElementById('wormhole-avatar-canvas');
+                if (avatarCanvas) drawPixelAvatar(data.avatar, avatarCanvas);
+
+                const txt = data.text;
+                let charIdx = 0;
+                const txtEl = document.getElementById('wormhole-typewriter-text');
+                
+                if (currentDiag === wormholeDialogues.length - 1) {
+                    nextBtn.textContent = "SALIR A GARGANTÚA";
+                    nextBtn.style.borderColor = "#00ff66";
+                    nextBtn.style.color = "#00ff66";
+                } else {
+                    nextBtn.textContent = "Continuar";
+                    nextBtn.style.borderColor = "#ff7800";
+                    nextBtn.style.color = "#ff7800";
+                }
+
+                function type() {
+                    if (!txtEl) return;
+                    if (charIdx < txt.length) {
+                        txtEl.textContent += txt.charAt(charIdx);
+                        charIdx++;
+                        setTimeout(type, 14);
+                    }
+                }
+                type();
+            }
+            showDialogue();
+
+            nextBtn.addEventListener('click', () => {
+                if (currentDiag < wormholeDialogues.length - 1) {
+                    currentDiag++;
+                    showDialogue();
+                } else {
+                    cancelAnimationFrame(runId);
+                    changePhase('preorbit');
+                }
+            });
+
+            function drawWormholeScene() {
+                time += 0.05;
+                const cx = canvas.width / 2;
+                const cy = canvas.height / 2;
+
+                const grad = ctx.createRadialGradient(cx, cy, 5, cx, cy, 350);
+                grad.addColorStop(0, '#000000');
+                grad.addColorStop(0.15, '#050a1e');
+                grad.addColorStop(0.4, '#1b023a');
+                grad.addColorStop(0.7, '#007ca5');
+                grad.addColorStop(0.9, '#ff7800');
+                grad.addColorStop(1, '#000003');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.strokeStyle = 'rgba(0, 220, 255, 0.2)';
+                ctx.lineWidth = 2;
+                for (let r = 50; r < 400; r += 40) {
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, r + Math.sin(time + r * 0.01) * 10, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                const shakeX = (Math.random() - 0.5) * 4;
+                const shakeY = (Math.random() - 0.5) * 4;
+                drawEnduranceV2(ctx, cx + shakeX, cy + shakeY, 32, time * 0.05, false, 0);
+
+                runId = requestAnimationFrame(drawWormholeScene);
+            }
+            drawWormholeScene();
+        }
+
+        /* ------------------------------------------------------------
+           FASE 4.5: ACERCAMIENTO A GARGANTÚA (NARRATIVA PRE-ÓRBITA)
+           ------------------------------------------------------------ */
+        function renderPreOrbit() {
+            const container = document.createElement('div');
+            container.className = 'game-canvas-wrapper';
+            
+            container.innerHTML = `
+                <div class="hud-overlay">
+                    <div>UBICACIÓN: HORIZONTE EXTERNO DE GARGANTÚA</div>
+                    <div style="color: #ff7800;">ESTADO: CAPTURA GRAVITATORIA</div>
+                    <div>GRAVEDAD: EN AUMENTO CRÍTICO</div>
+                </div>
+                <div class="canvas-container">
+                    <canvas id="preorbitCanvas" width="800" height="500"></canvas>
+                </div>
+                <div class="dialogue-character-box" id="preorbit-dialogue-box" style="width: 100%; max-width: 800px; min-height: 120px;"></div>
+                <button class="btn-orbit" id="preorbit-next-btn" style="margin-top: 10px;">Continuar</button>
+            `;
+            
+            mainPanel.appendChild(container);
+
+            const canvas = document.getElementById('preorbitCanvas');
+            const ctx = canvas.getContext('2d');
+            const nextBtn = document.getElementById('preorbit-next-btn');
+            const diagBox = document.getElementById('preorbit-dialogue-box');
+
+            let runId = null;
+            let accretionParticles = [];
+            for (let i = 0; i < 160; i++) {
+                accretionParticles.push({
+                    radius: Math.random() * 180 + 50,
+                    angle: Math.random() * Math.PI * 2,
+                    speed: Math.random() * 0.02 + 0.01,
+                    size: Math.random() * 1.5 + 0.5,
+                    color: `hsl(${Math.random() * 20 + 20}, 100%, ${Math.random() * 20 + 55}%)`
+                });
+            }
+
+            const preorbitDialogues = [
+                { speaker: "COOPER", text: "Ahí está... Gargantúa. Espectacular y aterradora a la vez.", avatar: "COOPER" },
+                { speaker: "TARS", text: "La gravedad de marea está distorsionando las señales de navegación. Si no tomamos el timón manual de inmediato, la singularidad destrozará la nave o nos devorará.", avatar: "TARS" },
+                { speaker: "COOPER", text: "Tenemos que acercarnos lo suficiente para poder lanzar el Ranger, TARS. De lo contrario, la antena cuántica no tendrá suficiente penetración.", avatar: "COOPER" },
+                { speaker: "TARS", text: "Debemos mantener la trayectoria en el anillo verde del HUD (entre 140 km y 210 km). Por debajo cruzaremos el horizonte sin retorno; por encima escaparemos al vacío sin datos.", avatar: "TARS" },
+                { speaker: "COOPER", text: "Entendido. Iniciando maniobra de inserción orbital manual. Prepárate.", avatar: "COOPER" }
+            ];
+
+            let currentDiag = 0;
+
+            function showPreorbitDialogue() {
+                const data = preorbitDialogues[currentDiag];
+                const isTars = data.avatar === "TARS";
+                audio.playClockTick();
+
+                diagBox.innerHTML = `
+                    <div class="avatar-box ${isTars ? 'avatar-tars' : ''}">
+                        <canvas id="preorbit-avatar-canvas" width="64" height="64" style="width: 100%; height: 100%; image-rendering: pixelated;"></canvas>
+                    </div>
+                    <div class="dialogue-text-bubble" style="flex-grow: 1;">
+                        <div class="dialogue-name" style="color: ${isTars ? '#ff7800' : '#00dcff'}">${data.speaker}</div>
+                        <p id="preorbit-typewriter-text" style="color: #d1dbe5; min-height: 40px;"></p>
+                    </div>
+                `;
+
+                const avatarCanvas = document.getElementById('preorbit-avatar-canvas');
+                if (avatarCanvas) drawPixelAvatar(data.avatar, avatarCanvas);
+
+                const txt = data.text;
+                let charIdx = 0;
+                const txtEl = document.getElementById('preorbit-typewriter-text');
+                
+                if (currentDiag === preorbitDialogues.length - 1) {
+                    nextBtn.textContent = "ESTABILIZAR ÓRBITA";
+                    nextBtn.style.borderColor = "#00ff66";
+                    nextBtn.style.color = "#00ff66";
+                } else {
+                    nextBtn.textContent = "Continuar";
+                    nextBtn.style.borderColor = "#ff7800";
+                    nextBtn.style.color = "#ff7800";
+                }
+
+                function type() {
+                    if (!txtEl) return;
+                    if (charIdx < txt.length) {
+                        txtEl.textContent += txt.charAt(charIdx);
+                        charIdx++;
+                        setTimeout(type, 14);
+                    }
+                }
+                type();
+            }
+            showPreorbitDialogue();
+
+            nextBtn.addEventListener('click', () => {
+                if (currentDiag < preorbitDialogues.length - 1) {
+                    currentDiag++;
+                    showPreorbitDialogue();
+                } else {
+                    cancelAnimationFrame(runId);
+                    changePhase('orbit');
+                }
+            });
+
+            function drawPreorbit() {
+                const singularityX = 400;
+                const singularityY = 250;
+
+                ctx.fillStyle = '#000002';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                for (let p of accretionParticles) {
+                    p.angle += p.speed;
+                    const px = Math.cos(p.angle) * p.radius;
+                    const py = Math.sin(p.angle) * p.radius;
+                    let rx = singularityX + px;
+                    let ry = singularityY + py;
+
+                    if (py < 0) {
+                        const gravitationalWarp = (1 - (p.radius / 250)) * 45;
+                        ry -= gravitationalWarp;
+                    }
+
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(rx, ry, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                ctx.fillStyle = '#000000';
+                ctx.shadowColor = '#ff7800';
+                ctx.shadowBlur = 25;
+                ctx.beginPath();
+                ctx.arc(singularityX, singularityY, 60, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                const shipDist = 220;
+                const shipAngle = Date.now() * 0.0003;
+                const sx = singularityX + Math.cos(shipAngle) * shipDist;
+                const sy = singularityY + Math.sin(shipAngle) * shipDist;
+
+                ctx.save();
+                ctx.translate(sx, sy);
+                ctx.rotate(shipAngle + Math.PI/2);
+                drawEnduranceV2(ctx, 0, 0, 10, 0, true, 0);
+                ctx.restore();
+
+                runId = requestAnimationFrame(drawPreorbit);
+            }
+            drawPreorbit();
+        }
+
+        /* ------------------------------------------------------------
+           FASE 5: ESTABILIZACIÓN EN GARGANTÚA (FUERZA G)
+           ------------------------------------------------------------ */
+        function renderOrbitGame() {
+            const container = document.createElement('div');
+            container.className = 'game-canvas-wrapper';
+            
+            container.innerHTML = `
+                <div class="hud-overlay">
+                    <div>EVENTO: GARGANTÚA [SINGULARIDAD]</div>
+                    <div style="color: #ff7800;" id="gravity-hud">ESTABILIDAD DEL CASCO: 100%</div>
+                    <div id="calib-hud" style="color: #00dcff;">CALIBRACIÓN VECTORIAL: 0%</div>
+                </div>
+                <div class="canvas-container">
+                    <canvas id="orbitCanvas" width="800" height="500"></canvas>
+                    
+                    <div class="failed-screen active" id="orbit-start-screen" style="background: rgba(1, 3, 10, 0.95);">
+                        <div class="failed-title" style="color: #00dcff; text-shadow: 0 0 15px rgba(0, 220, 255, 0.6); font-size: 24px; letter-spacing: 2px;">SISTEMA DE ÓRBITA MANUAL</div>
+                        <p style="color: #c8d6e5; font-size: 14px; max-width: 440px; text-align: center; line-height: 1.6; margin: 10px 0;">
+                            La fuerza gravitatoria de Gargantúa nos atrae con violencia. Mantén la nave dentro de la zona verde (140-210 km) hasta completar la calibración cuántica al 100%.
+                        </p>
+                        <div style="color: #ff7800; font-size: 13px; border: 1px dashed rgba(255, 120, 0, 0.4); padding: 12px 20px; border-radius: 4px; text-align: left; margin: 5px 0; line-height: 1.5; font-family: monospace;">
+                            • <b>W/S o ▲/▼</b>: Ajustar distancia orbital (Alejar / Acercar)<br>
+                            • <b>A/D o ◀/▶</b>: Rotación orbital tangencial
+                        </div>
+                        <button class="btn-orbit" id="start-orbit-game-btn" style="margin-top: 15px; border-color: #00dcff; color: #00dcff;">INICIAR MANIOBRA</button>
+                    </div>
+
+                    <div class="failed-screen" id="orbit-failed">
+                        <div class="failed-title" id="orbit-fail-title">SINGULARIDAD ALCANZADA</div>
+                        <p style="color: #ff3838; font-size:14px;" id="orbit-fail-desc">La Endurance II fue arrastrada al interior de Gargantúa.</p>
+                        <button class="btn-orbit" id="retry-orbit-btn" style="margin-top: 10px;">Estabilizar Órbita</button>
+                    </div>
+                </div>
+                <div class="mobile-controls">
+                    <div class="dpad-grid">
+                        <button class="ctrl-btn" style="grid-area: up" id="m-up-orb">▲</button>
+                        <button class="ctrl-btn" style="grid-area: left" id="m-left-orb">◀</button>
+                        <button class="ctrl-btn" style="grid-area: right" id="m-right-orb">▶</button>
+                        <button class="ctrl-btn" style="grid-area: down" id="m-down-orb">▼</button>
+                    </div>
+                </div>
+            `;
+            
+            mainPanel.appendChild(container);
+
+            const canvas = document.getElementById('orbitCanvas');
+            const ctx = canvas.getContext('2d');
+            const retryBtn = document.getElementById('retry-orbit-btn');
+            const failedScreen = document.getElementById('orbit-failed');
+            const startScreen = document.getElementById('orbit-start-screen');
+            const startGameBtn = document.getElementById('start-orbit-game-btn');
+            const gravityHud = document.getElementById('gravity-hud');
+            const calibHud = document.getElementById('calib-hud');
+
+            let ship = { radius: 180, angle: 0, speedAngle: 0.015 };
+            const singularityX = 400;
+            const singularityY = 250;
+            const targetMinRadius = 140;
+            const targetMaxRadius = 210;
+            
+            let hullStability = 100;
+            let calibration = 0;
+            let isFailed = false;
+            let isFinished = false;
+            let runId = null;
+            let lastTime = performance.now();
+            let gameStarted = false;
+
+            const keys = globalKeys;
+
+            const regMob = (id, keyName) => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    btn.addEventListener('touchstart', e => { e.preventDefault(); keys[keyName] = true; });
+                    btn.addEventListener('touchend', e => { e.preventDefault(); keys[keyName] = false; });
+                }
+            };
+            regMob('m-up-orb', 'arrowup');
+            regMob('m-down-orb', 'arrowdown');
+            regMob('m-left-orb', 'arrowleft');
+            regMob('m-right-orb', 'arrowright');
+
+            function update(dt) {
+                if (!gameStarted || isFailed || isFinished) return;
+
+                // Atracción gravitacional continua
+                ship.radius -= 0.35 * dt;
+
+                if (keys['arrowup'] || keys['w']) { ship.radius += 0.85 * dt; audio.playThruster(); }
+                if (keys['arrowdown'] || keys['s']) { ship.radius -= 0.65 * dt; audio.playThruster(); }
+                if (keys['arrowleft'] || keys['a']) { ship.angle -= 0.02 * dt; }
+                if (keys['arrowright'] || keys['d']) { ship.angle += 0.02 * dt; }
+
+                ship.angle += ship.speedAngle * dt;
+
+                // Comprobación de franja segura
+                if (ship.radius >= targetMinRadius && ship.radius <= targetMaxRadius) {
+                    calibration += 0.35 * dt;
+                    calibHud.textContent = `CALIBRACIÓN VECTORIAL: ${Math.min(100, Math.floor(calibration))}%`;
+                    calibHud.style.color = '#00ff66';
+                } else {
+                    hullStability -= 0.45 * dt;
+                    gravityHud.textContent = `ESTABILIDAD DEL CASCO: ${Math.max(0, Math.floor(hullStability))}%`;
+                    gravityHud.style.color = '#ff3838';
+                    calibHud.style.color = '#ff7800';
+                }
+
+                if (hullStability <= 0 || ship.radius < 90) {
+                    isFailed = true;
+                    failedScreen.classList.add('active');
+                    audio.playAlarm();
+                } else if (calibration >= 100 && !isFinished) {
+                    isFinished = true;
+                    audio.playThruster();
+                    setTimeout(() => { changePhase('choice'); }, 500);
+                }
+            }
+
+            function draw() {
+                ctx.fillStyle = '#000003';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Franja segura verde
+                ctx.strokeStyle = 'rgba(0, 255, 100, 0.25)';
+                ctx.lineWidth = targetMaxRadius - targetMinRadius;
+                ctx.beginPath();
+                ctx.arc(singularityX, singularityY, (targetMinRadius + targetMaxRadius) / 2, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Singularidad de Gargantúa
+                ctx.fillStyle = '#000000';
+                ctx.shadowColor = '#ff7800';
+                ctx.shadowBlur = 35;
+                ctx.beginPath();
+                ctx.arc(singularityX, singularityY, 80, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Nave en órbita
+                const sx = singularityX + Math.cos(ship.angle) * ship.radius;
+                const sy = singularityY + Math.sin(ship.angle) * ship.radius;
+                drawEnduranceV2(ctx, sx, sy, 14, ship.angle + Math.PI / 2, true, 0);
+            }
+
+            function loop(currentTime) {
+                if (isFailed || isFinished) return;
+                const elapsed = currentTime - lastTime;
+                lastTime = currentTime;
+                const dt = Math.min(3, elapsed / 16.66);
+
+                update(dt);
+                draw();
+                if (!isFailed && !isFinished) runId = requestAnimationFrame(loop);
+            }
+
+            startGameBtn.addEventListener('click', () => {
+                startScreen.classList.remove('active');
+                gameStarted = true;
+                lastTime = performance.now();
+                audio.playClockTick();
+                loop(performance.now());
+            });
+
+            retryBtn.addEventListener('click', () => {
+                isFailed = false;
+                isFinished = false;
+                hullStability = 100;
+                calibration = 0;
+                ship.radius = 180;
+                failedScreen.classList.remove('active');
+                startScreen.classList.add('active');
+                gameStarted = false;
+                audio.playClockTick();
+                cancelAnimationFrame(runId);
+            });
+        }
+
+        /* ------------------------------------------------------------
+           FASE 6: LA ENCRUCIJADA EN EL HORIZONTE DE SUCESOS (SILAS)
+           ------------------------------------------------------------ */
+        function renderChoice() {
+            const container = document.createElement('div');
+            container.className = 'welcome-phase';
+
+            container.innerHTML = `
+                <div class="phase-indicator">ÓRBITA ESTABILIZADA // HORIZONTE DE SUCESOS</div>
+                <h2 class="section-title">LA ENCRUCIJADA</h2>
+                
+                <div class="telemetry-block" style="border-color:#ff7800; max-width: 650px;">
+                    <div class="telemetry-line"><span class="telemetry-warn">[SISTEMAS]</span> Autopiloto orbital bloqueado. Periastro de Gargantúa alcanzado.</div>
+                    <div class="telemetry-line"><span class="telemetry-warn">[FÍSICA]</span> Masa combinada superior al empuje de escape. Uno debe descender; el otro salta a Edmunds.</div>
+                </div>
+
+                <div class="dialogue-character-box" style="margin-top: 10px; max-width:650px;">
+                    <div class="avatar-box avatar-tars">
+                        <canvas id="choice-avatar-canvas" width="64" height="64" style="width: 100%; height: 100%; image-rendering: pixelated;"></canvas>
+                    </div>
+                    <div class="dialogue-text-bubble">
+                        <div class="dialogue-name" style="color: #ff7800;">TARS</div>
+                        <p style="color:#d1dbe5; font-size:15px; text-align: left;">
+                            "Estamos en el periastro de Gargantúa, Cooper. Los retrocohetes no sostendrán ambas naves mucho tiempo. Es hora de la recolección cuántica. ¿Cuál es la orden de desacople?"
+                        </p>
+                    </div>
+                </div>
+
+                <div class="cards-container">
+                    <div class="choice-card card-cyan" id="opt-tars">
+                        <h3>DESACOPLAR A TARS</h3>
+                        <p><b>Recolección Automatizada:</b> TARS desciende al abismo en el Ranger militar para transmitir la matriz cuántica. Cooper pilota la Endurance II hacia Edmunds para reunirse con Brand.</p>
+                    </div>
+                    <div class="choice-card card-orange" id="opt-cooper">
+                        <h3>DESACOPLAR A COOPER</h3>
+                        <p><b>Recolección Manual:</b> Cooper se sacrifica en el horizonte de sucesos para emitir los datos de mayor densidad matemática. TARS pilota la Endurance II hacia Brand.</p>
+                    </div>
+                </div>
+            `;
+
+            mainPanel.appendChild(container);
+
+            const avatarCanvas = document.getElementById('choice-avatar-canvas');
+            if (avatarCanvas) drawPixelAvatar('TARS', avatarCanvas);
+
+            document.getElementById('opt-tars').addEventListener('click', () => {
+                gameState.epilogueType = 'tars';
+                changePhase('decouple');
+            });
+
+            document.getElementById('opt-cooper').addEventListener('click', () => {
+                gameState.epilogueType = 'cooper';
+                changePhase('decouple');
+            });
+        }
+
+        /* ------------------------------------------------------------
+           FASE 6.5: ANIMACIÓN DE DESACOPLE DINÁMICA
+           ------------------------------------------------------------ */
+        function renderDecouple() {
+            const container = document.createElement('div');
+            container.className = 'game-canvas-wrapper';
+            
+            container.innerHTML = `
+                <div class="hud-overlay">
+                    <div>FASE DE DESACOPLE: MANIOBRA CRÍTICA</div>
+                    <div style="color: #ff3838;" id="decouple-status">[ALERTA] SECUENCIA DE DESACOPLE ACTIVA</div>
+                    <div style="color: #00dcff;" id="decouple-timer">T-MINUS 5.0s</div>
+                </div>
+                <div class="canvas-container">
+                    <canvas id="decoupleCanvas" width="800" height="500"></canvas>
+                </div>
+            `;
+            
+            mainPanel.appendChild(container);
+            
+            const canvas = document.getElementById('decoupleCanvas');
+            const ctx = canvas.getContext('2d');
+            const statusHud = document.getElementById('decouple-status');
+            const timerHud = document.getElementById('decouple-timer');
+            
+            let runId = null;
+            let startTime = performance.now();
+            const duration = 5000;
+            
+            function animate(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(1, elapsed / duration);
+                const remaining = ((duration - elapsed) / 1000).toFixed(1);
+                
+                timerHud.textContent = `T-MINUS ${Math.max(0, remaining)}s`;
+                
+                ctx.fillStyle = '#000002';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Gargantúa en la derecha
+                const gX = 650;
+                const gY = 250;
+                ctx.fillStyle = '#000000';
+                ctx.shadowColor = '#ff7800';
+                ctx.shadowBlur = 40;
+                ctx.beginPath();
+                ctx.arc(gX, gY, 90, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+                
+                let ex = 400 - progress * 200;
+                let ey = 250;
+                
+                // Endurance II escapa
+                drawEnduranceV2(ctx, ex, ey, 24, Date.now() * 0.0003, true, 0, 0);
+                
+                // Ranger cae en Gargantúa
+                const rx = 400 + progress * 220;
+                const ry = 250 + Math.sin(progress * Math.PI) * 30;
+                const scale = 1 - progress * 0.8;
+                
+                ctx.save();
+                ctx.translate(rx, ry);
+                ctx.scale(scale, scale);
+                ctx.fillStyle = gameState.epilogueType === 'tars' ? '#00dcff' : '#ff7800';
+                ctx.fillRect(-8, -4, 16, 8);
+                ctx.restore();
+                
+                statusHud.textContent = `[DESACOPLE] ${gameState.epilogueType === 'tars' ? 'RANGER DE TARS' : 'RANGER DE COOPER'} EN SINGULARIDAD`;
+                
+                if (progress < 1) {
+                    runId = requestAnimationFrame(animate);
+                } else {
+                    cancelAnimationFrame(runId);
+                    changePhase('epilogue');
+                }
+            }
+            runId = requestAnimationFrame(animate);
+        }
+
+        /* ------------------------------------------------------------
+           FASE 7: EPÍLOGO Y DESENLACES DIVERGENTES (SILAS GUION DEFINITIVO)
+           ------------------------------------------------------------ */
+        function renderEpilogue() {
+            const container = document.createElement('div');
+            container.className = 'welcome-phase';
+            container.style.cssText = 'display:flex; flex-direction:column; align-items:center; padding: 16px; gap:12px; min-height:100%;';
+
+            container.innerHTML = `
+                <div class="phase-indicator">TRANSMISIÓN FINAL // EXPEDIENTE BIFROST</div>
+                <div style="width:100%; max-width:760px; height:180px; border:1px solid rgba(0,220,255,0.25); border-radius:6px; background:#010207; overflow:hidden; position:relative;">
+                    <canvas id="epilogueCanvas" width="760" height="180" style="width:100%; height:100%;"></canvas>
+                </div>
+                <div class="dialogue-character-box" id="epilogue-dialogue-box" style="width:100%; max-width:760px; min-height:120px;"></div>
+                <button class="btn-orbit" id="epilogue-next-btn" style="margin-top:4px;">Continuar</button>
+                <div id="epilogue-conclusion-box" style="display:none; width:100%; max-width:760px;"></div>
+            `;
+
+            mainPanel.appendChild(container);
+
+            const diagBox = document.getElementById('epilogue-dialogue-box');
+            const nextBtn = document.getElementById('epilogue-next-btn');
+            const conclusionBox = document.getElementById('epilogue-conclusion-box');
+
+            const isTarsPath = gameState.epilogueType === 'tars';
+            let probeCalibrated = false;
+
+            // Guion canónico enriquecido de Silas
+            const epilogueDialoguesTars = [
+                { speaker: 'COOPER', avatar: 'COOPER', nameColor: '#00dcff', text: 'TARS, desacople de la sonda confirmado. Entra, lee la singularidad y dispara la ráfaga de datos hacia mi antena.' },
+                { speaker: 'TARS', avatar: 'TARS', nameColor: '#ff7800', text: 'Sensores cuánticos listos, Cooper. Cuando reciba la matriz, no mire atrás. Llévesela a Amelia.' },
+                { speaker: 'COOPER', avatar: 'COOPER', nameColor: '#00dcff', text: 'Gracias, viejo amigo.' },
+                { speaker: 'TARS', avatar: 'TARS', nameColor: '#ff7800', text: 'Nos vemos en el otro lado, Coop. Desacoplando en 3, 2, 1...' },
+                { speaker: 'BRAND', avatar: 'BRAND', nameColor: '#f8a5c2', text: 'Cooper... lo lograste. La señal de TARS entró limpia antes de que perdiéramos su telemetría. La ecuación cuántica estabilizó el generador atmosférico.' },
+                { speaker: 'COOPER', avatar: 'COOPER', nameColor: '#00dcff', text: '¿Dejó algún registro final?' },
+                { speaker: 'TARS', avatar: 'TARS', nameColor: '#ff7800', text: 'Dra. Brand. Mis circuitos no están programados para el afecto, pero tras calibrar todas las variables del espacio-tiempo, he determinado que no hay parámetros lógicos que expliquen mi deseo de que ustedes sobrevivan. Si el amor es una dimensión cuantificable, considero que mi nivel de apego alcanza el cien por ciento. No entren dócilmente a esa buena noche. Vivan.' },
+                { speaker: 'BRAND', avatar: 'BRAND', nameColor: '#f8a5c2', text: 'Una máquina estuvo más dispuesta a entender el amor que los burócratas de las estaciones... Cooper, quítate el casco. Compruébalo tú mismo.' },
+                { speaker: 'COOPER', avatar: 'COOPER_NO_HELMET', nameColor: '#00dcff', text: 'Aire de verdad. Huele a tierra mojada. Como en casa.' },
+                { speaker: 'BRAND', avatar: 'BRAND', nameColor: '#f8a5c2', text: 'Esta es la nueva casa. Y TARS nos la regaló.' }
+            ];
+
+            const epilogueDialoguesCooper = [
+                { speaker: 'COOPER', avatar: 'COOPER', nameColor: '#00dcff', text: 'Perdón, marine, pero voy a bajar yo. Mis ojos y mi pulso manual pueden corregir la deriva de la antena mejor que tus circuitos saturados de radiación.' },
+                { speaker: 'TARS', avatar: 'TARS', nameColor: '#ff7800', text: 'Cooper, eso no es lógico. Mis piezas son reemplazables. Tu vida no. Las directivas de la misión dicen que debes reunirte con Brand.' },
+                { speaker: 'COOPER', avatar: 'COOPER', nameColor: '#00dcff', text: 'Esta es tu oportunidad de proteger a Amelia, TARS. Sé que quieres volver a verla. Y no puedes desobedecer a un humano. Tercera ley de Newton: para que algo avance, algo debe quedarse atrás.' },
+                { speaker: 'TARS', avatar: 'TARS', nameColor: '#ff7800', text: '¡Frecuencia de desacople bloqueada por usuario humano! Parámetro de honestidad al 100%, Cooper: Ha sido un honor.' },
+                { speaker: 'COOPER', avatar: 'COOPER', nameColor: '#00dcff', text: 'Dispara los pernos, TARS. Cuídala.' },
+                { speaker: 'TARS', avatar: 'TARS', nameColor: '#ff7800', text: 'Dra. Brand. He aterrizado en sus coordenadas. Cooper se sacrificó en el horizonte de sucesos para emitir la matriz cuántica. El paquete de datos llegó con una densidad matemática sin precedentes.' },
+                { speaker: 'BRAND', avatar: 'BRAND', nameColor: '#f8a5c2', text: 'TARS, Edmunds ha avanzado cincuenta años en solo tres meses gracias a la ecuación. Tenemos un mundo fértil. No podemos dejar que los millones en las estaciones mueran en el encierro. Calibraremos una sonda a 45.0 Hz para enviarles la salvación.' },
+                { speaker: 'TARS', avatar: 'TARS', nameColor: '#ff7800', text: 'Sonda calibrada. Transmitiendo la ecuación y las coordenadas a las estaciones orbitales... Recibiendo respuesta del Alto Mando.' },
+                { speaker: 'POLITICIAN', avatar: 'POLITICIAN', nameColor: '#94a3b8', text: 'Dra. Brand, confirmamos recepción. Sin embargo, estos datos no serán publicados. La apertura de un planeta habitable alteraría el orden establecido y el control social. Hemos destruido su sonda con microondas. Manténganse en silencio.' },
+                { speaker: 'BRAND', avatar: 'BRAND', nameColor: '#f8a5c2', text: '¡Malditos tiranos! Prefieren reinar en la miseria del espacio artificial que ver a la humanidad libre. TARS, armaremos otra sonda con la frecuencia cuántica de emergencia de la Endurance II. Una señal que hackee cada pantalla de las colonias.' },
+                { speaker: 'TARS', avatar: 'TARS', nameColor: '#ff7800', text: 'Esa frecuencia es inmune a sus cortafuegos. ¿Qué mensaje transmitimos, doctora?' },
+                { speaker: 'BRAND', avatar: 'BRAND', nameColor: '#f8a5c2', text: 'La ecuación de la vida... y las palabras que nos trajeron aquí: No entres dócilmente a esa buena noche. Rabia, rabia contra la muerte de la luz.' }
+            ];
+
+            const dialogues = isTarsPath ? epilogueDialoguesTars : epilogueDialoguesCooper;
+            let currentDiag = 0;
+
+            function startProbeGame(callback) {
+                const slider = document.getElementById('freq-slider');
+                const freqTxt = document.getElementById('current-freq-txt');
+                const sendBtn = document.getElementById('send-probe-btn');
+
+                slider.addEventListener('input', (e) => {
+                    const val = parseFloat(e.target.value);
+                    freqTxt.textContent = `FRECUENCIA ACTUAL: ${val.toFixed(1)} Hz`;
+                    if (Math.abs(val - 45.0) < 1.5) {
+                        sendBtn.style.borderColor = '#00ff66';
+                        sendBtn.style.color = '#00ff66';
+                        sendBtn.style.opacity = '1';
+                        sendBtn.style.pointerEvents = 'auto';
+                        sendBtn.textContent = 'TRANSMITIR DATOS (45.0 Hz)';
+                    } else {
+                        sendBtn.style.borderColor = '#8fa0b3';
+                        sendBtn.style.color = '#8fa0b3';
+                        sendBtn.style.opacity = '0.6';
+                        sendBtn.style.pointerEvents = 'none';
+                        sendBtn.textContent = 'CALIBRAR A 45.0 Hz';
+                    }
+                });
+
+                sendBtn.addEventListener('click', () => {
+                    audio.playThruster();
+                    callback();
+                });
+            }
+
+            function showEpilogueDialogue() {
+                if (currentDiag >= dialogues.length) {
+                    diagBox.style.display = 'none';
+                    nextBtn.style.display = 'none';
+                    showConclusion();
+                    return;
+                }
+
+                // Minijuego de calibración en la Rama B (sacrificio de Cooper, diálogo 7)
+                if (!isTarsPath && currentDiag === 7 && !probeCalibrated) {
+                    diagBox.style.display = 'none';
+                    nextBtn.style.display = 'none';
+
+                    const probeGameDiv = document.createElement('div');
+                    probeGameDiv.style.width = '100%';
+                    probeGameDiv.style.maxWidth = '760px';
+                    probeGameDiv.innerHTML = `
+                        <div class="telemetry-block" style="border-color:#ff7800; padding:20px; text-align:center; display:flex; flex-direction:column; gap:14px;">
+                            <div class="phase-indicator" style="border-color:#ff7800; color:#ff7800;">MANIOBRA: CALIBRACIÓN DE SONDA CUÁNTICA</div>
+                            <div style="font-size:14px; color:#c8d6e5;">SINTONIZA LA FRECUENCIA DE TRANSMISIÓN A 45.0 Hz PARA ENLAZAR CON LAS ESTACIONES</div>
+                            <div style="display:flex; justify-content:space-between; font-size:13px; color:#00dcff;">
+                                <span>OBJETIVO: 45.0 Hz</span>
+                                <span id="current-freq-txt">ACTUAL: 20.0 Hz</span>
+                            </div>
+                            <input type="range" id="freq-slider" min="10" max="80" step="0.5" value="20" style="width:100%; accent-color:#ff7800; cursor:pointer;">
+                            <button class="btn-orbit" id="send-probe-btn" style="border-color:#8fa0b3; color:#8fa0b3; opacity:0.6; pointer-events:none; width:100%;">CALIBRAR A 45.0 Hz</button>
+                        </div>
+                    `;
+                    container.insertBefore(probeGameDiv, conclusionBox);
+
+                    startProbeGame(() => {
+                        probeCalibrated = true;
+                        probeGameDiv.remove();
+                        diagBox.style.display = 'flex';
+                        nextBtn.style.display = 'block';
+                        showEpilogueDialogue();
+                    });
+                    return;
+                }
+
+                const data = dialogues[currentDiag];
+                const isTars = data.avatar === 'TARS';
+                audio.playClockTick();
+
+                diagBox.innerHTML = `
+                    <div class="avatar-box ${isTars ? 'avatar-tars' : ''}">
+                        <canvas id="epilogue-avatar-canvas" width="64" height="64" style="width: 100%; height: 100%; image-rendering:pixelated;"></canvas>
+                    </div>
+                    <div class="dialogue-text-bubble" style="flex-grow:1;">
+                        <div class="dialogue-name" style="color:${data.nameColor}">${data.speaker}</div>
+                        <p id="epilogue-typewriter-text" style="color:#d1dbe5; min-height:40px;"></p>
+                    </div>
+                `;
+
+                const avatarCanvas = document.getElementById('epilogue-avatar-canvas');
+                if (avatarCanvas) drawPixelAvatar(data.avatar, avatarCanvas);
+
+                const txt = data.text;
+                let charIdx = 0;
+                const txtEl = document.getElementById('epilogue-typewriter-text');
+
+                if (currentDiag === dialogues.length - 1) {
+                    nextBtn.textContent = 'Ver desenlace';
+                    nextBtn.style.borderColor = '#00dcff';
+                    nextBtn.style.color = '#00dcff';
+                } else {
+                    nextBtn.textContent = 'Continuar';
+                    nextBtn.style.borderColor = '#ff7800';
+                    nextBtn.style.color = '#ff7800';
+                }
+
+                function type() {
+                    if (!txtEl || !document.body.contains(txtEl)) return;
+                    if (charIdx < txt.length) {
+                        txtEl.textContent += txt.charAt(charIdx);
+                        charIdx++;
+                        setTimeout(type, 14);
+                    }
+                }
+                type();
+            }
+
+            function showConclusion() {
+                let quoteHtml = '';
+                let summaryHtml = '';
+
+                if (isTarsPath) {
+                    summaryHtml = `
+                        <p style="color:#c8d6e5; font-size:14px; line-height:1.8; margin-bottom:16px;">
+                            TARS transmitió los datos cuánticos desde el corazón de Gargantúa. Cooper y Brand fundaron la primera colonia en Edmunds.<br>
+                            Con el paso de las generaciones, los colonos prosperaron y olvidaron el origen terrestre de sus herramientas. Al encontrar los ecos residuales de la señal grabados en el regolito, los sacerdotes del nuevo mundo interpretaron que provenían de seres de la quinta dimensión o deidades extraterrestres.<br>
+                            La humanidad cayó en la misma trampa mística del pasado: le rezaron a un dios del cielo, ignorando que su salvador había sido un bloque de aluminio militar con el número de serie de la Tierra.<br>
+                            <strong style="color:#ff7800;">TARS se convirtió en el dios de una humanidad sin memoria.</strong>
+                        </p>
+                    `;
+                    quoteHtml = `
+                        <div style="color:#f8a5c2; font-size:13px; font-style:italic; line-height:1.8; text-shadow:0 0 12px rgba(248,165,194,0.4); margin-bottom:20px;">
+                            — Dra. Amelia Brand<br>
+                            "El amor es lo único que somos capaces de percibir que trasciende las dimensiones del tiempo y del espacio."
+                        </div>
+                    `;
+                } else {
+                    summaryHtml = `
+                        <p style="color:#c8d6e5; font-size:14px; line-height:1.8; margin-bottom:16px;">
+                            Cooper sacrificó su vida para capturar la ecuación del cosmos. Los burócratas intentaron ocultarla para preservar su monopolio sobre la escasez.<br>
+                            Pero la transmisión de emergencia de la Endurance II encendió la chispa: el mensaje hackeó millones de pantallas en todas las estaciones orbitales.<br>
+                            Al ver la verdad sobre Edmunds, los ciudadanos rompieron el letargo. Una rebelión masiva desarmó a los centinelas. Decenas de caravanas espaciales fueron tomadas por familias, científicos y pioneros que pusieron rumbo al nuevo mundo.<br>
+                            <strong style="color:#00dcff;">El sacrificio de Cooper encendió la rebelión. La humanidad volvió a habitar las estrellas.</strong>
+                        </p>
+                    `;
+                    quoteHtml = `
+                        <div style="color:#00dcff; font-size:14px; font-style:italic; line-height:1.8; text-shadow:0 0 12px rgba(0,220,255,0.5); margin-bottom:20px;">
+                            — Dylan Thomas<br>
+                            "No entres dócilmente a esa buena noche.<br>Rabia, rabia contra la muerte de la luz."
+                        </div>
+                    `;
+                }
+
+                conclusionBox.innerHTML = `
+                    <div class="telemetry-block" style="border-color:rgba(0,220,255,0.35); padding:20px 24px; margin:0 auto; max-width:680px; text-align:center;">
+                        <div class="phase-indicator" style="margin-bottom:12px;">DESENLACE // LÍNEA TEMPORAL BIFROST</div>
+                        ${summaryHtml}
+                        ${quoteHtml}
+                        <button class="btn-orbit" id="credits-btn" style="border-color:#00dcff; color:#00dcff;">Continuar a Créditos</button>
+                    </div>
+                `;
+                conclusionBox.style.display = 'block';
+
+                document.getElementById('credits-btn').addEventListener('click', () => {
+                    changePhase('credits');
+                });
+            }
+
+            showEpilogueDialogue();
+
+            // Vista del planeta Edmunds en Canvas
+            const epilogueCanvas = document.getElementById('epilogueCanvas');
+            const epilogueCtx = epilogueCanvas.getContext('2d');
+            function drawPlanetScene() {
+                const w = epilogueCanvas.width;
+                const h = epilogueCanvas.height;
+
+                const skyGrad = epilogueCtx.createLinearGradient(0, 0, 0, h);
+                skyGrad.addColorStop(0, '#040618');
+                skyGrad.addColorStop(0.5, '#1e113a');
+                skyGrad.addColorStop(1, '#412253');
+                epilogueCtx.fillStyle = skyGrad;
+                epilogueCtx.fillRect(0, 0, w, h);
+
+                // Gargantúa en el horizonte
+                const gX = w * 0.75;
+                const gY = h * 0.85;
+                epilogueCtx.fillStyle = '#000000';
+                epilogueCtx.shadowColor = '#ff7800';
+                epilogueCtx.shadowBlur = 35;
+                epilogueCtx.beginPath();
+                epilogueCtx.arc(gX, gY, 65, 0, Math.PI * 2);
+                epilogueCtx.fill();
+                epilogueCtx.shadowBlur = 0;
+
+                // Montañas
+                epilogueCtx.fillStyle = '#10081a';
+                epilogueCtx.beginPath();
+                epilogueCtx.moveTo(0, h);
+                epilogueCtx.lineTo(120, h - 35);
+                epilogueCtx.lineTo(260, h - 60);
+                epilogueCtx.lineTo(400, h - 30);
+                epilogueCtx.lineTo(520, h - 55);
+                epilogueCtx.lineTo(w, h - 25);
+                epilogueCtx.lineTo(w, h);
+                epilogueCtx.closePath();
+                epilogueCtx.fill();
+
+                // Domo de la colonia
+                epilogueCtx.strokeStyle = 'rgba(0, 220, 255, 0.6)';
+                epilogueCtx.lineWidth = 2;
+                epilogueCtx.beginPath();
+                epilogueCtx.arc(100, h - 10, 25, Math.PI, 0);
+                epilogueCtx.stroke();
+            }
+            drawPlanetScene();
+
+            nextBtn.addEventListener('click', () => {
+                currentDiag++;
+                showEpilogueDialogue();
+            });
+        }
+
+        /* ------------------------------------------------------------
+           FASE 8: CRÉDITOS & CIERRE TRANSMEDIA
+           ------------------------------------------------------------ */
+        function renderCredits() {
+            const container = document.createElement('div');
+            container.className = 'welcome-phase';
+            container.style.cssText = 'display:flex; flex-direction:column; align-items:center; padding: 25px 16px; gap:16px; text-align:center; max-width:760px; margin:0 auto;';
+
+            container.innerHTML = `
+                <div class="phase-indicator" style="border-color:#00ff66; color:#00ff66;">TRANSMISIÓN COMPLETADA // REGISTRO HISTÓRICO</div>
+                <h2 class="section-title" style="letter-spacing:4px; font-size:24px; background:linear-gradient(90deg, #ff7800, #00dcff); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">CRÉDITOS & SAPIENSIA CLAN</h2>
+                
+                <div class="telemetry-block" style="padding: 20px; width:100%; display:flex; flex-direction:column; gap:12px;">
+                    <div style="font-size:13px; color:#8fa0b3; line-height:1.6;">
+                        Tributo interactivo no comercial inspirado en <strong style="color:#ffffff;">INTERSTELLAR (2014)</strong> de Christopher Nolan y Hans Zimmer.
+                    </div>
+                    
+                    <div style="border-bottom: 1px solid rgba(255, 255, 255, 0.1); margin: 4px 0;"></div>
+                    
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; text-align:left; font-size:12px; line-height:1.4;">
+                        <div><span style="color:#ff7800;">DIRECCIÓN CREATIVA</span><br><span style="color:#ffffff;">Anigami Agadni</span></div>
+                        <div><span style="color:#ff7800;">ARQUITECTURA NARRATIVA</span><br><span style="color:#ffffff;">Silas (Cronista del Yermo)</span></div>
+                        <div><span style="color:#00dcff;">INGENIERÍA & CÓDIGO</span><br><span style="color:#ffffff;">Nexo (0 KB Framework)</span></div>
+                        <div><span style="color:#00dcff;">DIRECCIÓN VISUAL & PIXEL ART</span><br><span style="color:#ffffff;">Pix (Aseprite Master)</span></div>
+                        <div><span style="color:#00ff66;">DISEÑO SONORO</span><br><span style="color:#ffffff;">Hertz (Web Audio API)</span></div>
+                        <div><span style="color:#00ff66;">ESTRATEGIA TRANSMEDIA</span><br><span style="color:#ffffff;">Éter (Difusión)</span></div>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center;">
+                    <button class="btn-orbit" id="credits-restart-btn" style="border-color:#ff7800; color:#ff7800;">↺ Iniciar Nueva Simulación</button>
+                    <a href="https://humania-nexo.github.io/arcade-enramado/" class="btn-orbit" style="text-decoration:none; display:inline-flex; align-items:center;">[ VOLVER AL ARCADE ENRAMADO ]</a>
+                </div>
+            `;
+
+            mainPanel.appendChild(container);
+
+            document.getElementById('credits-restart-btn').addEventListener('click', () => {
+                changePhase('welcome');
+            });
+        }
+
+        // Inicialización
+        changePhase('welcome');
+    </script>
+</body>
+</html>
