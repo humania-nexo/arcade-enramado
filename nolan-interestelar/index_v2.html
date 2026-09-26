@@ -2593,6 +2593,9 @@
                 slider.addEventListener('input', (e) => {
                     const val = parseFloat(e.target.value);
                     freqTxt.textContent = `FRECUENCIA ACTUAL: ${val.toFixed(1)} Hz`;
+                    if (audio && audio.playProbeCalibration) {
+                        audio.playProbeCalibration(val);
+                    }
                     if (Math.abs(val - 45.0) < 1.5) {
                         sendBtn.style.borderColor = '#00ff66';
                         sendBtn.style.color = '#00ff66';
@@ -2609,7 +2612,11 @@
                 });
 
                 sendBtn.addEventListener('click', () => {
-                    audio.playThruster();
+                    if (audio && audio.playProbeTransmitted) {
+                        audio.playProbeTransmitted();
+                    } else {
+                        audio.playThruster();
+                    }
                     callback();
                 });
             }
