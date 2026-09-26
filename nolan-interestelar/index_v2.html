@@ -1386,10 +1386,47 @@
             let soundRipples = [];
 
             const initialGuards = [
-                { x: 100, y: 80, startX: 100, endX: 400, speed: 1.6, dir: 1, angle: 0, sweepRange: Math.PI / 3, sweepSpeed: 0.02, sweepAngle: 0, fovOuter: Math.PI / 3, fovCore: Math.PI / 6, rangeOuter: 200, rangeCore: 90 },
-                { x: 500, y: 380, startX: 200, endX: 680, speed: 2.0, dir: -1, angle: Math.PI, sweepRange: Math.PI / 3, sweepSpeed: 0.025, sweepAngle: 0, fovOuter: Math.PI / 3.5, fovCore: Math.PI / 7, rangeOuter: 210, rangeCore: 95 },
-                { x: 600, y: 150, startY: 80, endY: 350, speed: 1.4, dir: 1, angle: Math.PI / 2, sweepRange: Math.PI / 4, sweepSpeed: 0.015, sweepAngle: 0, fovOuter: Math.PI / 4, fovCore: Math.PI / 8, rangeOuter: 180, rangeCore: 85, isVertical: true },
-                { x: 480, y: 230, angle: 0, speed: 0.008, fovOuter: Math.PI / 3.5, fovCore: Math.PI / 7, rangeOuter: 190, rangeCore: 90, isTurret: true }
+                // Guardia 1: Corredor Superior Norte (Despejado en Row 1, $y=75$)
+                { 
+                    x: 100, y: 75, 
+                    startX: 80, endX: 380, 
+                    speed: 1.5, dir: 1, 
+                    angle: 0, 
+                    sweepRange: Math.PI / 3, sweepSpeed: 0.02, sweepAngle: 0, 
+                    fovOuter: Math.PI / 3, fovCore: Math.PI / 6, 
+                    rangeOuter: 190, rangeCore: 85 
+                },
+                // Guardia 2: Pasillo Inferior Sur (Despejado en Row 8, $y=425$)
+                { 
+                    x: 350, y: 425, 
+                    startX: 275, endX: 520, 
+                    speed: 1.5, dir: 1, 
+                    angle: 0, 
+                    sweepRange: Math.PI / 3.5, sweepSpeed: 0.022, sweepAngle: 0, 
+                    fovOuter: Math.PI / 3.5, fovCore: Math.PI / 7, 
+                    rangeOuter: 190, rangeCore: 85 
+                },
+                // Guardia 3: Corredor Este (Completamente despejado vertical en Col 14, $x=725$)
+                { 
+                    x: 725, y: 100, 
+                    startY: 80, endY: 410, 
+                    speed: 1.6, dir: 1, 
+                    angle: Math.PI / 2, 
+                    sweepRange: Math.PI / 4, sweepSpeed: 0.018, sweepAngle: 0, 
+                    fovOuter: Math.PI / 3.8, fovCore: Math.PI / 7.5, 
+                    rangeOuter: 190, rangeCore: 85, 
+                    isVertical: true 
+                },
+                // Guardia 4: Torreta Centinela Elevada Central (Sobre el muro en Col 9, Row 4)
+                { 
+                    x: 475, y: 225, 
+                    angle: 0, 
+                    speed: 0.010, 
+                    fovOuter: Math.PI / 3, fovCore: Math.PI / 6.5, 
+                    rangeOuter: 250, rangeCore: 105, 
+                    isTurret: true, 
+                    isElevated: true 
+                }
             ];
 
             const wallSegments = [];
@@ -1407,10 +1444,18 @@
                     }
                 }
             }
+            // Límites del canvas
             wallSegments.push({ p1: { x: 0, y: 0 }, p2: { x: canvas.width, y: 0 } });
             wallSegments.push({ p1: { x: 0, y: canvas.height }, p2: { x: canvas.width, y: canvas.height } });
             wallSegments.push({ p1: { x: 0, y: 0 }, p2: { x: 0, y: canvas.height } });
             wallSegments.push({ p1: { x: canvas.width, y: 0 }, p2: { x: canvas.width, y: canvas.height } });
+
+            const perimeterSegments = [
+                { p1: { x: 0, y: 0 }, p2: { x: canvas.width, y: 0 } },
+                { p1: { x: 0, y: canvas.height }, p2: { x: canvas.width, y: canvas.height } },
+                { p1: { x: 0, y: 0 }, p2: { x: 0, y: canvas.height } },
+                { p1: { x: canvas.width, y: 0 }, p2: { x: canvas.width, y: canvas.height } }
+            ];
 
             function getIntersection(p1, p2, p3, p4) {
                 const s1_x = p2.x - p1.x;
@@ -1427,7 +1472,8 @@
                 return null;
             }
 
-            function hasLineOfSight(pStart, pEnd) {
+            function hasLineOfSight(pStart, pEnd, isElevated = false) {
+                if (isElevated) return true; // El centinela elevado en la torre ve sobre los tabiques interiores
                 for (let seg of wallSegments) {
                     const intersect = getIntersection(pStart, pEnd, seg.p1, seg.p2);
                     if (intersect && intersect.t > 0.005 && intersect.t < 0.995) return false;
@@ -1612,7 +1658,7 @@
 
                         const absDiff = Math.abs(diff);
 
-                        if (hasLineOfSight({ x: g.x, y: g.y }, { x: player.x, y: player.y })) {
+                        if (hasLineOfSight({ x: g.x, y: g.y }, { x: player.x, y: player.y }, g.isElevated)) {
                             // Zona 2 (Core / Visión Directa)
                             if (dist <= g.rangeCore && absDiff < g.fovCore / 2) {
                                 isFailed = true;
@@ -1664,18 +1710,14 @@
                             ctx.strokeStyle = '#1e293b';
                             ctx.strokeRect(x, y, cellSize, cellSize);
                         } else if (val === 3) {
+                            // Esclusa de acceso al Hangar Principal (Llegada sin nave)
                             ctx.fillStyle = 'rgba(0, 255, 100, 0.15)';
                             ctx.fillRect(x, y, cellSize, cellSize);
                             ctx.strokeStyle = '#00ff66';
+                            ctx.lineWidth = 1.5;
                             ctx.strokeRect(x, y, cellSize, cellSize);
                         }
                     }
-                }
-
-                // Zona de Extracción / Ranger en Pixel Art
-                if (spriteCache.sprite_ranger_ship.complete && spriteCache.sprite_ranger_ship.naturalWidth !== 0) {
-                    ctx.imageSmoothingEnabled = false;
-                    ctx.drawImage(spriteCache.sprite_ranger_ship, 300 - 24, 25 - 16, 48, 32);
                 }
 
                 // Ondas de Ruido
@@ -1690,8 +1732,10 @@
                 // Guardias y Conos de Visión con Raycasting 2D Ocluido por Paredes
                 guards.forEach(g => {
                     const numRays = 36;
+                    // El centinela elevado en la torre no se ocluye con los tabiques interiores bajos
+                    const targetSegments = g.isElevated ? perimeterSegments : wallSegments;
                     
-                    // 1. Cono Periférico (Zona 1: Ámbar / Cian según estado)
+                    // 1. Cono Periférico (Zona 1: Ámbar / Cian / Torreta según estado)
                     const rayPointsOuter = [{ x: g.x, y: g.y }];
                     const startAngleOuter = g.lookAngle - g.fovOuter / 2;
                     const angleStepOuter = g.fovOuter / numRays;
@@ -1704,7 +1748,7 @@
                         let closestT = 1.0;
                         let intersectPoint = null;
 
-                        for (let seg of wallSegments) {
+                        for (let seg of targetSegments) {
                             const pt = getIntersection({ x: g.x, y: g.y }, { x: rayEndX, y: rayEndY }, seg.p1, seg.p2);
                             if (pt && pt.t < closestT) {
                                 closestT = pt.t;
@@ -1736,6 +1780,10 @@
                         gradOuter.addColorStop(0, 'rgba(255, 140, 0, 0.40)');
                         gradOuter.addColorStop(0.5, 'rgba(255, 140, 0, 0.18)');
                         gradOuter.addColorStop(1, 'rgba(255, 140, 0, 0.0)');
+                    } else if (g.isElevated) {
+                        gradOuter.addColorStop(0, 'rgba(255, 210, 80, 0.42)');
+                        gradOuter.addColorStop(0.5, 'rgba(255, 180, 50, 0.18)');
+                        gradOuter.addColorStop(1, 'rgba(255, 180, 50, 0.0)');
                     } else {
                         gradOuter.addColorStop(0, 'rgba(0, 220, 255, 0.35)');
                         gradOuter.addColorStop(0.5, 'rgba(0, 220, 255, 0.14)');
@@ -1757,7 +1805,7 @@
                         let closestT = 1.0;
                         let intersectPoint = null;
 
-                        for (let seg of wallSegments) {
+                        for (let seg of targetSegments) {
                             const pt = getIntersection({ x: g.x, y: g.y }, { x: rayEndX, y: rayEndY }, seg.p1, seg.p2);
                             if (pt && pt.t < closestT) {
                                 closestT = pt.t;
@@ -1794,7 +1842,7 @@
                     ctx.fill();
 
                     // Borde del haz de luz
-                    ctx.strokeStyle = g.state === 'ALERT' ? 'rgba(255, 50, 50, 0.4)' : (g.state === 'SUSPICIOUS' ? 'rgba(255, 140, 0, 0.35)' : 'rgba(0, 220, 255, 0.3)');
+                    ctx.strokeStyle = g.state === 'ALERT' ? 'rgba(255, 50, 50, 0.4)' : (g.state === 'SUSPICIOUS' ? 'rgba(255, 140, 0, 0.35)' : (g.isElevated ? 'rgba(255, 210, 80, 0.4)' : 'rgba(0, 220, 255, 0.3)'));
                     ctx.lineWidth = 1;
                     ctx.beginPath();
                     ctx.moveTo(rayPointsOuter[0].x, rayPointsOuter[0].y);
@@ -1803,11 +1851,33 @@
                     ctx.lineTo(rayPointsOuter[rayPointsOuter.length - 1].x, rayPointsOuter[rayPointsOuter.length - 1].y);
                     ctx.stroke();
 
-                    // Sprite de Guardia en Pixel Art con rotación direccional
+                    // Renderizado del Guardia / Torreta Centinela
                     ctx.save();
                     ctx.translate(g.x, g.y);
                     ctx.rotate(g.lookAngle + Math.PI / 2);
-                    if (spriteCache.sprite_guard_security.complete && spriteCache.sprite_guard_security.naturalWidth !== 0) {
+
+                    if (g.isElevated) {
+                        // Torreta Centinela Elevada sobre el muro central
+                        ctx.fillStyle = '#020617';
+                        ctx.beginPath();
+                        ctx.arc(0, 0, 11, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        ctx.strokeStyle = '#00dcff';
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+
+                        // Cañón / Faro reflector
+                        ctx.fillStyle = g.state === 'SUSPICIOUS' ? '#ff7800' : (g.state === 'ALERT' ? '#ff3838' : '#ffc800');
+                        ctx.beginPath();
+                        ctx.arc(0, -7, 5, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        ctx.fillStyle = '#ffffff';
+                        ctx.beginPath();
+                        ctx.arc(0, -7, 2, 0, Math.PI * 2);
+                        ctx.fill();
+                    } else if (spriteCache.sprite_guard_security.complete && spriteCache.sprite_guard_security.naturalWidth !== 0) {
                         ctx.imageSmoothingEnabled = false;
                         ctx.drawImage(spriteCache.sprite_guard_security, -16, -16, 32, 32);
                     } else {
